@@ -264,8 +264,6 @@ export class WordStateManager {
    */
   async getWordsDueForReview(userId: string): Promise<any[]> {
     try {
-      const today = new Date().toISOString().split('T')[0];
-      
       const { data, error } = await this.supabase
         .from('user_progress')
         .select(`
@@ -285,7 +283,6 @@ export class WordStateManager {
         `)
         .eq('user_id', userId)
         .eq('state', 'ready')
-        .lte('next_review_date', today)
         .order('next_review_date', { ascending: true });
 
       if (error) {

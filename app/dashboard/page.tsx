@@ -127,11 +127,7 @@ export default function Dashboard() {
 
       // Calculate stats
       const activePool = progress?.filter(p => p.state === 'started').length || 0;
-      const reviewsDue = progress?.filter(p => 
-        p.state === 'ready' && 
-        p.next_review_date && 
-        new Date(p.next_review_date) <= new Date()
-      ).length || 0;
+      const reviewsDue = progress?.filter(p => p.state === 'ready').length || 0;
       const mastered = progress?.filter(p => p.state === 'mastered').length || 0;
       
       // Calculate tier progress
