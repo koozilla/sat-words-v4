@@ -6,14 +6,15 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { WordStateManager } from '@/lib/word-state-manager';
 import { 
   ArrowLeft, 
-  Plus, 
+  Minus, 
   Search, 
   Filter,
   BookOpen,
   Star,
   Target,
   CheckCircle,
-  XCircle
+  XCircle,
+  Trash2
 } from 'lucide-react';
 
 interface Word {
@@ -29,19 +30,29 @@ interface Word {
   example_sentence?: string;
 }
 
-interface UserProgress {
-  word_id: string;
-  state: 'not_started' | 'learning' | 'reviewing' | 'mastered';
+interface StartedWord {
+  id: string;
+  word: string;
+  definition: string;
+  part_of_speech: string;
+  tier: string;
+  difficulty: string;
+  image_url?: string;
+  synonyms?: string[];
+  antonyms?: string[];
+  example_sentence?: string;
+  progress_id: string;
+  study_streak: number;
+  review_streak: number;
+  last_studied: string | null;
 }
 
 export default function WordsPage() {
-  const [words, setWords] = useState<Word[]>([]);
-  const [userProgress, setUserProgress] = useState<UserProgress[]>([]);
+  const [startedWords, setStartedWords] = useState<StartedWord[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTier, setSelectedTier] = useState('All');
   const [selectedDifficulty, setSelectedDifficulty] = useState('All');
-  const [activePoolCount, setActivePoolCount] = useState(0);
   const [wordStateManager] = useState(() => new WordStateManager());
   const router = useRouter();
   const supabase = createClientComponentClient();
@@ -50,86 +61,123 @@ export default function WordsPage() {
   const difficulties = ['All', 'Easy', 'Medium', 'Hard'];
 
   useEffect(() => {
-    loadWords();
+    loadStartedWords();
   }, []);
 
-  const loadWords = async () => {
+  const loadStartedWords = async () => {
     try {
-      // Load words from database
-      const { data: words, error } = await supabase
-        .from('words')
-        .select('*')
-        .order('tier', { ascending: true })
-        .order('word', { ascending: true });
-
-      if (error) {
-        console.error('Error loading words:', error);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.log('No user found, using test user for demo');
+        const testUserId = '11111111-1111-1111-1111-111111111111';
+        await loadStartedWordsForUser(testUserId);
         return;
       }
 
-      // Load user progress to get active pool count
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: progress } = await supabase
-          .from('user_progress')
-          .select('state')
-          .eq('user_id', user.id)
-          .eq('state', 'started');
-        
-        setActivePoolCount(progress?.length || 0);
-      } else {
-        setActivePoolCount(0);
-      }
-
-      setWords(words || []);
+      await loadStartedWordsForUser(user.id);
     } catch (error) {
-      console.error('Error loading words:', error);
+      console.error('Error loading started words:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const addToActivePool = async (wordId: string) => {
+  const loadStartedWordsForUser = async (userId: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        console.error('User not authenticated');
+      // Load only words that are in 'started' state
+      const { data: startedWordsData, error } = await supabase
+        .from('user_progress')
+        .select(`
+          id,
+          study_streak,
+          review_streak,
+          last_studied,
+          words:word_id (
+            id,
+            word,
+            definition,
+            part_of_speech,
+            tier,
+            difficulty,
+            image_urls,
+            synonyms,
+            antonyms,
+            example_sentence
+          )
+        `)
+        .eq('user_id', userId)
+        .eq('state', 'started')
+        .order('last_studied', { ascending: false });
+
+      if (error) {
+        console.error('Error loading started words:', error);
         return;
       }
 
-      const success = await wordStateManager.addToActivePool(user.id, wordId);
-      if (success) {
-        setActivePoolCount(prev => prev + 1);
-        console.log('Word added to active pool successfully');
-      } else {
-        console.error('Failed to add word to active pool');
-      }
+      // Transform the data to match our interface
+      const transformedWords: StartedWord[] = startedWordsData?.map(item => ({
+        id: item.words.id,
+        word: item.words.word,
+        definition: item.words.definition,
+        part_of_speech: item.words.part_of_speech,
+        tier: item.words.tier,
+        difficulty: item.words.difficulty,
+        image_url: item.words.image_urls?.[0],
+        synonyms: item.words.synonyms || [],
+        antonyms: item.words.antonyms || [],
+        example_sentence: item.words.example_sentence,
+        progress_id: item.id,
+        study_streak: item.study_streak,
+        review_streak: item.review_streak,
+        last_studied: item.last_studied
+      })) || [];
+
+      setStartedWords(transformedWords);
     } catch (error) {
-      console.error('Error adding word to active pool:', error);
+      console.error('Error loading started words for user:', error);
     }
   };
 
-  const removeFromActivePool = async (wordId: string) => {
+  const removeFromStarted = async (wordId: string) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        console.error('User not authenticated');
+        console.log('No user found, using test user for demo');
+        const testUserId = '11111111-1111-1111-1111-111111111111';
+        await removeWordFromStarted(testUserId, wordId);
         return;
       }
 
-      const success = await wordStateManager.removeFromActivePool(user.id, wordId);
-      if (success) {
-        setActivePoolCount(prev => Math.max(0, prev - 1));
-        console.log('Word removed from active pool successfully');
-      } else {
-        console.error('Failed to remove word from active pool');
-      }
+      await removeWordFromStarted(user.id, wordId);
     } catch (error) {
-      console.error('Error removing word from active pool:', error);
+      console.error('Error removing word from started:', error);
     }
   };
 
-  const filteredWords = words.filter(word => {
+  const removeWordFromStarted = async (userId: string, wordId: string) => {
+    try {
+      // Remove the word from user_progress (delete the progress record)
+      const { error } = await supabase
+        .from('user_progress')
+        .delete()
+        .eq('user_id', userId)
+        .eq('word_id', wordId)
+        .eq('state', 'started');
+
+      if (error) {
+        console.error('Error removing word from started:', error);
+        return;
+      }
+
+      // Update local state
+      setStartedWords(prev => prev.filter(word => word.id !== wordId));
+      console.log('Word removed from started state successfully');
+    } catch (error) {
+      console.error('Error removing word from started:', error);
+    }
+  };
+
+  const filteredWords = startedWords.filter(word => {
     const matchesSearch = word.word.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          word.definition.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesTier = selectedTier === 'All' || word.tier === selectedTier;
@@ -186,7 +234,7 @@ export default function WordsPage() {
             <div className="flex items-center">
               <Target className="h-6 w-6 text-blue-600 mr-2" />
               <span className="text-sm font-medium text-gray-700">
-                Active Pool: {activePoolCount}/15
+                Started Words: {startedWords.length}
               </span>
             </div>
           </div>
@@ -196,9 +244,9 @@ export default function WordsPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">SAT Vocabulary Words</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Remove Words from Study</h1>
           <p className="text-gray-600">
-            Browse and add words to your active pool for focused study sessions.
+            Remove words from your active study pool. These words will no longer appear in your study sessions.
           </p>
         </div>
 
@@ -244,9 +292,6 @@ export default function WordsPage() {
         {/* Words Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredWords.map((word) => {
-            const isInActivePool = activePoolCount < 15; // Mock logic
-            const canAdd = activePoolCount < 15;
-            
             return (
               <div key={word.id} className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow">
                 {/* Word Header */}
@@ -267,6 +312,19 @@ export default function WordsPage() {
 
                 {/* Definition */}
                 <p className="text-gray-700 mb-4">{word.definition}</p>
+
+                {/* Study Progress */}
+                <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm font-medium text-blue-800">Study Progress</span>
+                    <span className="text-sm text-blue-600">Streak: {word.study_streak}</span>
+                  </div>
+                  {word.last_studied && (
+                    <p className="text-xs text-blue-600">
+                      Last studied: {new Date(word.last_studied).toLocaleDateString()}
+                    </p>
+                  )}
+                </div>
 
                 {/* Example Sentence */}
                 {word.example_sentence && (
@@ -293,26 +351,15 @@ export default function WordsPage() {
                   )}
                 </div>
 
-                {/* Action Button */}
+                {/* Remove Button */}
                 <div className="pt-4 border-t border-gray-100">
-                  {isInActivePool ? (
-                    <button
-                      onClick={() => removeFromActivePool(word.id)}
-                      className="w-full flex items-center justify-center px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
-                    >
-                      <XCircle className="h-4 w-4 mr-2" />
-                      Remove from Active Pool
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => addToActivePool(word.id)}
-                      disabled={!canAdd}
-                      className="w-full flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add to Active Pool
-                    </button>
-                  )}
+                  <button
+                    onClick={() => removeFromStarted(word.id)}
+                    className="w-full flex items-center justify-center px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Remove from Study
+                  </button>
                 </div>
               </div>
             );
@@ -323,23 +370,26 @@ export default function WordsPage() {
         {filteredWords.length === 0 && (
           <div className="text-center py-12">
             <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No words found</h3>
-            <p className="text-gray-600">Try adjusting your search or filter criteria.</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No started words found</h3>
+            <p className="text-gray-600 mb-4">
+              {startedWords.length === 0 
+                ? "You don't have any words in your study pool yet. Start studying to add words here."
+                : "No words match your current search or filter criteria."
+              }
+            </p>
+            {startedWords.length === 0 && (
+              <button
+                onClick={() => router.push('/study')}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Start Studying
+              </button>
+            )}
           </div>
         )}
 
-        {/* Active Pool Limit Warning */}
-        {activePoolCount >= 15 && (
-          <div className="mt-8 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <div className="flex items-center">
-              <Star className="h-5 w-5 text-yellow-600 mr-2" />
-              <p className="text-yellow-800">
-                Your active pool is full! Remove some words before adding new ones.
-              </p>
-            </div>
-          </div>
-        )}
       </main>
     </div>
   );
 }
+
