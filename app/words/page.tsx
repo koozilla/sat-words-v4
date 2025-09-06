@@ -30,7 +30,7 @@ interface Word {
   example_sentence?: string;
 }
 
-interface StartedWord {
+interface CurrentWord {
   id: string;
   word: string;
   definition: string;
@@ -45,10 +45,13 @@ interface StartedWord {
   study_streak: number;
   review_streak: number;
   last_studied: string | null;
+  state: 'started' | 'ready';
+  next_review_date?: string | null;
+  review_interval?: number;
 }
 
 export default function WordsPage() {
-  const [startedWords, setStartedWords] = useState<StartedWord[]>([]);
+  const [currentWords, setCurrentWords] = useState<CurrentWord[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTier, setSelectedTier] = useState('All');
@@ -61,37 +64,40 @@ export default function WordsPage() {
   const difficulties = ['All', 'Easy', 'Medium', 'Hard'];
 
   useEffect(() => {
-    loadStartedWords();
+    loadCurrentWords();
   }, []);
 
-  const loadStartedWords = async () => {
+  const loadCurrentWords = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         console.log('No user found, using test user for demo');
         const testUserId = '11111111-1111-1111-1111-111111111111';
-        await loadStartedWordsForUser(testUserId);
+        await loadCurrentWordsForUser(testUserId);
         return;
       }
 
-      await loadStartedWordsForUser(user.id);
+      await loadCurrentWordsForUser(user.id);
     } catch (error) {
-      console.error('Error loading started words:', error);
+      console.error('Error loading current words:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const loadStartedWordsForUser = async (userId: string) => {
+  const loadCurrentWordsForUser = async (userId: string) => {
     try {
-      // Load only words that are in 'started' state
-      const { data: startedWordsData, error } = await supabase
+      // Load words that are in 'started' or 'ready' state
+      const { data: currentWordsData, error } = await supabase
         .from('user_progress')
         .select(`
           id,
+          state,
           study_streak,
           review_streak,
           last_studied,
+          next_review_date,
+          review_interval,
           words:word_id (
             id,
             word,
@@ -106,16 +112,17 @@ export default function WordsPage() {
           )
         `)
         .eq('user_id', userId)
-        .eq('state', 'started')
+        .in('state', ['started', 'ready'])
+        .order('state', { ascending: true })
         .order('last_studied', { ascending: false });
 
       if (error) {
-        console.error('Error loading started words:', error);
+        console.error('Error loading current words:', error);
         return;
       }
 
       // Transform the data to match our interface
-      const transformedWords: StartedWord[] = startedWordsData?.map(item => ({
+      const transformedWords: CurrentWord[] = currentWordsData?.map(item => ({
         id: item.words.id,
         word: item.words.word,
         definition: item.words.definition,
@@ -129,32 +136,35 @@ export default function WordsPage() {
         progress_id: item.id,
         study_streak: item.study_streak,
         review_streak: item.review_streak,
-        last_studied: item.last_studied
+        last_studied: item.last_studied,
+        state: item.state as 'started' | 'ready',
+        next_review_date: item.next_review_date,
+        review_interval: item.review_interval
       })) || [];
 
-      setStartedWords(transformedWords);
+      setCurrentWords(transformedWords);
     } catch (error) {
-      console.error('Error loading started words for user:', error);
+      console.error('Error loading current words for user:', error);
     }
   };
 
-  const removeFromStarted = async (wordId: string) => {
+  const removeFromCurrent = async (wordId: string) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         console.log('No user found, using test user for demo');
         const testUserId = '11111111-1111-1111-1111-111111111111';
-        await removeWordFromStarted(testUserId, wordId);
+        await removeWordFromCurrent(testUserId, wordId);
         return;
       }
 
-      await removeWordFromStarted(user.id, wordId);
+      await removeWordFromCurrent(user.id, wordId);
     } catch (error) {
-      console.error('Error removing word from started:', error);
+      console.error('Error removing word from current:', error);
     }
   };
 
-  const removeWordFromStarted = async (userId: string, wordId: string) => {
+  const removeWordFromCurrent = async (userId: string, wordId: string) => {
     try {
       // Remove the word from user_progress (delete the progress record)
       const { error } = await supabase
@@ -162,22 +172,22 @@ export default function WordsPage() {
         .delete()
         .eq('user_id', userId)
         .eq('word_id', wordId)
-        .eq('state', 'started');
+        .in('state', ['started', 'ready']);
 
       if (error) {
-        console.error('Error removing word from started:', error);
+        console.error('Error removing word from current:', error);
         return;
       }
 
       // Update local state
-      setStartedWords(prev => prev.filter(word => word.id !== wordId));
-      console.log('Word removed from started state successfully');
+      setCurrentWords(prev => prev.filter(word => word.id !== wordId));
+      console.log('Word removed from current words successfully');
     } catch (error) {
-      console.error('Error removing word from started:', error);
+      console.error('Error removing word from current:', error);
     }
   };
 
-  const filteredWords = startedWords.filter(word => {
+  const filteredWords = currentWords.filter(word => {
     const matchesSearch = word.word.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          word.definition.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesTier = selectedTier === 'All' || word.tier === selectedTier;
@@ -234,7 +244,7 @@ export default function WordsPage() {
             <div className="flex items-center">
               <Target className="h-6 w-6 text-blue-600 mr-2" />
               <span className="text-sm font-medium text-gray-700">
-                Started Words: {startedWords.length}
+                Current Words: {currentWords.length}
               </span>
             </div>
           </div>
@@ -246,7 +256,7 @@ export default function WordsPage() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Current Words</h1>
           <p className="text-gray-600">
-            View and manage your current study pool. See the status of each word and remove words you no longer want to study.
+            View and manage your current study pool. See words you're studying and words ready for review.
           </p>
         </div>
 
@@ -292,20 +302,38 @@ export default function WordsPage() {
         {/* Words Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredWords.map((word) => {
+            const isReady = word.state === 'ready';
+            const isDueForReview = isReady && word.next_review_date && 
+              new Date(word.next_review_date) <= new Date();
+            
             return (
-              <div key={word.id} className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow">
+              <div key={word.id} className={`bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow ${
+                isReady ? 'ring-2 ring-green-200' : ''
+              }`}>
                 {/* Word Header */}
                 <div className="flex justify-between items-start mb-4">
                   <div>
                     <h3 className="text-xl font-bold text-gray-900 mb-1">{word.word}</h3>
                     <p className="text-sm text-gray-600 italic">{word.part_of_speech}</p>
                   </div>
-                  <div className="flex space-x-2">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTierColor(word.tier)}`}>
-                      {word.tier}
-                    </span>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(word.difficulty)}`}>
-                      {word.difficulty}
+                  <div className="flex flex-col space-y-1">
+                    <div className="flex space-x-2">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTierColor(word.tier)}`}>
+                        {word.tier}
+                      </span>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(word.difficulty)}`}>
+                        {word.difficulty}
+                      </span>
+                    </div>
+                    {/* State Badge */}
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      isReady 
+                        ? isDueForReview 
+                          ? 'text-green-800 bg-green-100' 
+                          : 'text-green-600 bg-green-50'
+                        : 'text-blue-800 bg-blue-100'
+                    }`}>
+                      {isReady ? (isDueForReview ? 'Ready for Review' : 'Ready') : 'Studying'}
                     </span>
                   </div>
                 </div>
@@ -313,15 +341,34 @@ export default function WordsPage() {
                 {/* Definition */}
                 <p className="text-gray-700 mb-4">{word.definition}</p>
 
-                {/* Study Progress */}
-                <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+                {/* Progress Section */}
+                <div className={`mb-4 p-3 rounded-lg ${
+                  isReady ? 'bg-green-50' : 'bg-blue-50'
+                }`}>
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-medium text-blue-800">Study Progress</span>
-                    <span className="text-sm text-blue-600">Streak: {word.study_streak}</span>
+                    <span className={`text-sm font-medium ${
+                      isReady ? 'text-green-800' : 'text-blue-800'
+                    }`}>
+                      {isReady ? 'Review Progress' : 'Study Progress'}
+                    </span>
+                    <span className={`text-sm ${
+                      isReady ? 'text-green-600' : 'text-blue-600'
+                    }`}>
+                      Streak: {isReady ? word.review_streak : word.study_streak}
+                    </span>
                   </div>
                   {word.last_studied && (
-                    <p className="text-xs text-blue-600">
+                    <p className={`text-xs ${
+                      isReady ? 'text-green-600' : 'text-blue-600'
+                    }`}>
                       Last studied: {new Date(word.last_studied).toLocaleDateString()}
+                    </p>
+                  )}
+                  {isReady && word.next_review_date && (
+                    <p className={`text-xs ${
+                      isDueForReview ? 'text-red-600 font-medium' : 'text-green-600'
+                    }`}>
+                      {isDueForReview ? 'Due for review!' : `Next review: ${new Date(word.next_review_date).toLocaleDateString()}`}
                     </p>
                   )}
                 </div>
@@ -354,7 +401,7 @@ export default function WordsPage() {
                 {/* Remove Button */}
                 <div className="pt-4 border-t border-gray-100">
                   <button
-                    onClick={() => removeFromStarted(word.id)}
+                    onClick={() => removeFromCurrent(word.id)}
                     className="w-full flex items-center justify-center px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
                   >
                     <Trash2 className="h-4 w-4 mr-2" />
@@ -372,12 +419,12 @@ export default function WordsPage() {
             <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No current words found</h3>
             <p className="text-gray-600 mb-4">
-              {startedWords.length === 0 
+              {currentWords.length === 0 
                 ? "You don't have any words in your study pool yet. Start studying to add words here."
                 : "No words match your current search or filter criteria."
               }
             </p>
-            {startedWords.length === 0 && (
+            {currentWords.length === 0 && (
               <button
                 onClick={() => router.push('/study')}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"

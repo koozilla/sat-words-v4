@@ -70,12 +70,9 @@ export default function ReviewSession() {
         // For testing purposes, use the test user ID
         const testUserId = '11111111-1111-1111-1111-111111111111';
         
-        console.log('🔍 No authenticated user, using test user:', testUserId);
         const reviewWords = await wordStateManager.getWordsDueForReview(testUserId);
-        console.log('📊 Review words found:', reviewWords?.length || 0);
 
         if (!reviewWords || reviewWords.length === 0) {
-          console.log('❌ No words due for review, setting session to null');
           setSession(null);
           return;
         }
@@ -93,7 +90,6 @@ export default function ReviewSession() {
           example_sentence: p.words.example_sentence
         }));
 
-        console.log('✅ Setting up review session with', reviewWordsData.length, 'words');
         setSession({
           words: reviewWordsData,
           currentIndex: 0,
@@ -107,13 +103,10 @@ export default function ReviewSession() {
       }
 
       // Get words due for review using word state manager
-      console.log('🔍 Authenticated user found:', user.id);
       const reviewWords = await wordStateManager.getWordsDueForReview(user.id);
-      console.log('📊 Review words found:', reviewWords?.length || 0);
 
       if (!reviewWords || reviewWords.length === 0) {
         // No words due for review, show message instead of redirecting
-        console.log('❌ No words due for review, setting session to null');
         setSession(null);
         return;
       }

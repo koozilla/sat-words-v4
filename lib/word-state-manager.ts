@@ -265,8 +265,6 @@ export class WordStateManager {
   async getWordsDueForReview(userId: string): Promise<any[]> {
     try {
       const today = new Date().toISOString().split('T')[0];
-      console.log('🔍 getWordsDueForReview called for user:', userId);
-      console.log('📅 Today:', today);
       
       const { data, error } = await this.supabase
         .from('user_progress')
@@ -293,13 +291,6 @@ export class WordStateManager {
       if (error) {
         console.error('Error fetching words due for review:', error);
         return [];
-      }
-
-      console.log('📊 Query returned', data?.length || 0, 'words due for review');
-      if (data && data.length > 0) {
-        data.forEach((item: any, index: number) => {
-          console.log(`${index + 1}. ${item.words.word} - Next review: ${item.next_review_date}`);
-        });
       }
 
       return data || [];
