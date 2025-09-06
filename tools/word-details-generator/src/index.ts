@@ -33,8 +33,11 @@ async function main() {
     }
     
     if (insertToDatabase) {
-      if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-        throw new Error('SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY environment variables are required for database insertion');
+      if (!process.env.SUPABASE_URL) {
+        throw new Error('SUPABASE_URL environment variable is required for database insertion');
+      }
+      if (!process.env.SUPABASE_SERVICE_ROLE_KEY && !process.env.SUPABASE_ANON_KEY) {
+        throw new Error('Either SUPABASE_SERVICE_ROLE_KEY or SUPABASE_ANON_KEY environment variable is required for database insertion');
       }
     }
     

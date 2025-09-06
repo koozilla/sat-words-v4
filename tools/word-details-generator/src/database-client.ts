@@ -22,12 +22,19 @@ export class DatabaseClient {
   constructor() {
     const supabaseUrl = process.env.SUPABASE_URL;
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
 
-    if (!supabaseUrl || !supabaseServiceKey) {
-      throw new Error('Missing Supabase configuration. Please set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY environment variables.');
+    if (!supabaseUrl) {
+      throw new Error('Missing SUPABASE_URL environment variable.');
     }
 
-    this.supabase = createClient(supabaseUrl, supabaseServiceKey);
+    if (!supabaseServiceKey && !supabaseAnonKey) {
+      throw new Error('Missing Supabase keys. Please set either SUPABASE_SERVICE_ROLE_KEY or SUPABASE_ANON_KEY environment variable.');
+    }
+
+    // Use service role key if available (bypasses RLS), otherwise use anon key
+    const keyToUse = supabaseServiceKey || supabaseAnonKey;
+    this.supabase = createClient(supabaseUrl, keyToUse!);
   }
 
   async testConnection(): Promise<boolean> {

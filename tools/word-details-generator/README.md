@@ -33,6 +33,7 @@ The tool can also insert the generated word details directly into your Supabase 
    
    # Optional - for database insertion
    SUPABASE_URL=your_supabase_url_here
+   SUPABASE_ANON_KEY=your_supabase_anon_key_here
    SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key_here
    INSERT_TO_DATABASE=true
    CLEAR_EXISTING_WORDS=false
@@ -64,9 +65,12 @@ Edit the `.env` file to customize:
 
 ### Database Settings (Optional)
 - `SUPABASE_URL`: Your Supabase project URL
-- `SUPABASE_SERVICE_ROLE_KEY`: Your Supabase service role key
+- `SUPABASE_ANON_KEY`: Your Supabase anonymous key (for RLS-compliant operations)
+- `SUPABASE_SERVICE_ROLE_KEY`: Your Supabase service role key (bypasses RLS - recommended for bulk operations)
 - `INSERT_TO_DATABASE`: Whether to insert words into database (true/false)
 - `CLEAR_EXISTING_WORDS`: Whether to clear existing words before insertion (true/false)
+
+**Note**: The tool will use the service role key if available (recommended for bulk operations), otherwise it will fall back to the anon key.
 
 ### Processing Settings
 - `WORDS_FILE_PATH`: Path to WORDS.md file (default: ../../WORDS.md)
