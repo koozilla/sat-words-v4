@@ -1,15 +1,19 @@
 import { GeminiClient, WordDetails } from './gemini-client';
 import { WordParser, WordData } from './word-parser';
+import { DatabaseClient, DatabaseWord } from './database-client';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 
 export class ContentGenerator {
   private geminiClient: GeminiClient;
   private wordParser: WordParser;
+  private databaseClient: DatabaseClient | null = null;
   private outputDir: string;
   private batchSize: number;
   private delayBetweenRequests: number;
   private maxRetries: number;
+  private insertToDatabase: boolean;
+  private clearExistingWords: boolean;
 
   constructor(
     wordsFilePath: string,
@@ -24,10 +28,41 @@ export class ContentGenerator {
     this.batchSize = batchSize;
     this.delayBetweenRequests = delayBetweenRequests;
     this.maxRetries = maxRetries;
+    this.insertToDatabase = process.env.INSERT_TO_DATABASE === 'true';
+    this.clearExistingWords = process.env.CLEAR_EXISTING_WORDS === 'true';
+    
+    // Initialize database client if needed
+    if (this.insertToDatabase) {
+      try {
+        this.databaseClient = new DatabaseClient();
+      } catch (error) {
+        console.warn('⚠️ Database client initialization failed:', error);
+        console.warn('Continuing without database insertion...');
+        this.insertToDatabase = false;
+        this.databaseClient = null;
+      }
+    }
   }
 
   async generateAllWordDetails(): Promise<WordDetails[]> {
     console.log('Starting word details generation...');
+    
+    // Test database connection if needed
+    if (this.insertToDatabase && this.databaseClient) {
+      console.log('🔍 Testing database connection...');
+      const dbConnected = await this.databaseClient.testConnection();
+      if (!dbConnected) {
+        console.warn('⚠️ Database connection failed. Continuing without database insertion...');
+        this.insertToDatabase = false;
+      } else {
+        console.log('✅ Database connection successful');
+        
+        // Clear existing words if requested
+        if (this.clearExistingWords) {
+          await this.databaseClient.clearExistingWords();
+        }
+      }
+    }
     
     // Parse words from WORDS.md
     const words = await this.wordParser.parseWords();
@@ -48,6 +83,11 @@ export class ContentGenerator {
       const batchDetails = await this.processBatch(batch);
       wordDetails.push(...batchDetails);
       
+      // Insert to database if enabled
+      if (this.insertToDatabase && this.databaseClient) {
+        await this.insertBatchToDatabase(batchDetails);
+      }
+      
       // Save progress
       await this.saveProgress(wordDetails, i + batch.length, totalWords);
       
@@ -60,6 +100,12 @@ export class ContentGenerator {
     
     // Save final results
     await this.saveFinalResults(wordDetails);
+    
+    // Final database summary
+    if (this.insertToDatabase && this.databaseClient) {
+      const totalWordsInDb = await this.databaseClient.getWordCount();
+      console.log(`📊 Total words in database: ${totalWordsInDb}`);
+    }
     
     console.log(`Successfully generated details for ${wordDetails.length} words`);
     return wordDetails;
@@ -175,6 +221,30 @@ export class ContentGenerator {
       console.log(`Final results saved to ${this.outputDir}`);
     } catch (error) {
       console.error('Error saving final results:', error);
+    }
+  }
+
+  private async insertBatchToDatabase(wordDetails: WordDetails[]): Promise<void> {
+    if (!this.databaseClient) return;
+    
+    try {
+      const databaseWords: DatabaseWord[] = wordDetails.map(word => ({
+        word: word.word,
+        definition: word.definition,
+        part_of_speech: word.partOfSpeech,
+        example_sentence: word.examples[0] || `Example sentence for ${word.word}`,
+        synonyms: word.synonyms,
+        antonyms: word.antonyms,
+        tier: word.tier,
+        difficulty: word.difficulty,
+        image_urls: [],
+        image_descriptions: []
+      }));
+      
+      await this.databaseClient.insertWordsBatch(databaseWords);
+    } catch (error) {
+      console.error('❌ Failed to insert batch to database:', error);
+      // Continue processing even if database insertion fails
     }
   }
 
