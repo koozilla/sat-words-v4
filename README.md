@@ -49,7 +49,14 @@ sat-words-v4/
 ├── supabase/             # Database schema and setup
 ├── tools/                # Development tools
 │   └── word-details-generator/  # AI-powered word generation
-└── docs/                  # Documentation files
+├── tests/                 # Test scripts and utilities
+├── docs/                  # Comprehensive documentation
+│   ├── PRD.md            # Product Requirements Document
+│   ├── TECH_DESIGN.md    # Technical Design Document
+│   ├── PLAN.md           # Development Plan
+│   ├── WIREFRAME.md      # UI/UX Wireframes
+│   └── WORDS.md          # SAT Vocabulary Data
+└── README.md             # This file
 ```
 
 ## 🚀 Getting Started
@@ -127,6 +134,16 @@ The application uses a comprehensive PostgreSQL schema with:
 3. **Customization** - Modify themes, add features
 4. **Deployment** - Deploy to Vercel with one click
 
+## 📚 Documentation
+
+Comprehensive project documentation is available in the [`docs/`](./docs/) directory:
+
+- **[PRD.md](./docs/PRD.md)** - Product Requirements Document
+- **[TECH_DESIGN.md](./docs/TECH_DESIGN.md)** - Technical Architecture
+- **[PLAN.md](./docs/PLAN.md)** - Development Timeline
+- **[WIREFRAME.md](./docs/WIREFRAME.md)** - UI/UX Design
+- **[WORDS.md](./docs/WORDS.md)** - SAT Vocabulary Data
+
 ## 🛠 Development Tools
 
 ### Word Details Generator
@@ -144,6 +161,14 @@ cp env.example .env
 # Add your GEMINI_API_KEY
 npm run generate
 ```
+
+### Test Scripts
+Located in `tests/`, these scripts help with development and testing:
+- Database setup and test data creation
+- Authentication testing
+- Debugging utilities
+
+See [`tests/README.md`](./tests/README.md) for detailed usage instructions.
 
 ## 📱 Pages Overview
 
