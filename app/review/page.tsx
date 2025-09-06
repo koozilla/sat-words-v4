@@ -73,7 +73,7 @@ export default function ReviewSession() {
         const reviewWords = await wordStateManager.getWordsDueForReview(testUserId);
 
         if (!reviewWords || reviewWords.length === 0) {
-          router.push('/dashboard');
+          setSession(null);
           return;
         }
 
@@ -106,8 +106,8 @@ export default function ReviewSession() {
       const reviewWords = await wordStateManager.getWordsDueForReview(user.id);
 
       if (!reviewWords || reviewWords.length === 0) {
-        // No words due for review, redirect to dashboard
-        router.push('/dashboard');
+        // No words due for review, show message instead of redirecting
+        setSession(null);
         return;
       }
 
@@ -270,14 +270,28 @@ export default function ReviewSession() {
   if (!session) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-600">No review session available</p>
-          <button
-            onClick={() => router.push('/dashboard')}
-            className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
-          >
-            Back to Dashboard
-          </button>
+        <div className="text-center max-w-md mx-auto px-4">
+          <div className="bg-white rounded-xl shadow-sm p-8">
+            <Clock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h2 className="text-xl font-bold text-gray-900 mb-2">No Words Due for Review</h2>
+            <p className="text-gray-600 mb-6">
+              You don't have any words ready for review right now. Complete some study sessions to add words to your review queue.
+            </p>
+            <div className="space-y-3">
+              <button
+                onClick={() => router.push('/study')}
+                className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Start Study Session
+              </button>
+              <button
+                onClick={() => router.push('/dashboard')}
+                className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Back to Dashboard
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     );
