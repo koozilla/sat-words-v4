@@ -30,7 +30,7 @@ This plan outlines the 8-week development timeline for building the SAT Vocabula
 - Complete word details generation tool
 - Implement gamification system
 - Add spaced repetition logic
-- Deploy to production
+- Focus on core features before deployment
 
 ---
 
@@ -144,22 +144,7 @@ This plan outlines the 8-week development timeline for building the SAT Vocabula
 
 **Estimated Time**: 6 hours
 
-#### 1.4 Vercel Integration
-- [ ] Connect project to Vercel
-- [ ] Configure deployment settings
-- [ ] Set up environment variables in Vercel
-- [ ] Test deployment pipeline
-- [ ] Configure custom domain (if needed)
-
-**Acceptance Criteria**:
-- Project deploys successfully to Vercel
-- Environment variables are properly configured
-- Deployment pipeline is working
-- Custom domain is configured (if applicable)
-
-**Estimated Time**: 2 hours
-
-**Total Milestone Time**: 15 hours
+**Total Milestone Time**: 13 hours
 
 ---
 
@@ -647,6 +632,10 @@ This plan outlines the 8-week development timeline for building the SAT Vocabula
 #### 8.1 Production Deployment
 - [ ] Configure production environment
 - [ ] Set up production database
+- [ ] Connect project to Vercel
+- [ ] Configure deployment settings
+- [ ] Set up environment variables in Vercel
+- [ ] Test deployment pipeline
 - [ ] Deploy to Vercel production
 - [ ] Configure custom domain
 - [ ] Set up SSL certificates
@@ -654,11 +643,13 @@ This plan outlines the 8-week development timeline for building the SAT Vocabula
 **Acceptance Criteria**:
 - Production environment is configured
 - Database is properly set up
-- App deploys successfully
+- Project deploys successfully to Vercel
+- Environment variables are properly configured
+- Deployment pipeline is working
 - Custom domain is working
 - SSL is properly configured
 
-**Estimated Time**: 6 hours
+**Estimated Time**: 8 hours
 
 #### 8.2 Monitoring & Analytics
 - [ ] Set up error monitoring
@@ -705,7 +696,7 @@ This plan outlines the 8-week development timeline for building the SAT Vocabula
 
 **Estimated Time**: 8 hours
 
-**Total Milestone Time**: 24 hours
+**Total Milestone Time**: 26 hours
 
 ---
 
