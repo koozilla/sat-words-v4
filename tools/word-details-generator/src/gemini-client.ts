@@ -25,7 +25,7 @@ export class GeminiClient {
     }
     
     this.genAI = new GoogleGenerativeAI(apiKey);
-    this.model = this.genAI.getGenerativeModel({ model: 'gemini-pro' });
+    this.model = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
   }
 
   async generateWordDetails(word: string, difficulty: string, tier: string): Promise<WordDetails> {
