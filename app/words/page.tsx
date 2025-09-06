@@ -244,9 +244,9 @@ export default function WordsPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Remove Words from Study</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Current Words</h1>
           <p className="text-gray-600">
-            Remove words from your active study pool. These words will no longer appear in your study sessions.
+            View and manage your current study pool. See the status of each word and remove words you no longer want to study.
           </p>
         </div>
 
@@ -370,7 +370,7 @@ export default function WordsPage() {
         {filteredWords.length === 0 && (
           <div className="text-center py-12">
             <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No started words found</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No current words found</h3>
             <p className="text-gray-600 mb-4">
               {startedWords.length === 0 
                 ? "You don't have any words in your study pool yet. Start studying to add words here."

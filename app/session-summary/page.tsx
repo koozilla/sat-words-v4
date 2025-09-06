@@ -138,7 +138,7 @@ export default function SessionSummary() {
           // Add to promoted words if it was correct
           if (result.correct) {
             if (sessionInfo.session_type === 'study') {
-              // Study session: started → ready
+              // Study session: started → ready for review
               wordsPromoted.push({
                 word: result.word,
                 fromState: 'started',
@@ -432,7 +432,7 @@ export default function SessionSummary() {
                   <div className="flex-1">
                     <span className="font-medium text-gray-900">{word.word}</span>
                     <p className="text-sm text-gray-600">
-                      {word.fromState} → {word.toState}
+                      {word.fromState} → {word.toState === 'ready' ? 'ready for review' : word.toState}
                     </p>
                   </div>
                   <div className="text-blue-600">

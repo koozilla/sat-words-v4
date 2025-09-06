@@ -192,7 +192,7 @@ export default function Dashboard() {
     router.push('/review');
   };
 
-  const addToActivePool = () => {
+  const viewCurrentWords = () => {
     router.push('/words');
   };
 
@@ -269,12 +269,12 @@ export default function Dashboard() {
           </button>
 
           <button
-            onClick={addToActivePool}
+            onClick={viewCurrentWords}
             className="bg-purple-600 hover:bg-purple-700 text-white p-6 rounded-xl shadow-lg transition-colors"
           >
-            <Plus className="h-8 w-8 mb-3" />
-            <h3 className="text-lg font-semibold mb-2">Add Words</h3>
-            <p className="text-purple-100">Expand your active pool</p>
+            <Target className="h-8 w-8 mb-3" />
+            <h3 className="text-lg font-semibold mb-2">Current Words</h3>
+            <p className="text-purple-100">View and manage your study pool</p>
           </button>
         </div>
 
