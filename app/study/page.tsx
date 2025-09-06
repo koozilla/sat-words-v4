@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { WordStateManager } from '@/lib/word-state-manager';
 import { 
   ArrowLeft, 
   ArrowRight, 
@@ -40,6 +41,7 @@ export default function StudySession() {
   const [showAnswer, setShowAnswer] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
+  const [wordStateManager] = useState(() => new WordStateManager());
   const router = useRouter();
   const supabase = createClientComponentClient();
 
@@ -49,51 +51,71 @@ export default function StudySession() {
 
   const initializeStudySession = async () => {
     try {
-      // For now, we'll use mock data since we don't have words in the database yet
-      const mockWords: Word[] = [
-        {
-          id: '1',
-          word: 'abundant',
-          definition: 'existing in large quantities; plentiful',
-          part_of_speech: 'adjective',
-          tier: 'Top 25',
-          difficulty: 'Easy',
-          image_url: '/api/placeholder/400/300',
-          synonyms: ['plentiful', 'copious', 'profuse'],
-          antonyms: ['scarce', 'rare', 'limited'],
-          example_sentence: 'The garden was abundant with colorful flowers.'
-        },
-        {
-          id: '2',
-          word: 'benevolent',
-          definition: 'well meaning and kindly',
-          part_of_speech: 'adjective',
-          tier: 'Top 25',
-          difficulty: 'Medium',
-          image_url: '/api/placeholder/400/300',
-          synonyms: ['kind', 'generous', 'charitable'],
-          antonyms: ['malevolent', 'cruel', 'harsh'],
-          example_sentence: 'The benevolent teacher helped students after school.'
-        },
-        {
-          id: '3',
-          word: 'cognizant',
-          definition: 'having knowledge or awareness',
-          part_of_speech: 'adjective',
-          tier: 'Top 25',
-          difficulty: 'Hard',
-          image_url: '/api/placeholder/400/300',
-          synonyms: ['aware', 'conscious', 'informed'],
-          antonyms: ['unaware', 'ignorant', 'oblivious'],
-          example_sentence: 'She was cognizant of the risks involved.'
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.push('/auth/login');
+        return;
+      }
+
+      // Get active pool words using word state manager
+      const activePoolWords = await wordStateManager.getActivePoolWords(user.id);
+
+      if (!activePoolWords || activePoolWords.length === 0) {
+        // No words in active pool - for testing, use some words from database
+        console.log('No words in active pool, loading test words...');
+        
+        const { data: testWords, error: testError } = await supabase
+          .from('words')
+          .select('*')
+          .eq('tier', 'Top 25')
+          .limit(5);
+
+        if (testError || !testWords || testWords.length === 0) {
+          router.push('/words');
+          return;
         }
-      ];
+
+        const studyWords: Word[] = testWords.map(w => ({
+          id: w.id,
+          word: w.word,
+          definition: w.definition,
+          part_of_speech: w.part_of_speech,
+          tier: w.tier,
+          difficulty: w.difficulty,
+          image_url: w.image_urls?.[0] || '/api/placeholder/400/300',
+          synonyms: w.synonyms || [],
+          antonyms: w.antonyms || [],
+          example_sentence: w.example_sentence
+        }));
+
+        setSession({
+          words: studyWords,
+          currentIndex: 0,
+          score: 0,
+          totalQuestions: studyWords.length,
+          answers: {}
+        });
+        return;
+      }
+
+      const studyWords: Word[] = activePoolWords.map(p => ({
+        id: p.words.id,
+        word: p.words.word,
+        definition: p.words.definition,
+        part_of_speech: p.words.part_of_speech,
+        tier: p.words.tier,
+        difficulty: p.words.difficulty,
+        image_url: p.words.image_urls?.[0] || '/api/placeholder/400/300',
+        synonyms: p.words.synonyms || [],
+        antonyms: p.words.antonyms || [],
+        example_sentence: p.words.example_sentence
+      }));
 
       setSession({
-        words: mockWords,
+        words: studyWords,
         currentIndex: 0,
         score: 0,
-        totalQuestions: mockWords.length,
+        totalQuestions: studyWords.length,
         answers: {}
       });
     } catch (error) {
@@ -113,15 +135,15 @@ export default function StudySession() {
     return distractors;
   };
 
-  const handleAnswerSelect = (answer: string) => {
-    if (showAnswer) return;
+  const handleAnswerSelect = async (answer: string) => {
+    if (showAnswer || !session) return;
     
     setSelectedAnswer(answer);
-    const correct = answer === session?.words[session.currentIndex].word;
+    const correct = answer === session.words[session.currentIndex].word;
     setIsCorrect(correct);
     setShowAnswer(true);
 
-    // Update session with answer
+    // Update session state
     if (session) {
       setSession({
         ...session,
@@ -131,6 +153,26 @@ export default function StudySession() {
         },
         score: correct ? session.score + 1 : session.score
       });
+    }
+
+    // Handle word state transition
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const currentWord = session.words[session.currentIndex];
+      const transition = await wordStateManager.handleStudyAnswer(
+        user.id,
+        currentWord.id,
+        correct
+      );
+
+      if (transition) {
+        console.log('Word state transition:', transition);
+        
+        // Show transition feedback
+        if (transition.toState === 'ready') {
+          console.log(`🎉 "${currentWord.word}" is now ready for review!`);
+        }
+      }
     }
   };
 
@@ -144,8 +186,19 @@ export default function StudySession() {
       setSelectedAnswer(null);
       setIsCorrect(null);
     } else {
-      // Session complete
-      router.push('/session-summary');
+      // Session complete - pass session data to summary
+      const sessionData = {
+        session_type: 'study',
+        words_studied: session.totalQuestions,
+        correct_answers: session.score,
+        words_promoted: Object.values(session.answers).filter(Boolean).length,
+        words_mastered: 0,
+        started_at: new Date(Date.now() - 300000).toISOString(), // 5 minutes ago
+        completed_at: new Date().toISOString()
+      };
+      
+      const encodedData = encodeURIComponent(JSON.stringify(sessionData));
+      router.push(`/session-summary?data=${encodedData}`);
     }
   };
 

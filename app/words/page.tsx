@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { WordStateManager } from '@/lib/word-state-manager';
 import { 
   ArrowLeft, 
   Plus, 
@@ -41,6 +42,7 @@ export default function WordsPage() {
   const [selectedTier, setSelectedTier] = useState('All');
   const [selectedDifficulty, setSelectedDifficulty] = useState('All');
   const [activePoolCount, setActivePoolCount] = useState(0);
+  const [wordStateManager] = useState(() => new WordStateManager());
   const router = useRouter();
   const supabase = createClientComponentClient();
 
@@ -53,67 +55,33 @@ export default function WordsPage() {
 
   const loadWords = async () => {
     try {
-      // Mock data for now
-      const mockWords: Word[] = [
-        {
-          id: '1',
-          word: 'abundant',
-          definition: 'existing in large quantities; plentiful',
-          part_of_speech: 'adjective',
-          tier: 'Top 25',
-          difficulty: 'Easy',
-          synonyms: ['plentiful', 'copious', 'profuse'],
-          antonyms: ['scarce', 'rare', 'limited'],
-          example_sentence: 'The garden was abundant with colorful flowers.'
-        },
-        {
-          id: '2',
-          word: 'benevolent',
-          definition: 'well meaning and kindly',
-          part_of_speech: 'adjective',
-          tier: 'Top 25',
-          difficulty: 'Medium',
-          synonyms: ['kind', 'generous', 'charitable'],
-          antonyms: ['malevolent', 'cruel', 'harsh'],
-          example_sentence: 'The benevolent teacher helped students after school.'
-        },
-        {
-          id: '3',
-          word: 'cognizant',
-          definition: 'having knowledge or awareness',
-          part_of_speech: 'adjective',
-          tier: 'Top 25',
-          difficulty: 'Hard',
-          synonyms: ['aware', 'conscious', 'informed'],
-          antonyms: ['unaware', 'ignorant', 'oblivious'],
-          example_sentence: 'She was cognizant of the risks involved.'
-        },
-        {
-          id: '4',
-          word: 'diligent',
-          definition: 'having or showing care and conscientiousness in one\'s work or duties',
-          part_of_speech: 'adjective',
-          tier: 'Top 100',
-          difficulty: 'Medium',
-          synonyms: ['hardworking', 'industrious', 'meticulous'],
-          antonyms: ['lazy', 'careless', 'negligent'],
-          example_sentence: 'The diligent student studied every night.'
-        },
-        {
-          id: '5',
-          word: 'eloquent',
-          definition: 'fluent or persuasive in speaking or writing',
-          part_of_speech: 'adjective',
-          tier: 'Top 100',
-          difficulty: 'Medium',
-          synonyms: ['articulate', 'fluent', 'persuasive'],
-          antonyms: ['inarticulate', 'tongue-tied', 'mute'],
-          example_sentence: 'The eloquent speaker captivated the audience.'
-        }
-      ];
+      // Load words from database
+      const { data: words, error } = await supabase
+        .from('words')
+        .select('*')
+        .order('tier', { ascending: true })
+        .order('word', { ascending: true });
 
-      setWords(mockWords);
-      setActivePoolCount(3); // Mock active pool count
+      if (error) {
+        console.error('Error loading words:', error);
+        return;
+      }
+
+      // Load user progress to get active pool count
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: progress } = await supabase
+          .from('user_progress')
+          .select('state')
+          .eq('user_id', user.id)
+          .eq('state', 'started');
+        
+        setActivePoolCount(progress?.length || 0);
+      } else {
+        setActivePoolCount(0);
+      }
+
+      setWords(words || []);
     } catch (error) {
       console.error('Error loading words:', error);
     } finally {
@@ -123,10 +91,19 @@ export default function WordsPage() {
 
   const addToActivePool = async (wordId: string) => {
     try {
-      // Mock adding to active pool
-      console.log('Adding word to active pool:', wordId);
-      // In real implementation, this would update the database
-      setActivePoolCount(prev => prev + 1);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.error('User not authenticated');
+        return;
+      }
+
+      const success = await wordStateManager.addToActivePool(user.id, wordId);
+      if (success) {
+        setActivePoolCount(prev => prev + 1);
+        console.log('Word added to active pool successfully');
+      } else {
+        console.error('Failed to add word to active pool');
+      }
     } catch (error) {
       console.error('Error adding word to active pool:', error);
     }
@@ -134,10 +111,19 @@ export default function WordsPage() {
 
   const removeFromActivePool = async (wordId: string) => {
     try {
-      // Mock removing from active pool
-      console.log('Removing word from active pool:', wordId);
-      // In real implementation, this would update the database
-      setActivePoolCount(prev => Math.max(0, prev - 1));
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.error('User not authenticated');
+        return;
+      }
+
+      const success = await wordStateManager.removeFromActivePool(user.id, wordId);
+      if (success) {
+        setActivePoolCount(prev => Math.max(0, prev - 1));
+        console.log('Word removed from active pool successfully');
+      } else {
+        console.error('Failed to remove word from active pool');
+      }
     } catch (error) {
       console.error('Error removing word from active pool:', error);
     }

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { WordStateManager } from '@/lib/word-state-manager';
 import { 
   ArrowLeft, 
   ArrowRight, 
@@ -44,6 +45,7 @@ export default function ReviewSession() {
   const [showAnswer, setShowAnswer] = useState(false);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [showHint, setShowHint] = useState(false);
+  const [wordStateManager] = useState(() => new WordStateManager());
   const router = useRouter();
   const supabase = createClientComponentClient();
 
@@ -53,51 +55,70 @@ export default function ReviewSession() {
 
   const initializeReviewSession = async () => {
     try {
-      // For now, we'll use mock data since we don't have words in the database yet
-      const mockWords: Word[] = [
-        {
-          id: '1',
-          word: 'abundant',
-          definition: 'existing in large quantities; plentiful',
-          part_of_speech: 'adjective',
-          tier: 'Top 25',
-          difficulty: 'Easy',
-          image_url: '/api/placeholder/400/300',
-          synonyms: ['plentiful', 'copious', 'profuse'],
-          antonyms: ['scarce', 'rare', 'limited'],
-          example_sentence: 'The garden was abundant with colorful flowers.'
-        },
-        {
-          id: '2',
-          word: 'benevolent',
-          definition: 'well meaning and kindly',
-          part_of_speech: 'adjective',
-          tier: 'Top 25',
-          difficulty: 'Medium',
-          image_url: '/api/placeholder/400/300',
-          synonyms: ['kind', 'generous', 'charitable'],
-          antonyms: ['malevolent', 'cruel', 'harsh'],
-          example_sentence: 'The benevolent teacher helped students after school.'
-        },
-        {
-          id: '3',
-          word: 'cognizant',
-          definition: 'having knowledge or awareness',
-          part_of_speech: 'adjective',
-          tier: 'Top 25',
-          difficulty: 'Hard',
-          image_url: '/api/placeholder/400/300',
-          synonyms: ['aware', 'conscious', 'informed'],
-          antonyms: ['unaware', 'ignorant', 'oblivious'],
-          example_sentence: 'She was cognizant of the risks involved.'
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        // For testing purposes, use the test user ID
+        const testUserId = '11111111-1111-1111-1111-111111111111';
+        
+        const reviewWords = await wordStateManager.getWordsDueForReview(testUserId);
+
+        if (!reviewWords || reviewWords.length === 0) {
+          router.push('/dashboard');
+          return;
         }
-      ];
+
+        const reviewWordsData: Word[] = reviewWords.map(p => ({
+          id: p.words.id,
+          word: p.words.word,
+          definition: p.words.definition,
+          part_of_speech: p.words.part_of_speech,
+          tier: p.words.tier,
+          difficulty: p.words.difficulty,
+          image_url: p.words.image_urls?.[0] || '/api/placeholder/400/300',
+          synonyms: p.words.synonyms || [],
+          antonyms: p.words.antonyms || [],
+          example_sentence: p.words.example_sentence
+        }));
+
+        setSession({
+          words: reviewWordsData,
+          currentIndex: 0,
+          score: 0,
+          totalQuestions: reviewWordsData.length,
+          answers: {},
+          startTime: new Date()
+        });
+        return;
+      }
+
+      // Get words due for review using word state manager
+      const reviewWords = await wordStateManager.getWordsDueForReview(user.id);
+
+      if (!reviewWords || reviewWords.length === 0) {
+        // No words due for review, redirect to dashboard
+        router.push('/dashboard');
+        return;
+      }
+
+      const reviewWordsData: Word[] = reviewWords.map(p => ({
+        id: p.words.id,
+        word: p.words.word,
+        definition: p.words.definition,
+        part_of_speech: p.words.part_of_speech,
+        tier: p.words.tier,
+        difficulty: p.words.difficulty,
+        image_url: p.words.image_urls?.[0] || '/api/placeholder/400/300',
+        synonyms: p.words.synonyms || [],
+        antonyms: p.words.antonyms || [],
+        example_sentence: p.words.example_sentence
+      }));
 
       setSession({
-        words: mockWords,
+        words: reviewWordsData,
         currentIndex: 0,
         score: 0,
-        totalQuestions: mockWords.length,
+        totalQuestions: reviewWordsData.length,
         answers: {},
         startTime: new Date()
       });
@@ -108,7 +129,7 @@ export default function ReviewSession() {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!session || !userInput.trim()) return;
 
     const currentWord = session.words[session.currentIndex];
@@ -126,6 +147,42 @@ export default function ReviewSession() {
       },
       score: correct ? session.score + 1 : session.score
     });
+
+    // Handle word state transition
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const transition = await wordStateManager.handleReviewAnswer(
+        user.id,
+        currentWord.id,
+        correct
+      );
+
+      if (transition) {
+        console.log('Word state transition:', transition);
+        
+        // Show transition feedback
+        if (transition.toState === 'mastered') {
+          console.log(`🎉 "${currentWord.word}" is now mastered!`);
+        }
+      }
+    } else {
+      // For demo purposes, use test user ID
+      const testUserId = '11111111-1111-1111-1111-111111111111';
+      const transition = await wordStateManager.handleReviewAnswer(
+        testUserId,
+        currentWord.id,
+        correct
+      );
+
+      if (transition) {
+        console.log('Word state transition:', transition);
+        
+        // Show transition feedback
+        if (transition.toState === 'mastered') {
+          console.log(`🎉 "${currentWord.word}" is now mastered!`);
+        }
+      }
+    }
   };
 
   const nextQuestion = () => {
@@ -139,8 +196,19 @@ export default function ReviewSession() {
       setIsCorrect(null);
       setShowHint(false);
     } else {
-      // Session complete
-      router.push('/session-summary');
+      // Session complete - pass session data to summary
+      const sessionData = {
+        session_type: 'review',
+        words_studied: session.totalQuestions,
+        correct_answers: session.score,
+        words_promoted: Object.values(session.answers).filter(Boolean).length,
+        words_mastered: 0,
+        started_at: session.startTime.toISOString(),
+        completed_at: new Date().toISOString()
+      };
+      
+      const encodedData = encodeURIComponent(JSON.stringify(sessionData));
+      router.push(`/session-summary?data=${encodedData}`);
     }
   };
 

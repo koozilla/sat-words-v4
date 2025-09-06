@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { WordStateManager } from '@/lib/word-state-manager';
 import { 
   ArrowLeft, 
   Trophy, 
@@ -21,8 +22,21 @@ interface SessionSummary {
   totalQuestions: number;
   accuracy: number;
   timeSpent: number;
-  wordsCorrect: string[];
-  wordsIncorrect: string[];
+  wordsCorrect: Array<{
+    word: string;
+    definition: string;
+    tier: string;
+  }>;
+  wordsIncorrect: Array<{
+    word: string;
+    definition: string;
+    tier: string;
+  }>;
+  wordsPromoted: Array<{
+    word: string;
+    fromState: string;
+    toState: string;
+  }>;
   newBadges: Array<{
     id: string;
     name: string;
@@ -31,13 +45,16 @@ interface SessionSummary {
   }>;
   pointsEarned: number;
   streakUpdated: boolean;
+  sessionType: 'study' | 'review';
 }
 
 export default function SessionSummary() {
   const [summary, setSummary] = useState<SessionSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClientComponentClient();
+  const [wordStateManager] = useState(() => new WordStateManager());
 
   useEffect(() => {
     generateSessionSummary();
@@ -45,37 +62,168 @@ export default function SessionSummary() {
 
   const generateSessionSummary = async () => {
     try {
-      // Mock session summary data
-      const mockSummary: SessionSummary = {
-        score: 8,
-        totalQuestions: 10,
-        accuracy: 80,
-        timeSpent: 420, // 7 minutes in seconds
-        wordsCorrect: ['abundant', 'benevolent', 'cognizant', 'diligent', 'eloquent', 'frugal', 'gregarious', 'humble'],
-        wordsIncorrect: ['indifferent', 'jeopardy'],
-        newBadges: [
-          {
-            id: '1',
-            name: 'First Steps',
-            description: 'Complete your first study session',
-            icon: '🎯'
-          },
-          {
-            id: '2',
-            name: 'Accuracy Master',
-            description: 'Achieve 80% accuracy in a session',
-            icon: '🎯'
-          }
-        ],
-        pointsEarned: 85,
-        streakUpdated: true
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.push('/auth/login');
+        return;
+      }
+
+      // Get session data from URL parameters or localStorage
+      const sessionData = searchParams.get('data');
+      let sessionInfo: any = null;
+
+      if (sessionData) {
+        try {
+          sessionInfo = JSON.parse(decodeURIComponent(sessionData));
+        } catch (error) {
+          console.error('Error parsing session data:', error);
+        }
+      }
+
+      // If no session data, try to get recent session from database
+      if (!sessionInfo) {
+        const { data: recentSession, error: sessionError } = await supabase
+          .from('sessions')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('completed_at', { ascending: false })
+          .limit(1)
+          .single();
+
+        if (sessionError || !recentSession) {
+          // Fallback to mock data for testing
+          console.log('No recent session found, using mock data');
+          sessionInfo = {
+            session_type: 'study',
+            words_studied: 5,
+            correct_answers: 4,
+            words_promoted: 1,
+            words_mastered: 0,
+            started_at: new Date(Date.now() - 300000).toISOString(), // 5 minutes ago
+            completed_at: new Date().toISOString()
+          };
+        } else {
+          sessionInfo = recentSession;
+        }
+      }
+
+      // Calculate session metrics
+      const totalQuestions = sessionInfo.words_studied || 5;
+      const correctAnswers = sessionInfo.correct_answers || 4;
+      const accuracy = Math.round((correctAnswers / totalQuestions) * 100);
+      const timeSpent = sessionInfo.completed_at && sessionInfo.started_at 
+        ? Math.floor((new Date(sessionInfo.completed_at).getTime() - new Date(sessionInfo.started_at).getTime()) / 1000)
+        : 300; // 5 minutes default
+
+      // Get word details for correct/incorrect words
+      const wordsCorrect: Array<{word: string, definition: string, tier: string}> = [];
+      const wordsIncorrect: Array<{word: string, definition: string, tier: string}> = [];
+      const wordsPromoted: Array<{word: string, fromState: string, toState: string}> = [];
+
+      // For now, we'll use sample data since we don't have detailed word tracking yet
+      // In a full implementation, you'd track individual word results
+      const sampleWords = [
+        { word: 'Abate', definition: 'To become less intense or widespread', tier: 'Top 25' },
+        { word: 'Adversity', definition: 'A difficult or unfortunate situation', tier: 'Top 25' },
+        { word: 'Aesthetic', definition: 'Concerned with beauty or artistic taste', tier: 'Top 25' },
+        { word: 'Amicable', definition: 'Characterized by friendliness', tier: 'Top 25' },
+        { word: 'Anachronistic', definition: 'Belonging to a period other than that portrayed', tier: 'Top 25' }
+      ];
+
+      // Distribute words based on performance
+      for (let i = 0; i < correctAnswers; i++) {
+        if (sampleWords[i]) {
+          wordsCorrect.push(sampleWords[i]);
+        }
+      }
+
+      for (let i = correctAnswers; i < totalQuestions; i++) {
+        if (sampleWords[i]) {
+          wordsIncorrect.push(sampleWords[i]);
+        }
+      }
+
+      // Add promoted words if any
+      if (sessionInfo.words_promoted > 0) {
+        wordsPromoted.push({
+          word: 'Abate',
+          fromState: 'started',
+          toState: 'ready'
+        });
+      }
+
+      // Calculate points (basic scoring system)
+      const pointsEarned = correctAnswers * 10 + (accuracy >= 80 ? 20 : 0);
+
+      // Mock badges for now (would be calculated based on achievements)
+      const newBadges = [];
+      if (accuracy >= 80) {
+        newBadges.push({
+          id: 'accuracy-master',
+          name: 'Accuracy Master',
+          description: 'Achieve 80% accuracy in a session',
+          icon: '🎯'
+        });
+      }
+
+      if (sessionInfo.words_promoted > 0) {
+        newBadges.push({
+          id: 'word-promoter',
+          name: 'Word Promoter',
+          description: 'Promote words to the next learning stage',
+          icon: '📈'
+        });
+      }
+
+      const summaryData: SessionSummary = {
+        score: correctAnswers,
+        totalQuestions,
+        accuracy,
+        timeSpent,
+        wordsCorrect,
+        wordsIncorrect,
+        wordsPromoted,
+        newBadges,
+        pointsEarned,
+        streakUpdated: true,
+        sessionType: sessionInfo.session_type || 'study'
       };
 
-      setSummary(mockSummary);
+      setSummary(summaryData);
+
+      // Save session to database
+      await saveSessionToDatabase(user.id, summaryData, sessionInfo);
+
     } catch (error) {
       console.error('Error generating session summary:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const saveSessionToDatabase = async (userId: string, summary: SessionSummary, sessionInfo: any) => {
+    try {
+      const { error } = await supabase
+        .from('sessions')
+        .insert({
+          user_id: userId,
+          session_type: summary.sessionType,
+          words_studied: summary.totalQuestions,
+          correct_answers: summary.score,
+          words_promoted: summary.wordsPromoted.length,
+          words_mastered: summary.sessionType === 'review' ? summary.wordsPromoted.length : 0,
+          started_at: sessionInfo.started_at || new Date(Date.now() - summary.timeSpent * 1000).toISOString(),
+          completed_at: new Date().toISOString(),
+          is_guest: false
+        });
+
+      if (error) {
+        console.error('Error saving session to database:', error);
+      } else {
+        console.log('Session saved to database successfully');
+      }
+    } catch (error) {
+      console.error('Error saving session:', error);
     }
   };
 
@@ -207,7 +355,10 @@ export default function SessionSummary() {
               {summary.wordsCorrect.map((word, index) => (
                 <div key={index} className="flex items-center p-2 bg-green-50 rounded-lg">
                   <CheckCircle className="h-4 w-4 text-green-600 mr-2" />
-                  <span className="font-medium text-gray-900">{word}</span>
+                  <div>
+                    <span className="font-medium text-gray-900">{word.word}</span>
+                    <p className="text-xs text-gray-600">{word.definition}</p>
+                  </div>
                 </div>
               ))}
             </div>
@@ -223,12 +374,40 @@ export default function SessionSummary() {
               {summary.wordsIncorrect.map((word, index) => (
                 <div key={index} className="flex items-center p-2 bg-red-50 rounded-lg">
                   <XCircle className="h-4 w-4 text-red-600 mr-2" />
-                  <span className="font-medium text-gray-900">{word}</span>
+                  <div>
+                    <span className="font-medium text-gray-900">{word.word}</span>
+                    <p className="text-xs text-gray-600">{word.definition}</p>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
         </div>
+
+        {/* Words Promoted */}
+        {summary.wordsPromoted.length > 0 && (
+          <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
+            <div className="flex items-center mb-4">
+              <TrendingUp className="h-6 w-6 text-blue-600 mr-2" />
+              <h3 className="text-lg font-semibold text-gray-900">Words Promoted!</h3>
+            </div>
+            <div className="space-y-2">
+              {summary.wordsPromoted.map((word, index) => (
+                <div key={index} className="flex items-center p-3 bg-blue-50 rounded-lg">
+                  <div className="flex-1">
+                    <span className="font-medium text-gray-900">{word.word}</span>
+                    <p className="text-sm text-gray-600">
+                      {word.fromState} → {word.toState}
+                    </p>
+                  </div>
+                  <div className="text-blue-600">
+                    <TrendingUp className="h-5 w-5" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* New Badges */}
         {summary.newBadges.length > 0 && (
