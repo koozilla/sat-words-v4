@@ -33,6 +33,15 @@ interface StudySession {
   score: number;
   totalQuestions: number;
   answers: { [key: string]: boolean };
+  wordResults: Array<{
+    wordId: string;
+    word: string;
+    definition: string;
+    tier: string;
+    correct: boolean;
+    selectedAnswer: string;
+    correctAnswer: string;
+  }>;
 }
 
 export default function StudySession() {
@@ -93,7 +102,8 @@ export default function StudySession() {
           currentIndex: 0,
           score: 0,
           totalQuestions: studyWords.length,
-          answers: {}
+          answers: {},
+          wordResults: []
         });
         return;
       }
@@ -116,7 +126,8 @@ export default function StudySession() {
         currentIndex: 0,
         score: 0,
         totalQuestions: studyWords.length,
-        answers: {}
+        answers: {},
+        wordResults: []
       });
     } catch (error) {
       console.error('Error initializing study session:', error);
@@ -139,9 +150,21 @@ export default function StudySession() {
     if (showAnswer || !session) return;
     
     setSelectedAnswer(answer);
-    const correct = answer === session.words[session.currentIndex].word;
+    const currentWord = session.words[session.currentIndex];
+    const correct = answer === currentWord.word;
     setIsCorrect(correct);
     setShowAnswer(true);
+
+    // Create detailed word result
+    const wordResult = {
+      wordId: currentWord.id,
+      word: currentWord.word,
+      definition: currentWord.definition,
+      tier: currentWord.tier,
+      correct: correct,
+      selectedAnswer: answer,
+      correctAnswer: currentWord.word
+    };
 
     // Update session state
     if (session) {
@@ -149,16 +172,16 @@ export default function StudySession() {
         ...session,
         answers: {
           ...session.answers,
-          [session.words[session.currentIndex].id]: correct
+          [currentWord.id]: correct
         },
-        score: correct ? session.score + 1 : session.score
+        score: correct ? session.score + 1 : session.score,
+        wordResults: [...session.wordResults, wordResult]
       });
     }
 
     // Handle word state transition
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-      const currentWord = session.words[session.currentIndex];
       const transition = await wordStateManager.handleStudyAnswer(
         user.id,
         currentWord.id,
@@ -194,7 +217,8 @@ export default function StudySession() {
         words_promoted: Object.values(session.answers).filter(Boolean).length,
         words_mastered: 0,
         started_at: new Date(Date.now() - 300000).toISOString(), // 5 minutes ago
-        completed_at: new Date().toISOString()
+        completed_at: new Date().toISOString(),
+        wordResults: session.wordResults
       };
       
       const encodedData = encodeURIComponent(JSON.stringify(sessionData));

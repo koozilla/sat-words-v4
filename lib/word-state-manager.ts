@@ -140,8 +140,8 @@ export class WordStateManager {
       if (isCorrect) {
         newStreak = currentStreak + 1;
         
-        // Check if ready to transition to mastered (3 correct streak)
-        if (currentState === 'ready' && newStreak >= 3) {
+        // Check if ready to transition to mastered (1 correct answer in ready state)
+        if (currentState === 'ready') {
           newState = 'mastered';
           transition = {
             wordId,
@@ -151,7 +151,7 @@ export class WordStateManager {
             isCorrect: true
           };
         } else {
-          // Increase review interval for correct answers
+          // Increase review interval for correct answers in other states
           newInterval = this.getNextInterval(currentInterval);
         }
       } else {

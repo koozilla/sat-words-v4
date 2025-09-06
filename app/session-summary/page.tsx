@@ -115,41 +115,76 @@ export default function SessionSummary() {
         ? Math.floor((new Date(sessionInfo.completed_at).getTime() - new Date(sessionInfo.started_at).getTime()) / 1000)
         : 300; // 5 minutes default
 
-      // Get word details for correct/incorrect words
+      // Get word details for correct/incorrect words from actual session data
       const wordsCorrect: Array<{word: string, definition: string, tier: string}> = [];
       const wordsIncorrect: Array<{word: string, definition: string, tier: string}> = [];
       const wordsPromoted: Array<{word: string, fromState: string, toState: string}> = [];
 
-      // For now, we'll use sample data since we don't have detailed word tracking yet
-      // In a full implementation, you'd track individual word results
-      const sampleWords = [
-        { word: 'Abate', definition: 'To become less intense or widespread', tier: 'Top 25' },
-        { word: 'Adversity', definition: 'A difficult or unfortunate situation', tier: 'Top 25' },
-        { word: 'Aesthetic', definition: 'Concerned with beauty or artistic taste', tier: 'Top 25' },
-        { word: 'Amicable', definition: 'Characterized by friendliness', tier: 'Top 25' },
-        { word: 'Anachronistic', definition: 'Belonging to a period other than that portrayed', tier: 'Top 25' }
-      ];
+      // Use actual word results if available
+      if (sessionInfo.wordResults && sessionInfo.wordResults.length > 0) {
+        sessionInfo.wordResults.forEach((result: any) => {
+          const wordData = {
+            word: result.word,
+            definition: result.definition,
+            tier: result.tier
+          };
 
-      // Distribute words based on performance
-      for (let i = 0; i < correctAnswers; i++) {
-        if (sampleWords[i]) {
-          wordsCorrect.push(sampleWords[i]);
-        }
-      }
+          if (result.correct) {
+            wordsCorrect.push(wordData);
+          } else {
+            wordsIncorrect.push(wordData);
+          }
 
-      for (let i = correctAnswers; i < totalQuestions; i++) {
-        if (sampleWords[i]) {
-          wordsIncorrect.push(sampleWords[i]);
-        }
-      }
-
-      // Add promoted words if any
-      if (sessionInfo.words_promoted > 0) {
-        wordsPromoted.push({
-          word: 'Abate',
-          fromState: 'started',
-          toState: 'ready'
+          // Add to promoted words if it was correct
+          if (result.correct) {
+            if (sessionInfo.session_type === 'study') {
+              // Study session: started → ready
+              wordsPromoted.push({
+                word: result.word,
+                fromState: 'started',
+                toState: 'ready'
+              });
+            } else if (sessionInfo.session_type === 'review') {
+              // Review session: ready → mastered
+              wordsPromoted.push({
+                word: result.word,
+                fromState: 'ready',
+                toState: 'mastered'
+              });
+            }
+          }
         });
+      } else {
+        // Fallback to sample data if no word results available
+        const sampleWords = [
+          { word: 'Abate', definition: 'To become less intense or widespread', tier: 'Top 25' },
+          { word: 'Adversity', definition: 'A difficult or unfortunate situation', tier: 'Top 25' },
+          { word: 'Aesthetic', definition: 'Concerned with beauty or artistic taste', tier: 'Top 25' },
+          { word: 'Amicable', definition: 'Characterized by friendliness', tier: 'Top 25' },
+          { word: 'Anachronistic', definition: 'Belonging to a period other than that portrayed', tier: 'Top 25' }
+        ];
+
+        // Distribute words based on performance
+        for (let i = 0; i < correctAnswers; i++) {
+          if (sampleWords[i]) {
+            wordsCorrect.push(sampleWords[i]);
+          }
+        }
+
+        for (let i = correctAnswers; i < totalQuestions; i++) {
+          if (sampleWords[i]) {
+            wordsIncorrect.push(sampleWords[i]);
+          }
+        }
+
+        // Add promoted words if any
+        if (sessionInfo.words_promoted > 0) {
+          wordsPromoted.push({
+            word: 'Abate',
+            fromState: 'started',
+            toState: 'ready'
+          });
+        }
       }
 
       // Calculate points (basic scoring system)

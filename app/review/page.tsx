@@ -36,6 +36,15 @@ interface ReviewSession {
   totalQuestions: number;
   answers: { [key: string]: boolean };
   startTime: Date;
+  wordResults: Array<{
+    wordId: string;
+    word: string;
+    definition: string;
+    tier: string;
+    correct: boolean;
+    userInput: string;
+    correctAnswer: string;
+  }>;
 }
 
 export default function ReviewSession() {
@@ -87,7 +96,8 @@ export default function ReviewSession() {
           score: 0,
           totalQuestions: reviewWordsData.length,
           answers: {},
-          startTime: new Date()
+          startTime: new Date(),
+          wordResults: []
         });
         return;
       }
@@ -120,7 +130,8 @@ export default function ReviewSession() {
         score: 0,
         totalQuestions: reviewWordsData.length,
         answers: {},
-        startTime: new Date()
+        startTime: new Date(),
+        wordResults: []
       });
     } catch (error) {
       console.error('Error initializing review session:', error);
@@ -138,6 +149,17 @@ export default function ReviewSession() {
     setIsCorrect(correct);
     setShowAnswer(true);
 
+    // Create detailed word result
+    const wordResult = {
+      wordId: currentWord.id,
+      word: currentWord.word,
+      definition: currentWord.definition,
+      tier: currentWord.tier,
+      correct: correct,
+      userInput: userInput.trim(),
+      correctAnswer: currentWord.word
+    };
+
     // Update session with answer
     setSession({
       ...session,
@@ -145,7 +167,8 @@ export default function ReviewSession() {
         ...session.answers,
         [currentWord.id]: correct
       },
-      score: correct ? session.score + 1 : session.score
+      score: correct ? session.score + 1 : session.score,
+      wordResults: [...session.wordResults, wordResult]
     });
 
     // Handle word state transition
@@ -201,10 +224,11 @@ export default function ReviewSession() {
         session_type: 'review',
         words_studied: session.totalQuestions,
         correct_answers: session.score,
-        words_promoted: Object.values(session.answers).filter(Boolean).length,
-        words_mastered: 0,
+        words_promoted: 0, // Words don't promote in review, they master
+        words_mastered: session.score, // All correct answers become mastered
         started_at: session.startTime.toISOString(),
-        completed_at: new Date().toISOString()
+        completed_at: new Date().toISOString(),
+        wordResults: session.wordResults
       };
       
       const encodedData = encodeURIComponent(JSON.stringify(sessionData));
