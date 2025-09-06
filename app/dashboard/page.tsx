@@ -29,8 +29,8 @@ interface Word {
 
 interface UserProgress {
   word_id: string;
-  state: 'not_started' | 'learning' | 'reviewing' | 'mastered';
-  next_review?: string;
+  state: 'not_started' | 'started' | 'ready' | 'mastered';
+  next_review_date?: string;
   correct_count: number;
   incorrect_count: number;
 }
@@ -126,11 +126,11 @@ export default function Dashboard() {
         .limit(3);
 
       // Calculate stats
-      const activePool = progress?.filter(p => p.state === 'learning').length || 0;
+      const activePool = progress?.filter(p => p.state === 'started').length || 0;
       const reviewsDue = progress?.filter(p => 
-        p.state === 'reviewing' && 
-        p.next_review && 
-        new Date(p.next_review) <= new Date()
+        p.state === 'ready' && 
+        p.next_review_date && 
+        new Date(p.next_review_date) <= new Date()
       ).length || 0;
       const mastered = progress?.filter(p => p.state === 'mastered').length || 0;
       
