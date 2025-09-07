@@ -206,8 +206,9 @@ export default function StudySession() {
       wordId: currentWord.id,
       word: currentWord.word,
       definition: currentWord.definition,
+      tier: currentWord.tier,
       correct: correct,
-      userInput: answer,
+      selectedAnswer: answer,
       correctAnswer: currentWord.word
     };
 
@@ -287,8 +288,20 @@ export default function StudySession() {
     }
   };
 
-  const finishSession = () => {
+  const finishSession = async () => {
     if (!session) return;
+    
+    // Update word states for all words in the session
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      for (const result of session.wordResults) {
+        if (!result.correct) {
+          // For skipped/incorrect words, ensure they stay in 'started' state
+          // so they can be studied again
+          await wordStateManager.markWordAsStarted(user.id, result.wordId);
+        }
+      }
+    }
     
     // Session complete - pass session data to summary
     const sessionData = {
@@ -303,9 +316,9 @@ export default function StudySession() {
         word: result.word,
         definition: result.definition,
         correct: result.correct,
-        userInput: result.userInput,
+        userInput: result.selectedAnswer,
         correctAnswer: result.correctAnswer,
-        tier: session.words.find(w => w.word === result.word)?.tier || 'Unknown',
+        tier: result.tier,
         fromState: result.fromState,
         toState: result.toState
       }))
@@ -335,8 +348,9 @@ export default function StudySession() {
             wordId: currentWord.id,
             word: currentWord.word,
             definition: currentWord.definition,
+            tier: currentWord.tier,
             correct: isCorrect,
-            userInput: isSkipped ? '' : selectedAnswer || '', // No answer provided if skipped
+            selectedAnswer: isSkipped ? '' : selectedAnswer || '', // No answer provided if skipped
             correctAnswer: currentWord.word
           }
         ]

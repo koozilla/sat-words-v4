@@ -795,7 +795,7 @@ export class WordStateManager {
         return true; // No words available, but not an error
       }
 
-      // Add words to active pool
+      // Add words to active pool using upsert to handle existing records
       const progressEntries = availableWords.map(word => ({
         user_id: userId,
         word_id: word.id,
@@ -807,7 +807,10 @@ export class WordStateManager {
 
       const { error } = await this.supabase
         .from('user_progress')
-        .insert(progressEntries);
+        .upsert(progressEntries, { 
+          onConflict: 'user_id,word_id',
+          ignoreDuplicates: false 
+        });
 
       if (error) {
         console.error('Error refilling active pool:', error);
@@ -823,15 +826,81 @@ export class WordStateManager {
   }
 
   /**
-   * Initialize new user with 15 words from Top 25 tier (first tier in 20-tier system)
+   * Add ALL words from a tier to active pool (set to 'started' state)
    */
+  async addAllTierWordsToActivePool(userId: string, tier: string): Promise<boolean> {
+    try {
+      // Map display tier to database tier formats
+      const tierMappings: { [key: string]: string[] } = {
+        'Top 25': ['top_25'],
+        'Top 50': ['top_50'],
+        'Top 75': ['top_75'],
+        'Top 100': ['top_100'],
+        'Top 125': ['top_125'],
+        'Top 150': ['top_150'],
+        'Top 175': ['top_175'],
+        'Top 200': ['top_200'],
+        'Top 225': ['top_225'],
+        'Top 250': ['top_250'],
+        'Top 275': ['top_275'],
+        'Top 300': ['top_300'],
+        'Top 325': ['top_325'],
+        'Top 350': ['top_350'],
+        'Top 375': ['top_375'],
+        'Top 400': ['top_400'],
+        'Top 425': ['top_425'],
+        'Top 450': ['top_450'],
+        'Top 475': ['top_475'],
+        'Top 500': ['top_500']
+      };
+      
+      const dbTiers = tierMappings[tier] || [tier];
+      
+      // Get all words in the tier
+      const { data: words, error: wordsError } = await this.supabase
+        .from('words')
+        .select('id')
+        .in('tier', dbTiers);
+
+      if (wordsError) {
+        console.error('Error fetching words for tier:', wordsError);
+        return false;
+      }
+
+      if (!words || words.length === 0) {
+        return true; // No words to add
+      }
+
+      // Update all words in this tier to 'started' state
+      const { error: updateError } = await this.supabase
+        .from('user_progress')
+        .update({ 
+          state: 'started',
+          last_studied: new Date().toISOString()
+        })
+        .eq('user_id', userId)
+        .in('word_id', words.map((w: any) => w.id))
+        .in('state', ['not_started']); // Only update words that are not_started
+
+      if (updateError) {
+        console.error('Error updating words to started state:', updateError);
+        return false;
+      }
+
+      console.log(`Added ${words.length} words from ${tier} to active pool`);
+      return true;
+    } catch (error) {
+      console.error('Error adding all tier words to active pool:', error);
+      return false;
+    }
+  }
   async initializeNewUser(userId: string): Promise<boolean> {
     try {
       // First, initialize progress for all words in Top 25 tier
       await this.initializeUserProgress(userId, 'Top 25');
       
-      // Then refill the active pool
-      return await this.refillActivePool(userId);
+      // Then add ALL words from Top 25 tier to active pool (set to 'started' state)
+      return await this.addAllTierWordsToActivePool(userId, 'Top 25');
     } catch (error) {
       console.error('Error initializing new user:', error);
       return false;
@@ -839,17 +908,140 @@ export class WordStateManager {
   }
 
   /**
-   * Handle word mastery - refill pool if needed
+   * Handle word mastery - check for tier progression and refill pool
    */
   async handleWordMastery(userId: string): Promise<void> {
     try {
-      // Check if we need to refill the pool
-      const currentCount = await this.getActivePoolCount(userId);
-      if (currentCount < 15) {
-        await this.refillActivePool(userId);
+      const currentTier = await this.getCurrentTier(userId);
+      
+      // Check if user has completed current tier (all words mastered)
+      const tierMappings: { [key: string]: string[] } = {
+        'Top 25': ['top_25'],
+        'Top 50': ['top_50'],
+        'Top 75': ['top_75'],
+        'Top 100': ['top_100'],
+        'Top 125': ['top_125'],
+        'Top 150': ['top_150'],
+        'Top 175': ['top_175'],
+        'Top 200': ['top_200'],
+        'Top 225': ['top_225'],
+        'Top 250': ['top_250'],
+        'Top 275': ['top_275'],
+        'Top 300': ['top_300'],
+        'Top 325': ['top_325'],
+        'Top 350': ['top_350'],
+        'Top 375': ['top_375'],
+        'Top 400': ['top_400'],
+        'Top 425': ['top_425'],
+        'Top 450': ['top_450'],
+        'Top 475': ['top_475'],
+        'Top 500': ['top_500']
+      };
+      
+      const dbTiers = tierMappings[currentTier] || ['top_25'];
+      
+      // Get all words in current tier
+      const { data: tierWords } = await this.supabase
+        .from('words')
+        .select('id')
+        .in('tier', dbTiers);
+      
+      if (tierWords && tierWords.length > 0) {
+        // Get mastered words count in current tier
+        const { data: masteredWords } = await this.supabase
+          .from('user_progress')
+          .select('word_id')
+          .eq('user_id', userId)
+          .eq('state', 'mastered')
+          .in('word_id', tierWords.map((w: any) => w.id));
+        
+        const masteredCount = masteredWords?.length || 0;
+        const totalWords = tierWords.length;
+        
+        // If all words in current tier are mastered, progress to next tier
+        if (masteredCount >= totalWords && currentTier !== 'Top 500') {
+          await this.progressToNextTier(userId);
+        } else {
+          // Otherwise, just refill the pool with available words
+          const currentCount = await this.getActivePoolCount(userId);
+          if (currentCount < 15) {
+            await this.refillActivePool(userId);
+          }
+        }
       }
     } catch (error) {
       console.error('Error handling word mastery:', error);
+    }
+  }
+
+  /**
+   * Mark a word as started (ensure it's in active pool for study)
+   */
+  async markWordAsStarted(userId: string, wordId: string): Promise<boolean> {
+    try {
+      const { error } = await this.supabase
+        .from('user_progress')
+        .update({ 
+          state: 'started',
+          last_studied: new Date().toISOString()
+        })
+        .eq('user_id', userId)
+        .eq('word_id', wordId);
+
+      if (error) {
+        console.error('Error marking word as started:', error);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error marking word as started:', error);
+      return false;
+    }
+  }
+  async progressToNextTier(userId: string): Promise<boolean> {
+    try {
+      const currentTier = await this.getCurrentTier(userId);
+      
+      const tierOrder = [
+        'Top 25', 'Top 50', 'Top 75', 'Top 100', 'Top 125', 'Top 150', 'Top 175', 'Top 200',
+        'Top 225', 'Top 250', 'Top 275', 'Top 300', 'Top 325', 'Top 350', 'Top 375', 'Top 400',
+        'Top 425', 'Top 450', 'Top 475', 'Top 500'
+      ];
+      
+      const currentIndex = tierOrder.indexOf(currentTier);
+      if (currentIndex === -1 || currentIndex >= tierOrder.length - 1) {
+        console.log('User is already at the highest tier');
+        return false;
+      }
+      
+      const nextTier = tierOrder[currentIndex + 1];
+      
+      // Update user's current tier
+      const { error: updateError } = await this.supabase
+        .from('users')
+        .update({ current_tier: nextTier })
+        .eq('id', userId);
+      
+      if (updateError) {
+        console.error('Error updating user tier:', updateError);
+        return false;
+      }
+      
+      // Initialize progress for next tier
+      await this.initializeUserProgress(userId, nextTier);
+      
+      // Add all words from next tier to active pool
+      const success = await this.addAllTierWordsToActivePool(userId, nextTier);
+      
+      if (success) {
+        console.log(`User progressed from ${currentTier} to ${nextTier}`);
+      }
+      
+      return success;
+    } catch (error) {
+      console.error('Error progressing to next tier:', error);
+      return false;
     }
   }
 }
