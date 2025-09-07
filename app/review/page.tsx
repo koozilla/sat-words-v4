@@ -225,13 +225,12 @@ export default function ReviewSession() {
         wordResults: [
           ...session.wordResults,
           {
+            wordId: currentWord.id,
             word: currentWord.word,
             definition: currentWord.definition,
-            correct_answer: currentWord.word,
-            user_answer: null, // No answer provided
-            is_correct: isCorrect,
-            from_state: 'ready',
-            to_state: 'ready' // Stays in ready state
+            correct: isCorrect,
+            userInput: '', // No answer provided
+            correctAnswer: currentWord.word
           }
         ]
       };
@@ -254,7 +253,14 @@ export default function ReviewSession() {
         words_mastered: session.score, // All correct answers become mastered
         started_at: session.startTime.toISOString(),
         completed_at: new Date().toISOString(),
-        wordResults: session.wordResults
+        wordResults: session.wordResults.map(result => ({
+          word: result.word,
+          definition: result.definition,
+          correct: result.correct,
+          userInput: result.userInput,
+          correctAnswer: result.correctAnswer,
+          tier: session.words.find(w => w.word === result.word)?.tier || 'Unknown'
+        }))
       };
       
       const encodedData = encodeURIComponent(JSON.stringify(sessionData));
