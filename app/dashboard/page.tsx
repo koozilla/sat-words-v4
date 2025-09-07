@@ -243,27 +243,6 @@ export default function Dashboard() {
           </p>
         </div>
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <button
-            onClick={startStudySession}
-            className="bg-blue-600 hover:bg-blue-700 text-white p-6 rounded-xl shadow-lg transition-colors"
-          >
-            <BookOpen className="h-8 w-8 mb-3" />
-            <h3 className="text-lg font-semibold mb-2">Study Session</h3>
-            <p className="text-blue-100">Learn new words with flashcards</p>
-          </button>
-
-          <button
-            onClick={viewCurrentWords}
-            className="bg-purple-600 hover:bg-purple-700 text-white p-6 rounded-xl shadow-lg transition-colors"
-          >
-            <Target className="h-8 w-8 mb-3" />
-            <h3 className="text-lg font-semibold mb-2">Current Words</h3>
-            <p className="text-purple-100">View and manage your study pool</p>
-          </button>
-        </div>
-
         {/* Smart Review Card */}
         {stats && stats.reviewsDue > 0 && (
           <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl p-6 text-white mb-8">
@@ -288,19 +267,49 @@ export default function Dashboard() {
           </div>
         )}
 
+        {/* Smart Study Card */}
+        {stats && stats.activePoolCount > 0 && (
+          <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-6 text-white mb-8">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <BookOpen className="h-8 w-8 mr-4" />
+                <div>
+                  <h3 className="text-lg font-semibold mb-1">Active Study Pool</h3>
+                  <p className="text-blue-100">
+                    {stats.activePoolCount} {stats.activePoolCount === 1 ? 'word' : 'words'} ready to study
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={startStudySession}
+                className="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center"
+              >
+                <BookOpen className="h-5 w-5 mr-2" />
+                Start Study
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white p-6 rounded-xl shadow-sm">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <button
+            onClick={viewCurrentWords}
+            className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+          >
             <div className="flex items-center">
-              <Target className="h-8 w-8 text-blue-600" />
+              <Target className="h-8 w-8 text-purple-600" />
               <div className="ml-3">
-                <p className="text-sm font-medium text-gray-500">Active Pool</p>
+                <p className="text-sm font-medium text-gray-500">Current Words</p>
                 <p className="text-2xl font-bold text-gray-900">{stats?.activePoolCount || 0}</p>
               </div>
             </div>
-          </div>
+          </button>
 
-          <div className="bg-white p-6 rounded-xl shadow-sm">
+          <button
+            onClick={() => router.push('/mastered-words')}
+            className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+          >
             <div className="flex items-center">
               <CheckCircle className="h-8 w-8 text-green-600" />
               <div className="ml-3">
@@ -308,7 +317,7 @@ export default function Dashboard() {
                 <p className="text-2xl font-bold text-gray-900">{stats?.masteredWords || 0}</p>
               </div>
             </div>
-          </div>
+          </button>
 
           <div className="bg-white p-6 rounded-xl shadow-sm">
             <div className="flex items-center">
