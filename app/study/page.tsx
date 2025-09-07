@@ -255,7 +255,7 @@ export default function StudySession() {
         correct_answers: session.score,
         words_promoted: Object.values(session.answers).filter(Boolean).length,
         words_mastered: 0,
-        started_at: session.startTime.toISOString(),
+        started_at: session.startTime?.toISOString() || new Date().toISOString(),
         completed_at: new Date().toISOString(),
         wordResults: session.wordResults.map(result => ({
           word: result.word,
