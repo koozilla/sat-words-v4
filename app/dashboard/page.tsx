@@ -274,7 +274,7 @@ export default function Dashboard() {
               <div className="flex items-center">
                 <BookOpen className="h-8 w-8 mr-4" />
                 <div>
-                  <h3 className="text-lg font-semibold mb-1">Active Study Pool</h3>
+                  <h3 className="text-lg font-semibold mb-1">Active Words</h3>
                   <p className="text-blue-100">
                     {stats.activePoolCount} {stats.activePoolCount === 1 ? 'word' : 'words'} ready to study
                   </p>
@@ -313,8 +313,11 @@ export default function Dashboard() {
             <div className="flex items-center">
               <CheckCircle className="h-8 w-8 text-green-600" />
               <div className="ml-3">
-                <p className="text-sm font-medium text-gray-500">Mastered</p>
+                <p className="text-sm font-medium text-gray-500">Mastered Words</p>
                 <p className="text-2xl font-bold text-gray-900">{stats?.masteredWords || 0}</p>
+                <p className="text-xs text-gray-400 mt-1">
+                  Current Tier: {stats?.tierProgress?.find(t => t.mastered > 0)?.tier || 'Top 25'}
+                </p>
               </div>
             </div>
           </button>
@@ -330,31 +333,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Tier Progress */}
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Tier Progress</h3>
-          <div className="space-y-4">
-            {stats?.tierProgress.map((tier) => (
-              <div key={tier.tier} className="flex items-center justify-between">
-                <div className="flex-1">
-                  <div className="flex justify-between text-sm font-medium text-gray-700 mb-1">
-                    <span>{tier.tier}</span>
-                    <span>{tier.mastered}/{tier.total}</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${tier.percentage}%` }}
-                    ></div>
-                  </div>
-                </div>
-                <div className="ml-4 text-sm font-medium text-gray-500">
-                  {tier.percentage}%
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
 
         {/* Recent Achievements */}
         {stats?.recentBadges && stats.recentBadges.length > 0 && (
