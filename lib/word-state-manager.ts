@@ -468,14 +468,14 @@ export class WordStateManager {
    */
   async getCurrentTier(userId: string): Promise<string> {
     try {
-      // Handle both formats: "Top 25" and "Top25"
+      // Database now uses consistent 'top_100' format
       const tierMappings = [
-        { display: 'Top 25', db: ['Top 25', 'Top25'] },
-        { display: 'Top 100', db: ['Top 100', 'Top100'] },
-        { display: 'Top 200', db: ['Top 200', 'Top200'] },
-        { display: 'Top 300', db: ['Top 300', 'Top300'] },
-        { display: 'Top 400', db: ['Top 400', 'Top400'] },
-        { display: 'Top 500', db: ['Top 500', 'Top500'] }
+        { display: 'Top 25', db: ['top_25'] },
+        { display: 'Top 100', db: ['top_100'] },
+        { display: 'Top 200', db: ['top_200'] },
+        { display: 'Top 300', db: ['top_300'] },
+        { display: 'Top 400', db: ['top_400'] },
+        { display: 'Top 500', db: ['top_500'] }
       ];
       
       for (const tierMapping of tierMappings) {
