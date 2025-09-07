@@ -15,6 +15,7 @@ import {
   Eye,
   EyeOff
 } from 'lucide-react';
+import CelebrationAnimation from '@/components/ui/CelebrationAnimation';
 
 interface Word {
   id: string;
@@ -56,6 +57,7 @@ export default function ReviewSession() {
   const [showAnswer, setShowAnswer] = useState(false);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [showHint, setShowHint] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
   const [wordStateManager] = useState(() => new WordStateManager());
   const router = useRouter();
   const supabase = createClientComponentClient();
@@ -239,6 +241,22 @@ export default function ReviewSession() {
           await wordStateManager.handleWordMastery(testUserId);
         }
       }
+    }
+
+    // Show celebration animation for correct answers and auto-advance
+    if (correct) {
+      setShowCelebration(true);
+    }
+  };
+
+  const handleCelebrationComplete = () => {
+    setShowCelebration(false);
+    // Auto-advance to next question after celebration
+    if (session && session.currentIndex < session.words.length - 1) {
+      nextQuestion();
+    } else {
+      // If it's the last question, finish the session
+      finishSession();
     }
   };
 
@@ -555,6 +573,13 @@ export default function ReviewSession() {
           </div>
         </div>
       </main>
+
+      {/* Celebration Animation */}
+      <CelebrationAnimation 
+        isVisible={showCelebration}
+        onComplete={handleCelebrationComplete}
+        type="stars"
+      />
     </div>
   );
 }

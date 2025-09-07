@@ -13,6 +13,7 @@ import {
   BookOpen,
   Image as ImageIcon
 } from 'lucide-react';
+import CelebrationAnimation from '@/components/ui/CelebrationAnimation';
 
 interface Word {
   id: string;
@@ -55,6 +56,7 @@ export default function StudySession() {
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [currentAnswers, setCurrentAnswers] = useState<string[]>([]);
+  const [showCelebration, setShowCelebration] = useState(false);
   const [wordStateManager] = useState(() => new WordStateManager());
   const router = useRouter();
   const supabase = createClientComponentClient();
@@ -241,6 +243,22 @@ export default function StudySession() {
           });
         }
       }
+    }
+
+    // Show celebration animation for correct answers and auto-advance
+    if (correct) {
+      setShowCelebration(true);
+    }
+  };
+
+  const handleCelebrationComplete = () => {
+    setShowCelebration(false);
+    // Auto-advance to next question after celebration
+    if (session && session.currentIndex < session.words.length - 1) {
+      nextQuestion();
+    } else {
+      // If it's the last question, finish the session
+      finishSession();
     }
   };
 
@@ -502,6 +520,13 @@ export default function StudySession() {
           </div>
         </div>
       </main>
+
+      {/* Celebration Animation */}
+      <CelebrationAnimation 
+        isVisible={showCelebration}
+        onComplete={handleCelebrationComplete}
+        type="confetti"
+      />
     </div>
   );
 }
