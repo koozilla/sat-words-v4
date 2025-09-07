@@ -115,6 +115,27 @@ export default function MasteredWords() {
 
   const tiers = ['all', 'Top 25', 'Top 100', 'Top 200', 'Top 300', 'Top 400', 'Top 500'];
 
+  const getDifficultyColor = (difficulty: string): string => {
+    switch (difficulty) {
+      case 'Easy': return 'text-green-600 bg-green-100';
+      case 'Medium': return 'text-yellow-600 bg-yellow-100';
+      case 'Hard': return 'text-red-600 bg-red-100';
+      default: return 'text-gray-600 bg-gray-100';
+    }
+  };
+
+  const getTierColor = (tier: string): string => {
+    switch (tier) {
+      case 'Top 25': return 'text-purple-600 bg-purple-100';
+      case 'Top 100': return 'text-blue-600 bg-blue-100';
+      case 'Top 200': return 'text-indigo-600 bg-indigo-100';
+      case 'Top 300': return 'text-cyan-600 bg-cyan-100';
+      case 'Top 400': return 'text-teal-600 bg-teal-100';
+      case 'Top 500': return 'text-emerald-600 bg-emerald-100';
+      default: return 'text-gray-600 bg-gray-100';
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
@@ -160,51 +181,54 @@ export default function MasteredWords() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats */}
+        {/* Page Header */}
         <div className="mb-8">
-          <div className="flex items-center mb-4">
-            <Trophy className="h-8 w-8 text-yellow-600 mr-3" />
-            <h2 className="text-2xl font-bold text-gray-900">
-              {masteredWords.length} Mastered Words
-            </h2>
-          </div>
-          <p className="text-gray-600">
-            {isGuest 
-              ? "You're in guest mode. Sign up to save your progress and track mastered words."
-              : "Congratulations! These are the words you've successfully mastered."
-            }
-          </p>
-        </div>
-
-        {/* Search and Filter */}
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search words or definitions..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
+          <div className="flex justify-between items-center mb-4">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">Mastered Words</h1>
+              <p className="text-gray-600">
+                {isGuest 
+                  ? "You're in guest mode. Sign up to save your progress and track mastered words."
+                  : "Congratulations! These are the words you've successfully mastered."
+                }
+              </p>
             </div>
             <div className="flex items-center">
-              <Filter className="h-5 w-5 text-gray-400 mr-2" />
-              <select
-                value={selectedTier}
-                onChange={(e) => setSelectedTier(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                {tiers.map(tier => (
-                  <option key={tier} value={tier}>
-                    {tier === 'all' ? 'All Tiers' : tier}
-                  </option>
-                ))}
-              </select>
+              <Trophy className="h-8 w-8 text-yellow-600 mr-2" />
+              <span className="text-sm font-medium text-gray-700">
+                Total: {masteredWords.length}
+              </span>
             </div>
+          </div>
+        </div>
+
+        {/* Search and Filters */}
+        <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search words or definitions..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            {/* Tier Filter */}
+            <select
+              value={selectedTier}
+              onChange={(e) => setSelectedTier(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              {tiers.map(tier => (
+                <option key={tier} value={tier}>
+                  {tier === 'all' ? 'All Tiers' : tier}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 
@@ -231,41 +255,66 @@ export default function MasteredWords() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredWords.map((word) => (
-              <div key={word.id} className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1">{word.word}</h3>
-                    <p className="text-sm text-gray-500 mb-2">{word.part_of_speech}</p>
-                    <div className="flex items-center">
-                      <Target className="h-4 w-4 text-blue-600 mr-1" />
-                      <span className="text-sm font-medium text-blue-600">{word.tier}</span>
-                    </div>
+              <div key={word.id} className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow ring-2 ring-green-200">
+                {/* Word Header */}
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-1">{word.word}</h3>
+                    <p className="text-sm text-gray-600 italic">{word.part_of_speech}</p>
                   </div>
-                  <CheckCircle className="h-6 w-6 text-green-600 flex-shrink-0" />
+                  <div className="flex flex-col space-y-1">
+                    <div className="flex space-x-2">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTierColor(word.tier)}`}>
+                        {word.tier}
+                      </span>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(word.difficulty)}`}>
+                        {word.difficulty}
+                      </span>
+                    </div>
+                    {/* Mastered Badge */}
+                    <span className="px-2 py-1 rounded-full text-xs font-medium text-green-800 bg-green-100">
+                      Mastered
+                    </span>
+                  </div>
                 </div>
-                
+
+                {/* Definition */}
                 <p className="text-gray-700 mb-4">{word.definition}</p>
-                
+
+                {/* Mastered Progress Section */}
+                <div className="mb-4 p-3 rounded-lg bg-green-50">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium text-green-800">
+                      Mastered
+                    </span>
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                  </div>
+                </div>
+
+                {/* Example Sentence */}
                 {word.example_sentence && (
                   <div className="mb-4">
-                    <p className="text-sm text-gray-500 mb-1">Example:</p>
-                    <p className="text-sm italic text-gray-600">"{word.example_sentence}"</p>
+                    <p className="text-sm text-gray-600 italic">
+                      "{word.example_sentence}"
+                    </p>
                   </div>
                 )}
-                
-                {word.synonyms && word.synonyms.length > 0 && (
-                  <div className="mb-2">
-                    <p className="text-sm text-gray-500 mb-1">Synonyms:</p>
-                    <p className="text-sm text-gray-600">{word.synonyms.join(', ')}</p>
-                  </div>
-                )}
-                
-                {word.antonyms && word.antonyms.length > 0 && (
-                  <div>
-                    <p className="text-sm text-gray-500 mb-1">Antonyms:</p>
-                    <p className="text-sm text-gray-600">{word.antonyms.join(', ')}</p>
-                  </div>
-                )}
+
+                {/* Synonyms/Antonyms */}
+                <div className="mb-4">
+                  {word.synonyms && word.synonyms.length > 0 && (
+                    <div className="mb-2">
+                      <p className="text-xs font-medium text-gray-500 mb-1">Synonyms:</p>
+                      <p className="text-sm text-gray-600">{word.synonyms.join(', ')}</p>
+                    </div>
+                  )}
+                  {word.antonyms && word.antonyms.length > 0 && (
+                    <div>
+                      <p className="text-xs font-medium text-gray-500 mb-1">Antonyms:</p>
+                      <p className="text-sm text-gray-600">{word.antonyms.join(', ')}</p>
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
           </div>
