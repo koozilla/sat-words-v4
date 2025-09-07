@@ -178,6 +178,23 @@ export class DatabaseClient {
     }
   }
 
+  async getExistingWords(): Promise<string[]> {
+    try {
+      const { data, error } = await this.supabase
+        .from('words')
+        .select('word');
+
+      if (error) {
+        throw new Error(`Failed to get existing words: ${error.message}`);
+      }
+
+      return data?.map((word: any) => word.word.toLowerCase()) || [];
+    } catch (error) {
+      console.error(`❌ Failed to get existing words:`, error);
+      throw error;
+    }
+  }
+
   async wordExists(word: string): Promise<boolean> {
     try {
       const { data, error } = await this.supabase

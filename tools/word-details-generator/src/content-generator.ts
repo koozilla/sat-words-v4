@@ -65,14 +65,34 @@ export class ContentGenerator {
     }
     
     // Parse words from WORDS.md
-    const words = await this.wordParser.parseWords();
-    console.log(`Found ${words.length} words to process`);
+    const allWords = await this.wordParser.parseWords();
+    console.log(`Found ${allWords.length} words in WORDS.md`);
+    
+    // Filter out existing words if database is available
+    let words = allWords;
+    if (this.insertToDatabase && this.databaseClient) {
+      console.log('🔍 Checking which words already exist in database...');
+      
+      try {
+        const existingWords = await this.databaseClient.getExistingWords();
+        const existingWordsSet = new Set(existingWords);
+        
+        // Filter out existing words
+        words = allWords.filter(word => !existingWordsSet.has(word.word.toLowerCase()));
+        console.log(`📊 Existing words in database: ${existingWords.length}`);
+        console.log(`📊 Words to process: ${words.length}`);
+        console.log(`📊 Words skipped (already exist): ${allWords.length - words.length}`);
+      } catch (error) {
+        console.warn('⚠️ Failed to check existing words:', error);
+        console.warn('Processing all words (may cause duplicates)...');
+      }
+    }
     
     // Save parsed words for reference
     await this.wordParser.saveWordsToFile(words, path.join(this.outputDir, 'parsed-words.json'));
     await this.wordParser.saveWordsToCSV(words, path.join(this.outputDir, 'parsed-words.csv'));
     
-    // Generate details for all words
+    // Generate details for filtered words
     const wordDetails: WordDetails[] = [];
     const totalWords = words.length;
     
