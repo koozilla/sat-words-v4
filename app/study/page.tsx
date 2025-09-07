@@ -50,6 +50,7 @@ export default function StudySession() {
   const [showAnswer, setShowAnswer] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
+  const [currentAnswers, setCurrentAnswers] = useState<string[]>([]);
   const [wordStateManager] = useState(() => new WordStateManager());
   const router = useRouter();
   const supabase = createClientComponentClient();
@@ -57,6 +58,16 @@ export default function StudySession() {
   useEffect(() => {
     initializeStudySession();
   }, []);
+
+  // Generate answers when current word changes
+  useEffect(() => {
+    if (session && session.words.length > 0) {
+      const currentWord = session.words[session.currentIndex];
+      const distractors = generateDistractors(currentWord, session.words);
+      const shuffledAnswers = [currentWord.word, ...distractors].sort(() => Math.random() - 0.5);
+      setCurrentAnswers(shuffledAnswers);
+    }
+  }, [session?.currentIndex, session?.words]);
 
   const initializeStudySession = async () => {
     try {
@@ -232,6 +243,7 @@ export default function StudySession() {
       setShowAnswer(false);
       setSelectedAnswer(null);
       setIsCorrect(null);
+      setCurrentAnswers([]); // Reset answers to trigger regeneration
     } else {
       // Session complete - pass session data to summary
       const sessionData = {
@@ -266,6 +278,7 @@ export default function StudySession() {
       setShowAnswer(false);
       setSelectedAnswer(null);
       setIsCorrect(null);
+      setCurrentAnswers([]); // Reset answers to trigger regeneration
     }
   };
 
@@ -298,8 +311,6 @@ export default function StudySession() {
 
   const currentWord = session.words[session.currentIndex];
   const progress = ((session.currentIndex + 1) / session.totalQuestions) * 100;
-  const distractors = generateDistractors(currentWord, session.words);
-  const allAnswers = [currentWord.word, ...distractors].sort(() => Math.random() - 0.5);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -361,7 +372,7 @@ export default function StudySession() {
 
           {/* Answer Options */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-            {allAnswers.map((answer, index) => {
+            {currentAnswers.map((answer, index) => {
               let buttonClass = "w-full p-4 text-left rounded-lg border-2 transition-colors ";
               
               if (showAnswer) {
