@@ -310,19 +310,8 @@ export default function Dashboard() {
                 <div>
                   <h3 className="text-lg font-semibold mb-1">Active Words</h3>
                   <p className="text-blue-100 mb-2">
-                    {stats.activePoolCount} {stats.activePoolCount === 1 ? 'word' : 'words'} ready to study
+                    Easy {stats.activeWordsBreakdown.easy} Medium {stats.activeWordsBreakdown.medium} Hard {stats.activeWordsBreakdown.hard}
                   </p>
-                  <div className="flex space-x-4 text-sm">
-                    <span className="text-green-200">
-                      <span className="font-semibold">{stats.activeWordsBreakdown.easy}</span> Easy
-                    </span>
-                    <span className="text-yellow-200">
-                      <span className="font-semibold">{stats.activeWordsBreakdown.medium}</span> Medium
-                    </span>
-                    <span className="text-red-200">
-                      <span className="font-semibold">{stats.activeWordsBreakdown.hard}</span> Hard
-                    </span>
-                  </div>
                 </div>
               </div>
               <button
@@ -346,12 +335,9 @@ export default function Dashboard() {
               <Target className="h-8 w-8 text-purple-600" />
               <div className="ml-3">
                 <p className="text-sm font-medium text-gray-500">Active Words</p>
-                <p className="text-2xl font-bold text-gray-900">{stats?.activePoolCount || 0}</p>
-                <div className="flex space-x-2 text-xs text-gray-500 mt-1">
-                  <span className="text-green-600">{stats?.activeWordsBreakdown.easy || 0}E</span>
-                  <span className="text-yellow-600">{stats?.activeWordsBreakdown.medium || 0}M</span>
-                  <span className="text-red-600">{stats?.activeWordsBreakdown.hard || 0}H</span>
-                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Easy {stats?.activeWordsBreakdown.easy || 0} Medium {stats?.activeWordsBreakdown.medium || 0} Hard {stats?.activeWordsBreakdown.hard || 0}
+                </p>
               </div>
             </div>
           </button>
