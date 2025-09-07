@@ -285,7 +285,7 @@ export default function Dashboard() {
 
         {/* Smart Review Card */}
         {stats && stats.reviewsDue > 0 && (
-          <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl p-6 text-white mb-8">
+          <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl p-6 text-white mb-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <Clock className="h-8 w-8 mr-4" />
@@ -301,7 +301,7 @@ export default function Dashboard() {
                 className="bg-white text-green-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center"
               >
                 <Clock className="h-5 w-5 mr-2" />
-                Start Challenge
+                Start Test
               </button>
             </div>
           </div>
@@ -309,7 +309,7 @@ export default function Dashboard() {
 
         {/* Smart Study Card */}
         {stats && stats.activePoolCount > 0 && (
-          <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-6 text-white mb-8">
+          <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-6 text-white mb-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <BookOpen className="h-8 w-8 mr-4" />
@@ -320,7 +320,7 @@ export default function Dashboard() {
                   </p>
                 </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-1">
                 <button
                   onClick={startStudySession}
                   className="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center"
@@ -335,7 +335,7 @@ export default function Dashboard() {
 
         {/* Mastered Words Card */}
         {stats && stats.masteredWords > 0 && (
-          <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-xl p-6 text-white mb-8">
+          <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-xl p-6 text-white mb-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <CheckCircle className="h-8 w-8 mr-4" />
@@ -346,7 +346,7 @@ export default function Dashboard() {
                   </p>
                 </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-1">
                 <button
                   onClick={() => router.push('/mastered-words')}
                   className="bg-white text-green-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center"
@@ -361,7 +361,7 @@ export default function Dashboard() {
 
         {/* Modify Active Words Card */}
         {stats && stats.activePoolCount > 0 && (
-          <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl p-6 text-white mb-8">
+          <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl p-6 text-white mb-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <Plus className="h-8 w-8 mr-4" />
@@ -372,7 +372,7 @@ export default function Dashboard() {
                   </p>
                 </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-1">
                 <button
                   onClick={() => router.push('/words')}
                   className="bg-white text-purple-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center"
@@ -387,7 +387,7 @@ export default function Dashboard() {
 
         {/* Streak Message */}
         {stats && (
-          <div className="bg-white p-6 rounded-xl shadow-sm mb-6">
+          <div className="bg-white p-6 rounded-xl shadow-sm mb-4">
             <div className="flex items-center">
               <TrendingUp className="h-8 w-8 text-purple-600" />
               <div className="ml-3">

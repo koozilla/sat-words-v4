@@ -37,6 +37,11 @@ interface SessionSummary {
     fromState: string;
     toState: string;
   }>;
+  wordsDemoted: Array<{
+    word: string;
+    fromState: string;
+    toState: string;
+  }>;
   newBadges: Array<{
     id: string;
     name: string;
@@ -119,9 +124,11 @@ export default function SessionSummary() {
       const wordsCorrect: Array<{word: string, definition: string, tier: string}> = [];
       const wordsIncorrect: Array<{word: string, definition: string, tier: string}> = [];
       const wordsPromoted: Array<{word: string, fromState: string, toState: string}> = [];
+      const wordsDemoted: Array<{word: string, fromState: string, toState: string}> = [];
 
       // Use actual word results if available
       if (sessionInfo.wordResults && sessionInfo.wordResults.length > 0) {
+        // First pass: categorize words as correct or incorrect
         sessionInfo.wordResults.forEach((result: any) => {
           const wordData = {
             word: result.word,
@@ -137,18 +144,38 @@ export default function SessionSummary() {
           }
         });
 
-        // Handle promoted words separately - these are words that had state transitions
-        // regardless of whether they were correct or incorrect in this session
+        // Second pass: handle state transitions (promotions/demotions)
         sessionInfo.wordResults.forEach((result: any) => {
           if (result.fromState && result.toState && result.fromState !== result.toState) {
-            // Check if this word is already in promoted list to avoid duplicates
-            const alreadyPromoted = wordsPromoted.some(promoted => promoted.word === result.word);
-            if (!alreadyPromoted) {
-              wordsPromoted.push({
-                word: result.word,
-                fromState: result.fromState,
-                toState: result.toState
-              });
+            // Determine if this is a promotion or demotion
+            const stateHierarchy = ['not_started', 'started', 'ready', 'mastered'];
+            const fromIndex = stateHierarchy.indexOf(result.fromState);
+            const toIndex = stateHierarchy.indexOf(result.toState);
+            
+            console.log(`Word: ${result.word}, ${result.fromState} → ${result.toState}, fromIndex: ${fromIndex}, toIndex: ${toIndex}`);
+            
+            if (toIndex > fromIndex) {
+              // Promotion: moved to a better state
+              const alreadyPromoted = wordsPromoted.some(promoted => promoted.word === result.word);
+              if (!alreadyPromoted) {
+                wordsPromoted.push({
+                  word: result.word,
+                  fromState: result.fromState,
+                  toState: result.toState
+                });
+                console.log(`Added to promoted: ${result.word}`);
+              }
+            } else if (toIndex < fromIndex) {
+              // Demotion: moved to a worse state
+              const alreadyDemoted = wordsDemoted.some(demoted => demoted.word === result.word);
+              if (!alreadyDemoted) {
+                wordsDemoted.push({
+                  word: result.word,
+                  fromState: result.fromState,
+                  toState: result.toState
+                });
+                console.log(`Added to demoted: ${result.word}`);
+              }
             }
           }
         });
@@ -216,6 +243,7 @@ export default function SessionSummary() {
         wordsCorrect,
         wordsIncorrect,
         wordsPromoted,
+        wordsDemoted,
         newBadges,
         pointsEarned,
         streakUpdated: true,
@@ -378,38 +406,46 @@ export default function SessionSummary() {
 
         {/* Words Review */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          {/* Correct Words */}
+          {/* Words Promoted */}
           <div className="bg-white rounded-xl shadow-sm p-6">
             <div className="flex items-center mb-4">
-              <CheckCircle className="h-6 w-6 text-green-600 mr-2" />
-              <h3 className="text-lg font-semibold text-gray-900">Words You Got Right</h3>
+              <TrendingUp className="h-6 w-6 text-green-600 mr-2" />
+              <h3 className="text-lg font-semibold text-gray-900">Words Promoted!</h3>
             </div>
             <div className="space-y-2">
-              {summary.wordsCorrect.map((word, index) => (
-                <div key={index} className="flex items-center p-2 bg-green-50 rounded-lg">
-                  <CheckCircle className="h-4 w-4 text-green-600 mr-2" />
-                  <div>
+              {summary.wordsPromoted.map((word, index) => (
+                <div key={index} className="flex items-center p-3 bg-green-50 rounded-lg">
+                  <div className="flex-1">
                     <span className="font-medium text-gray-900">{word.word}</span>
-                    <p className="text-xs text-gray-600">{word.definition}</p>
+                    <p className="text-sm text-gray-600">
+                      {word.fromState} → {word.toState === 'ready' ? 'ready for review' : word.toState}
+                    </p>
+                  </div>
+                  <div className="text-green-600">
+                    <TrendingUp className="h-5 w-5" />
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Incorrect Words */}
+          {/* Words Demoted */}
           <div className="bg-white rounded-xl shadow-sm p-6">
             <div className="flex items-center mb-4">
-              <XCircle className="h-6 w-6 text-red-600 mr-2" />
-              <h3 className="text-lg font-semibold text-gray-900">Words to Review</h3>
+              <TrendingUp className="h-6 w-6 text-red-600 mr-2 rotate-180" />
+              <h3 className="text-lg font-semibold text-gray-900">Words Demoted!</h3>
             </div>
             <div className="space-y-2">
-              {summary.wordsIncorrect.map((word, index) => (
-                <div key={index} className="flex items-center p-2 bg-red-50 rounded-lg">
-                  <XCircle className="h-4 w-4 text-red-600 mr-2" />
-                  <div>
+              {summary.wordsDemoted.map((word, index) => (
+                <div key={index} className="flex items-center p-3 bg-red-50 rounded-lg">
+                  <div className="flex-1">
                     <span className="font-medium text-gray-900">{word.word}</span>
-                    <p className="text-xs text-gray-600">{word.definition}</p>
+                    <p className="text-sm text-gray-600">
+                      {word.fromState} → {word.toState === 'ready' ? 'ready for review' : word.toState}
+                    </p>
+                  </div>
+                  <div className="text-red-600">
+                    <TrendingUp className="h-5 w-5 rotate-180" />
                   </div>
                 </div>
               ))}
@@ -435,6 +471,31 @@ export default function SessionSummary() {
                   </div>
                   <div className="text-blue-600">
                     <TrendingUp className="h-5 w-5" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Words Demoted */}
+        {summary.wordsDemoted.length > 0 && (
+          <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
+            <div className="flex items-center mb-4">
+              <TrendingUp className="h-6 w-6 text-red-600 mr-2 rotate-180" />
+              <h3 className="text-lg font-semibold text-gray-900">Words Demoted!</h3>
+            </div>
+            <div className="space-y-2">
+              {summary.wordsDemoted.map((word, index) => (
+                <div key={index} className="flex items-center p-3 bg-red-50 rounded-lg">
+                  <div className="flex-1">
+                    <span className="font-medium text-gray-900">{word.word}</span>
+                    <p className="text-sm text-gray-600">
+                      {word.fromState} → {word.toState === 'ready' ? 'ready for review' : word.toState}
+                    </p>
+                  </div>
+                  <div className="text-red-600">
+                    <TrendingUp className="h-5 w-5 rotate-180" />
                   </div>
                 </div>
               ))}
