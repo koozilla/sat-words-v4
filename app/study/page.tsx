@@ -33,6 +33,7 @@ interface StudySession {
   score: number;
   totalQuestions: number;
   answers: { [key: string]: boolean };
+  startTime: Date;
   wordResults: Array<{
     wordId: string;
     word: string;
@@ -114,6 +115,7 @@ export default function StudySession() {
           score: 0,
           totalQuestions: studyWords.length,
           answers: {},
+          startTime: new Date(),
           wordResults: []
         });
         return;
@@ -138,6 +140,7 @@ export default function StudySession() {
         score: 0,
         totalQuestions: studyWords.length,
         answers: {},
+        startTime: new Date(),
         wordResults: []
       });
     } catch (error) {
