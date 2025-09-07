@@ -33,6 +33,7 @@ interface StudySession {
   score: number;
   totalQuestions: number;
   answers: { [key: string]: boolean };
+  promotedWords: string[]; // Track word IDs that were promoted
   startTime: Date;
   wordResults: Array<{
     wordId: string;
@@ -115,6 +116,7 @@ export default function StudySession() {
           score: 0,
           totalQuestions: studyWords.length,
           answers: {},
+          promotedWords: [],
           startTime: new Date(),
           wordResults: []
         });
@@ -140,6 +142,7 @@ export default function StudySession() {
         score: 0,
         totalQuestions: studyWords.length,
         answers: {},
+        promotedWords: [],
         startTime: new Date(),
         wordResults: []
       });
@@ -204,9 +207,18 @@ export default function StudySession() {
       if (transition) {
         console.log('Word state transition:', transition);
         
-        // Show transition feedback
-        if (transition.toState === 'ready') {
+        // Track promoted words
+        if (transition.toState === 'ready' && transition.fromState === 'started') {
           console.log(`🎉 "${currentWord.word}" is now ready for review!`);
+          
+          // Add to promoted words list
+          setSession(prevSession => {
+            if (!prevSession) return prevSession;
+            return {
+              ...prevSession,
+              promotedWords: [...prevSession.promotedWords, currentWord.id]
+            };
+          });
         }
       }
     }
@@ -253,7 +265,7 @@ export default function StudySession() {
         session_type: 'study',
         words_studied: session.totalQuestions,
         correct_answers: session.score,
-        words_promoted: Object.values(session.answers).filter(Boolean).length,
+        words_promoted: session.promotedWords.length,
         words_mastered: 0,
         started_at: session.startTime?.toISOString() || new Date().toISOString(),
         completed_at: new Date().toISOString(),
