@@ -33,61 +33,73 @@ These are the absolute most critical words to know for the SAT.
 | Evanescent | Hard | Top25 |
 | Extenuating | Hard | Top25 |
 
-## Top 100 Words
-These are the most common and crucial words to know.
+## Top 50 Words
+Next 25 words pulled from Top100 list.
 
 | Word | Difficulty | Tier |
 |------|------------|------|
-| Arid | Easy | Top100 |
-| Cohesion | Easy | Top100 |
-| Collaborate | Easy | Top100 |
-| Compromise | Easy | Top100 |
-| Conundrum | Easy | Top100 |
-| Cynical | Easy | Top100 |
-| Dichotomy | Easy | Top100 |
-| Disdain | Easy | Top100 |
-| Divert | Easy | Top100 |
-| Empathy | Easy | Top100 |
-| Exacerbate | Easy | Top100 |
-| Exasperation | Easy | Top100 |
-| Frugal | Easy | Top100 |
-| Hypothesis | Easy | Top100 |
-| Incompatible | Easy | Top100 |
-| Integrity | Easy | Top100 |
-| Jubilation | Easy | Top100 |
-| Lament | Easy | Top100 |
-| Novice | Easy | Top100 |
-| Parched | Easy | Top100 |
-| Pragmatic | Easy | Top100 |
-| Pretentious | Easy | Top100 |
-| Procrastinate | Easy | Top100 |
-| Prosaic | Easy | Top100 |
-| Provocative | Easy | Top100 |
-| Pugnacious | Easy | Top100 |
-| Reclusive | Easy | Top100 |
-| Resilient | Easy | Top100 |
-| Scrutinize | Easy | Top100 |
-| Skeptic | Easy | Top100 |
-| Submissive | Easy | Top100 |
-| Superficial | Easy | Top100 |
-| Transient | Easy | Top100 |
-| Tumultuous | Easy | Top100 |
-| Vacillate | Easy | Top100 |
-| Vehement | Easy | Top100 |
-| Wary | Easy | Top100 |
-| Wistful | Easy | Top100 |
-| Zealous | Easy | Top100 |
-| Corpulent | Medium | Top100 |
-| Corroborate | Medium | Top100 |
-| Disparity | Medium | Top100 |
-| Enervate | Medium | Top100 |
-| Evocative | Medium | Top100 |
-| Florid | Medium | Top100 |
-| Hackneyed | Medium | Top100 |
-| Impute | Medium | Top100 |
-| Incandescent | Medium | Top100 |
-| Indignant | Medium | Top100 |
-| Intrepid | Medium | Top100 |
+| Arid | Easy | Top50 |
+| Cohesion | Easy | Top50 |
+| Collaborate | Easy | Top50 |
+| Compromise | Easy | Top50 |
+| Conundrum | Easy | Top50 |
+| Cynical | Easy | Top50 |
+| Dichotomy | Easy | Top50 |
+| Disdain | Easy | Top50 |
+| Divert | Easy | Top50 |
+| Empathy | Easy | Top50 |
+| Exacerbate | Easy | Top50 |
+| Exasperation | Easy | Top50 |
+| Frugal | Easy | Top50 |
+| Hypothesis | Easy | Top50 |
+| Incompatible | Easy | Top50 |
+| Integrity | Easy | Top50 |
+| Jubilation | Easy | Top50 |
+| Lament | Easy | Top50 |
+| Novice | Easy | Top50 |
+| Parched | Easy | Top50 |
+| Pragmatic | Easy | Top50 |
+| Pretentious | Easy | Top50 |
+| Procrastinate | Easy | Top50 |
+| Prosaic | Easy | Top50 |
+| Provocative | Easy | Top50 |
+
+## Top 75 Words
+Next 25 from Top100.
+
+| Word | Difficulty | Tier |
+|------|------------|------|
+| Pugnacious | Easy | Top75 |
+| Reclusive | Easy | Top75 |
+| Resilient | Easy | Top75 |
+| Scrutinize | Easy | Top75 |
+| Skeptic | Easy | Top75 |
+| Submissive | Easy | Top75 |
+| Superficial | Easy | Top75 |
+| Transient | Easy | Top75 |
+| Tumultuous | Easy | Top75 |
+| Vacillate | Easy | Top75 |
+| Vehement | Easy | Top75 |
+| Wary | Easy | Top75 |
+| Wistful | Easy | Top75 |
+| Zealous | Easy | Top75 |
+| Corpulent | Medium | Top75 |
+| Corroborate | Medium | Top75 |
+| Disparity | Medium | Top75 |
+| Enervate | Medium | Top75 |
+| Evocative | Medium | Top75 |
+| Florid | Medium | Top75 |
+| Hackneyed | Medium | Top75 |
+| Impute | Medium | Top75 |
+| Incandescent | Medium | Top75 |
+| Indignant | Medium | Top75 |
+| Intrepid | Medium | Top75 |
+
+## Top 100 Words
+Remaining 25 from Top100.
+
+| Word | Difficulty | Tier |
+|------|------------|------|
 | Longevity | Medium | Top100 |
 | Luddite | Medium | Top100 |
 | Nonchalant | Medium | Top100 |
@@ -114,86 +126,104 @@ These are the most common and crucial words to know.
 | Solipsism | Hard | Top100 |
 | Sycophant | Hard | Top100 |
 
-## Top 200 Words
-This list contains words that are very likely to appear on the exam but are slightly less frequent than the Top 100.
+## Top 125 Words
+First 25 from Top200.
 
 | Word | Difficulty | Tier |
 |------|------------|------|
-| Abject | Medium | Top200 |
-| Abrogate | Medium | Top200 |
-| Acumen | Medium | Top200 |
-| Adept | Medium | Top200 |
-| Admonish | Medium | Top200 |
-| Adroit | Medium | Top200 |
-| Alacrity | Medium | Top200 |
-| Altruistic | Medium | Top200 |
-| Ameliorate | Medium | Top200 |
-| Ambiguous | Medium | Top200 |
-| Apathy | Medium | Top200 |
-| Appease | Medium | Top200 |
-| Archaic | Medium | Top200 |
-| Assuage | Medium | Top200 |
-| Avarice | Medium | Top200 |
-| Banal | Medium | Top200 |
-| Belie | Medium | Top200 |
-| Bombastic | Medium | Top200 |
-| Cajole | Medium | Top200 |
-| Callous | Medium | Top200 |
-| Candid | Medium | Top200 |
-| Castigate | Medium | Top200 |
-| Catalyze | Medium | Top200 |
-| Circumvent | Medium | Top200 |
-| Clemency | Medium | Top200 |
-| Coalesce | Medium | Top200 |
-| Cogent | Medium | Top200 |
-| Complacent | Medium | Top200 |
-| Concise | Medium | Top200 |
-| Conflagration | Medium | Top200 |
-| Conformist | Medium | Top200 |
-| Culpable | Medium | Top200 |
-| Cursory | Medium | Top200 |
-| Debacle | Medium | Top200 |
-| Debilitate | Medium | Top200 |
-| Decorum | Medium | Top200 |
-| Deference | Medium | Top200 |
-| Deplore | Medium | Top200 |
-| Deride | Medium | Top200 |
-| Dilatory | Medium | Top200 |
-| Dissonance | Medium | Top200 |
-| Divulge | Medium | Top200 |
-| Eccentric | Medium | Top200 |
-| Efficacy | Medium | Top200 |
-| Egregious | Medium | Top200 |
-| Elucidate | Medium | Top200 |
-| Enigma | Medium | Top200 |
-| Equivocal | Medium | Top200 |
-| Eulogy | Medium | Top200 |
-| Exorbitant | Medium | Top200 |
-| Expedient | Medium | Top200 |
-| Fallacy | Medium | Top200 |
-| Fatuous | Medium | Top200 |
-| Forbearance | Medium | Top200 |
-| Garrulous | Medium | Top200 |
-| Gregarious | Medium | Top200 |
-| Heresy | Medium | Top200 |
-| Impartial | Medium | Top200 |
-| Impeccable | Medium | Top200 |
-| Incessant | Medium | Top200 |
-| Incorrigible | Medium | Top200 |
-| Inept | Medium | Top200 |
-| Insipid | Medium | Top200 |
-| Intransigent | Medium | Top200 |
-| Laconic | Medium | Top200 |
-| Languid | Medium | Top200 |
-| Lassitude | Medium | Top200 |
-| Malign | Medium | Top200 |
-| Meticulous | Medium | Top200 |
-| Misanthrope | Medium | Top200 |
-| Mollify | Medium | Top200 |
-| Myopic | Medium | Top200 |
-| Neophyte | Medium | Top200 |
-| Obdurate | Medium | Top200 |
-| Obsequious | Medium | Top200 |
+| Abject | Medium | Top125 |
+| Abrogate | Medium | Top125 |
+| Acumen | Medium | Top125 |
+| Adept | Medium | Top125 |
+| Admonish | Medium | Top125 |
+| Adroit | Medium | Top125 |
+| Alacrity | Medium | Top125 |
+| Altruistic | Medium | Top125 |
+| Ameliorate | Medium | Top125 |
+| Ambiguous | Medium | Top125 |
+| Apathy | Medium | Top125 |
+| Appease | Medium | Top125 |
+| Archaic | Medium | Top125 |
+| Assuage | Medium | Top125 |
+| Avarice | Medium | Top125 |
+| Banal | Medium | Top125 |
+| Belie | Medium | Top125 |
+| Bombastic | Medium | Top125 |
+| Cajole | Medium | Top125 |
+| Callous | Medium | Top125 |
+| Candid | Medium | Top125 |
+| Castigate | Medium | Top125 |
+| Catalyze | Medium | Top125 |
+| Circumvent | Medium | Top125 |
+| Clemency | Medium | Top125 |
+
+## Top 150 Words
+Next 25 from Top200.
+
+| Word | Difficulty | Tier |
+|------|------------|------|
+| Coalesce | Medium | Top150 |
+| Cogent | Medium | Top150 |
+| Complacent | Medium | Top150 |
+| Concise | Medium | Top150 |
+| Conflagration | Medium | Top150 |
+| Conformist | Medium | Top150 |
+| Culpable | Medium | Top150 |
+| Cursory | Medium | Top150 |
+| Debacle | Medium | Top150 |
+| Debilitate | Medium | Top150 |
+| Decorum | Medium | Top150 |
+| Deference | Medium | Top150 |
+| Deplore | Medium | Top150 |
+| Deride | Medium | Top150 |
+| Dilatory | Medium | Top150 |
+| Dissonance | Medium | Top150 |
+| Divulge | Medium | Top150 |
+| Eccentric | Medium | Top150 |
+| Efficacy | Medium | Top150 |
+| Egregious | Medium | Top150 |
+| Elucidate | Medium | Top150 |
+| Enigma | Medium | Top150 |
+| Equivocal | Medium | Top150 |
+| Eulogy | Medium | Top150 |
+| Exorbitant | Medium | Top150 |
+
+## Top 175 Words
+Next 25 from Top200.
+
+| Word | Difficulty | Tier |
+|------|------------|------|
+| Expedient | Medium | Top175 |
+| Fallacy | Medium | Top175 |
+| Fatuous | Medium | Top175 |
+| Forbearance | Medium | Top175 |
+| Garrulous | Medium | Top175 |
+| Gregarious | Medium | Top175 |
+| Heresy | Medium | Top175 |
+| Impartial | Medium | Top175 |
+| Impeccable | Medium | Top175 |
+| Incessant | Medium | Top175 |
+| Incorrigible | Medium | Top175 |
+| Inept | Medium | Top175 |
+| Insipid | Medium | Top175 |
+| Intransigent | Medium | Top175 |
+| Laconic | Medium | Top175 |
+| Languid | Medium | Top175 |
+| Lassitude | Medium | Top175 |
+| Malign | Medium | Top175 |
+| Meticulous | Medium | Top175 |
+| Misanthrope | Medium | Top175 |
+| Mollify | Medium | Top175 |
+| Myopic | Medium | Top175 |
+| Neophyte | Medium | Top175 |
+| Obdurate | Medium | Top175 |
+| Obsequious | Medium | Top175 |
+
+## Top 200 Words
+Final 25 from Top200.
+
+| Word | Difficulty | Tier |
+|------|------------|------|
 | Opaque | Medium | Top200 |
 | Paradigm | Medium | Top200 |
 | Pedantic | Medium | Top200 |
@@ -220,86 +250,104 @@ This list contains words that are very likely to appear on the exam but are slig
 | Abjure | Hard | Top200 |
 | Abscond | Hard | Top200 |
 
-## Top 300 Words
-These words are less frequent but still important for a high score.
+## Top 225 Words
+First 25 from Top300.
 
 | Word | Difficulty | Tier |
 |------|------------|------|
-| Acerbic | Hard | Top300 |
-| Amorphous | Hard | Top300 |
-| Anathema | Hard | Top300 |
-| Antithesis | Hard | Top300 |
-| Apathetic | Hard | Top300 |
-| Apocryphal | Hard | Top300 |
-| Arbitrary | Hard | Top300 |
-| Ascetic | Hard | Top300 |
-| Audacious | Hard | Top300 |
-| Austere | Hard | Top300 |
-| Beguile | Hard | Top300 |
-| Bereft | Hard | Top300 |
-| Bilk | Hard | Top300 |
-| Cacophony | Hard | Top300 |
-| Calumny | Hard | Top300 |
-| Capricious | Hard | Top300 |
-| Chicanery | Hard | Top300 |
-| Clandestine | Hard | Top300 |
-| Cloister | Hard | Top300 |
-| Coerce | Hard | Top300 |
-| Complaisant | Hard | Top300 |
-| Concord | Hard | Top300 |
-| Condone | Hard | Top300 |
-| Convoluted | Hard | Top300 |
-| Copious | Hard | Top300 |
-| Cryptic | Hard | Top300 |
-| Daunt | Hard | Top300 |
-| Dearth | Hard | Top300 |
-| Denigrate | Hard | Top300 |
-| Depravity | Hard | Top300 |
-| Deprecate | Hard | Top300 |
-| Disingenuous | Hard | Top300 |
-| Dogmatic | Hard | Top300 |
-| Duplicity | Hard | Top300 |
-| Ebullient | Hard | Top300 |
-| Eclectic | Hard | Top300 |
-| Efface | Hard | Top300 |
-| Effusive | Hard | Top300 |
-| Elicit | Hard | Top300 |
-| Encroach | Hard | Top300 |
-| Engender | Hard | Top300 |
-| Equanimity | Hard | Top300 |
-| Erudite | Hard | Top300 |
-| Esoteric | Hard | Top300 |
-| Ethereal | Hard | Top300 |
-| Euphemism | Hard | Top300 |
-| Fecund | Hard | Top300 |
-| Fervid | Hard | Top300 |
-| Finesse | Hard | Top300 |
-| Flagrant | Hard | Top300 |
-| Glib | Hard | Top300 |
-| Halcyon | Hard | Top300 |
-| Hegemony | Hard | Top300 |
-| Idiosyncrasy | Hard | Top300 |
-| Ignominious | Hard | Top300 |
-| Impecunious | Hard | Top300 |
-| Imperious | Hard | Top300 |
-| Imperturbable | Hard | Top300 |
-| Inchoate | Hard | Top300 |
-| Incongruous | Hard | Top300 |
-| Indefatigable | Hard | Top300 |
-| Inert | Hard | Top300 |
-| Infamous | Hard | Top300 |
-| Insidious | Hard | Top300 |
-| Jettison | Hard | Top300 |
-| Languish | Hard | Top300 |
-| Levity | Hard | Top300 |
-| Loquacious | Hard | Top300 |
-| Lugubrious | Hard | Top300 |
-| Magnanimous | Hard | Top300 |
-| Maverick | Hard | Top300 |
-| Mellifluous | Hard | Top300 |
-| Munificent | Hard | Top300 |
-| Nefarious | Hard | Top300 |
-| Nomenclature | Hard | Top300 |
+| Acerbic | Hard | Top225 |
+| Amorphous | Hard | Top225 |
+| Anathema | Hard | Top225 |
+| Antithesis | Hard | Top225 |
+| Apathetic | Hard | Top225 |
+| Apocryphal | Hard | Top225 |
+| Arbitrary | Hard | Top225 |
+| Ascetic | Hard | Top225 |
+| Audacious | Hard | Top225 |
+| Austere | Hard | Top225 |
+| Beguile | Hard | Top225 |
+| Bereft | Hard | Top225 |
+| Bilk | Hard | Top225 |
+| Cacophony | Hard | Top225 |
+| Calumny | Hard | Top225 |
+| Capricious | Hard | Top225 |
+| Chicanery | Hard | Top225 |
+| Clandestine | Hard | Top225 |
+| Cloister | Hard | Top225 |
+| Coerce | Hard | Top225 |
+| Complaisant | Hard | Top225 |
+| Concord | Hard | Top225 |
+| Condone | Hard | Top225 |
+| Convoluted | Hard | Top225 |
+| Copious | Hard | Top225 |
+
+## Top 250 Words
+Next 25 from Top300.
+
+| Word | Difficulty | Tier |
+|------|------------|------|
+| Cryptic | Hard | Top250 |
+| Daunt | Hard | Top250 |
+| Dearth | Hard | Top250 |
+| Denigrate | Hard | Top250 |
+| Depravity | Hard | Top250 |
+| Deprecate | Hard | Top250 |
+| Disingenuous | Hard | Top250 |
+| Dogmatic | Hard | Top250 |
+| Duplicity | Hard | Top250 |
+| Ebullient | Hard | Top250 |
+| Eclectic | Hard | Top250 |
+| Efface | Hard | Top250 |
+| Effusive | Hard | Top250 |
+| Elicit | Hard | Top250 |
+| Encroach | Hard | Top250 |
+| Engender | Hard | Top250 |
+| Equanimity | Hard | Top250 |
+| Erudite | Hard | Top250 |
+| Esoteric | Hard | Top250 |
+| Ethereal | Hard | Top250 |
+| Euphemism | Hard | Top250 |
+| Fecund | Hard | Top250 |
+| Fervid | Hard | Top250 |
+| Finesse | Hard | Top250 |
+| Flagrant | Hard | Top250 |
+
+## Top 275 Words
+Next 25 from Top300.
+
+| Word | Difficulty | Tier |
+|------|------------|------|
+| Glib | Hard | Top275 |
+| Halcyon | Hard | Top275 |
+| Hegemony | Hard | Top275 |
+| Idiosyncrasy | Hard | Top275 |
+| Ignominious | Hard | Top275 |
+| Impecunious | Hard | Top275 |
+| Imperious | Hard | Top275 |
+| Imperturbable | Hard | Top275 |
+| Inchoate | Hard | Top275 |
+| Incongruous | Hard | Top275 |
+| Indefatigable | Hard | Top275 |
+| Inert | Hard | Top275 |
+| Infamous | Hard | Top275 |
+| Insidious | Hard | Top275 |
+| Jettison | Hard | Top275 |
+| Languish | Hard | Top275 |
+| Levity | Hard | Top275 |
+| Loquacious | Hard | Top275 |
+| Lugubrious | Hard | Top275 |
+| Magnanimous | Hard | Top275 |
+| Maverick | Hard | Top275 |
+| Mellifluous | Hard | Top275 |
+| Munificent | Hard | Top275 |
+| Nefarious | Hard | Top275 |
+| Nomenclature | Hard | Top275 |
+
+## Top 300 Words
+Final 25 from Top300.
+
+| Word | Difficulty | Tier |
+|------|------------|------|
 | Obfuscate | Hard | Top300 |
 | Obeisance | Hard | Top300 |
 | Palliate | Hard | Top300 |
@@ -326,86 +374,104 @@ These words are less frequent but still important for a high score.
 | Abstruse | Hard | Top300 |
 | Accolade | Hard | Top300 |
 
-## Top 400 Words
-These words are less common but still appear on the more difficult questions.
+## Top 325 Words
+First 25 from Top400.
 
 | Word | Difficulty | Tier |
 |------|------------|------|
-| Acrimonious | Hard | Top400 |
-| Aggrandize | Hard | Top400 |
-| Aloof | Hard | Top400 |
-| Ambivalence | Hard | Top400 |
-| Animosity | Hard | Top400 |
-| Antiquated | Hard | Top400 |
-| Apogee | Hard | Top400 |
-| Aversion | Hard | Top400 |
-| Barrage | Hard | Top400 |
-| Blandishment | Hard | Top400 |
-| Bucolic | Hard | Top400 |
-| Burnish | Hard | Top400 |
-| Carouse | Hard | Top400 |
-| Circumscribe | Hard | Top400 |
-| Confound | Hard | Top400 |
-| Convivial | Hard | Top400 |
-| Credulity | Hard | Top400 |
-| Didactic | Hard | Top400 |
-| Disseminate | Hard | Top400 |
-| Edify | Hard | Top400 |
-| Equivocate | Hard | Top400 |
-| Exonerate | Hard | Top400 |
-| Extant | Hard | Top400 |
-| Fallacious | Hard | Top400 |
-| Furtive | Hard | Top400 |
-| Gaudy | Hard | Top400 |
-| Grandiloquent | Hard | Top400 |
-| Gratuitous | Hard | Top400 |
-| Harangue | Hard | Top400 |
-| Hapless | Hard | Top400 |
-| Iconoclast | Hard | Top400 |
-| Idyllic | Hard | Top400 |
-| Impious | Hard | Top400 |
-| Inimical | Hard | Top400 |
-| Innocuous | Hard | Top400 |
-| Insurgent | Hard | Top400 |
-| Juxtapose | Hard | Top400 |
-| Lachrymose | Hard | Top400 |
-| Labyrinthine | Hard | Top400 |
-| Lackadaisical | Hard | Top400 |
-| Maelstrom | Hard | Top400 |
-| Malevolent | Hard | Top400 |
-| Morose | Hard | Top400 |
-| Nadir | Hard | Top400 |
-| Nascent | Hard | Top400 |
-| Noxious | Hard | Top400 |
-| Nuance | Hard | Top400 |
-| Panacea | Hard | Top400 |
-| Parsimonious | Hard | Top400 |
-| Pervasive | Hard | Top400 |
-| Philanthropic | Hard | Top400 |
-| Platitude | Hard | Top400 |
-| Plenitude | Hard | Top400 |
-| Portent | Hard | Top400 |
-| Preclude | Hard | Top400 |
-| Prognosticate | Hard | Top400 |
-| Prurient | Hard | Top400 |
-| Punctilious | Hard | Top400 |
-| Quixotic | Hard | Top400 |
-| Rancor | Hard | Top400 |
-| Repugnant | Hard | Top400 |
-| Salubrious | Hard | Top400 |
-| Scathing | Hard | Top400 |
-| Sequester | Hard | Top400 |
-| Stentorian | Hard | Top400 |
-| Supercilious | Hard | Top400 |
-| Taciturn | Hard | Top400 |
-| Tangential | Hard | Top400 |
-| Tantamount | Hard | Top400 |
-| Tenacity | Hard | Top400 |
-| Tirade | Hard | Top400 |
-| Tout | Hard | Top400 |
-| Transgress | Hard | Top400 |
-| Turbid | Hard | Top400 |
-| Vapid | Hard | Top400 |
+| Acrimonious | Hard | Top325 |
+| Aggrandize | Hard | Top325 |
+| Aloof | Hard | Top325 |
+| Ambivalence | Hard | Top325 |
+| Animosity | Hard | Top325 |
+| Antiquated | Hard | Top325 |
+| Apogee | Hard | Top325 |
+| Aversion | Hard | Top325 |
+| Barrage | Hard | Top325 |
+| Blandishment | Hard | Top325 |
+| Bucolic | Hard | Top325 |
+| Burnish | Hard | Top325 |
+| Carouse | Hard | Top325 |
+| Circumscribe | Hard | Top325 |
+| Confound | Hard | Top325 |
+| Convivial | Hard | Top325 |
+| Credulity | Hard | Top325 |
+| Didactic | Hard | Top325 |
+| Disseminate | Hard | Top325 |
+| Edify | Hard | Top325 |
+| Equivocate | Hard | Top325 |
+| Exonerate | Hard | Top325 |
+| Extant | Hard | Top325 |
+| Fallacious | Hard | Top325 |
+| Furtive | Hard | Top325 |
+
+## Top 350 Words
+Next 25 from Top400.
+
+| Word | Difficulty | Tier |
+|------|------------|------|
+| Gaudy | Hard | Top350 |
+| Grandiloquent | Hard | Top350 |
+| Gratuitous | Hard | Top350 |
+| Harangue | Hard | Top350 |
+| Hapless | Hard | Top350 |
+| Iconoclast | Hard | Top350 |
+| Idyllic | Hard | Top350 |
+| Impious | Hard | Top350 |
+| Inimical | Hard | Top350 |
+| Innocuous | Hard | Top350 |
+| Insurgent | Hard | Top350 |
+| Juxtapose | Hard | Top350 |
+| Lachrymose | Hard | Top350 |
+| Labyrinthine | Hard | Top350 |
+| Lackadaisical | Hard | Top350 |
+| Maelstrom | Hard | Top350 |
+| Malevolent | Hard | Top350 |
+| Morose | Hard | Top350 |
+| Nadir | Hard | Top350 |
+| Nascent | Hard | Top350 |
+| Noxious | Hard | Top350 |
+| Nuance | Hard | Top350 |
+| Panacea | Hard | Top350 |
+| Parsimonious | Hard | Top350 |
+| Pervasive | Hard | Top350 |
+
+## Top 375 Words
+Next 25 from Top400.
+
+| Word | Difficulty | Tier |
+|------|------------|------|
+| Philanthropic | Hard | Top375 |
+| Platitude | Hard | Top375 |
+| Plenitude | Hard | Top375 |
+| Portent | Hard | Top375 |
+| Preclude | Hard | Top375 |
+| Prognosticate | Hard | Top375 |
+| Prurient | Hard | Top375 |
+| Punctilious | Hard | Top375 |
+| Quixotic | Hard | Top375 |
+| Rancor | Hard | Top375 |
+| Repugnant | Hard | Top375 |
+| Salubrious | Hard | Top375 |
+| Scathing | Hard | Top375 |
+| Sequester | Hard | Top375 |
+| Stentorian | Hard | Top375 |
+| Supercilious | Hard | Top375 |
+| Taciturn | Hard | Top375 |
+| Tangential | Hard | Top375 |
+| Tantamount | Hard | Top375 |
+| Tenacity | Hard | Top375 |
+| Tirade | Hard | Top375 |
+| Tout | Hard | Top375 |
+| Transgress | Hard | Top375 |
+| Turbid | Hard | Top375 |
+| Vapid | Hard | Top375 |
+
+## Top 400 Words
+Final 25 from Top400.
+
+| Word | Difficulty | Tier |
+|------|------------|------|
 | Verbose | Hard | Top400 |
 | Vicarious | Hard | Top400 |
 | Vilify | Hard | Top400 |
@@ -432,86 +498,104 @@ These words are less common but still appear on the more difficult questions.
 | Blithe | Hard | Top400 |
 | Celerity | Hard | Top400 |
 
-## Top 500 Words
-These words are on the more advanced side, but knowing them can give you a significant advantage on challenging passages.
+## Top 425 Words
+First 25 from Top500.
 
 | Word | Difficulty | Tier |
 |------|------------|------|
-| Charlatan | Hard | Top500 |
-| Chastise | Hard | Top500 |
-| Circumlocution | Hard | Top500 |
-| Conciliate | Hard | Top500 |
-| Contrite | Hard | Top500 |
-| Credulous | Hard | Top500 |
-| Demure | Hard | Top500 |
-| Denizen | Hard | Top500 |
-| Desultory | Hard | Top500 |
-| Diaphanous | Hard | Top500 |
-| Diatribe | Hard | Top500 |
-| Eschew | Hard | Top500 |
-| Expatiate | Hard | Top500 |
-| Extol | Hard | Top500 |
-| Factious | Hard | Top500 |
-| Foment | Hard | Top500 |
-| Fulsome | Hard | Top500 |
-| Gourmand | Hard | Top500 |
-| Heinous | Hard | Top500 |
-| Histrionic | Hard | Top500 |
-| Imbroglio | Hard | Top500 |
-| Impunity | Hard | Top500 |
-| Incipient | Hard | Top500 |
-| Ineffable | Hard | Top500 |
-| Inscrutable | Hard | Top500 |
-| Internecine | Hard | Top500 |
-| Intrinsic | Hard | Top500 |
-| Inveigh | Hard | Top500 |
-| Inveterate | Hard | Top500 |
-| Juggernaut | Hard | Top500 |
-| Lissome | Hard | Top500 |
-| Lithe | Hard | Top500 |
-| Maudlin | Hard | Top500 |
-| Mercurial | Hard | Top500 |
-| Nettle | Hard | Top500 |
-| Obloquy | Hard | Top500 |
-| Onerous | Hard | Top500 |
-| Pleonasm | Hard | Top500 |
-| Prodigious | Hard | Top500 |
-| Pulchritude | Hard | Top500 |
-| Querulous | Hard | Top500 |
-| Rampant | Hard | Top500 |
-| Remonstrate | Hard | Top500 |
-| Repine | Hard | Top500 |
-| Resplendent | Hard | Top500 |
-| Rife | Hard | Top500 |
-| Sedulous | Hard | Top500 |
-| Sententious | Hard | Top500 |
-| Solace | Hard | Top500 |
-| Timorous | Hard | Top500 |
-| Urbane | Hard | Top500 |
-| Verisimilitude | Hard | Top500 |
-| Vitriolic | Hard | Top500 |
-| Vociferous | Hard | Top500 |
-| Wizen | Hard | Top500 |
-| Aberration | Hard | Top500 |
-| Abstinence | Hard | Top500 |
-| Acrimony | Hard | Top500 |
-| Adamant | Hard | Top500 |
-| Adulation | Hard | Top500 |
-| Ancillary | Hard | Top500 |
-| Antagonistic | Hard | Top500 |
-| Bellicose | Hard | Top500 |
-| Boisterous | Hard | Top500 |
-| Brazen | Hard | Top500 |
-| Capitulate | Hard | Top500 |
-| Paucity | Hard | Top500 |
-| Enmity | Hard | Top500 |
-| Ennui | Hard | Top500 |
-| Entreat | Hard | Top500 |
-| Epistolary | Hard | Top500 |
-| Epitome | Hard | Top500 |
-| Exculpate | Hard | Top500 |
-| Fastidious | Hard | Top500 |
-| Feckless | Hard | Top500 |
+| Charlatan | Hard | Top425 |
+| Chastise | Hard | Top425 |
+| Circumlocution | Hard | Top425 |
+| Conciliate | Hard | Top425 |
+| Contrite | Hard | Top425 |
+| Credulous | Hard | Top425 |
+| Demure | Hard | Top425 |
+| Denizen | Hard | Top425 |
+| Desultory | Hard | Top425 |
+| Diaphanous | Hard | Top425 |
+| Diatribe | Hard | Top425 |
+| Eschew | Hard | Top425 |
+| Expatiate | Hard | Top425 |
+| Extol | Hard | Top425 |
+| Factious | Hard | Top425 |
+| Foment | Hard | Top425 |
+| Fulsome | Hard | Top425 |
+| Gourmand | Hard | Top425 |
+| Heinous | Hard | Top425 |
+| Histrionic | Hard | Top425 |
+| Imbroglio | Hard | Top425 |
+| Impunity | Hard | Top425 |
+| Incipient | Hard | Top425 |
+| Ineffable | Hard | Top425 |
+| Inscrutable | Hard | Top425 |
+
+## Top 450 Words
+Next 25 from Top500.
+
+| Word | Difficulty | Tier |
+|------|------------|------|
+| Internecine | Hard | Top450 |
+| Intrinsic | Hard | Top450 |
+| Inveigh | Hard | Top450 |
+| Inveterate | Hard | Top450 |
+| Juggernaut | Hard | Top450 |
+| Lissome | Hard | Top450 |
+| Lithe | Hard | Top450 |
+| Maudlin | Hard | Top450 |
+| Mercurial | Hard | Top450 |
+| Nettle | Hard | Top450 |
+| Obloquy | Hard | Top450 |
+| Onerous | Hard | Top450 |
+| Pleonasm | Hard | Top450 |
+| Prodigious | Hard | Top450 |
+| Pulchritude | Hard | Top450 |
+| Querulous | Hard | Top450 |
+| Rampant | Hard | Top450 |
+| Remonstrate | Hard | Top450 |
+| Repine | Hard | Top450 |
+| Resplendent | Hard | Top450 |
+| Rife | Hard | Top450 |
+| Sedulous | Hard | Top450 |
+| Sententious | Hard | Top450 |
+| Solace | Hard | Top450 |
+| Timorous | Hard | Top450 |
+
+## Top 475 Words
+Next 25 from Top500.
+
+| Word | Difficulty | Tier |
+|------|------------|------|
+| Urbane | Hard | Top475 |
+| Verisimilitude | Hard | Top475 |
+| Vitriolic | Hard | Top475 |
+| Vociferous | Hard | Top475 |
+| Wizen | Hard | Top475 |
+| Aberration | Hard | Top475 |
+| Abstinence | Hard | Top475 |
+| Acrimony | Hard | Top475 |
+| Adamant | Hard | Top475 |
+| Adulation | Hard | Top475 |
+| Ancillary | Hard | Top475 |
+| Antagonistic | Hard | Top475 |
+| Bellicose | Hard | Top475 |
+| Boisterous | Hard | Top475 |
+| Brazen | Hard | Top475 |
+| Capitulate | Hard | Top475 |
+| Paucity | Hard | Top475 |
+| Enmity | Hard | Top475 |
+| Ennui | Hard | Top475 |
+| Entreat | Hard | Top475 |
+| Epistolary | Hard | Top475 |
+| Epitome | Hard | Top475 |
+| Exculpate | Hard | Top475 |
+| Fastidious | Hard | Top475 |
+| Feckless | Hard | Top475 |
+
+## Top 500 Words
+Final 25 from Top500.
+
+| Word | Difficulty | Tier |
+|------|------------|------|
 | Flummox | Hard | Top500 |
 | Gainsay | Hard | Top500 |
 | Hubris | Hard | Top500 |
@@ -544,11 +628,25 @@ These words are on the more advanced side, but knowing them can give you a signi
 
 ### **Priority Order:**
 1. **Top 25** - Master these first (highest frequency)
-2. **Top 100** - Study after Top 25 (very common)
-3. **Top 200** - Important for high scores
-4. **Top 300** - Advanced vocabulary
-5. **Top 400** - Expert level vocabulary
-6. **Top 500** - Master level (bonus points)
+2. **Top 50** - Study after Top 25 (very common)
+3. **Top 75** - Important for high scores
+4. **Top 100** - Advanced vocabulary
+5. **Top 125** - First intermediate tier
+6. **Top 150** - Second intermediate tier
+7. **Top 175** - Third intermediate tier
+8. **Top 200** - Fourth intermediate tier
+9. **Top 225** - First advanced tier
+10. **Top 250** - Second advanced tier
+11. **Top 275** - Third advanced tier
+12. **Top 300** - Fourth advanced tier
+13. **Top 325** - First expert tier
+14. **Top 350** - Second expert tier
+15. **Top 375** - Third expert tier
+16. **Top 400** - Fourth expert tier
+17. **Top 425** - First master tier
+18. **Top 450** - Second master tier
+19. **Top 475** - Third master tier
+20. **Top 500** - Ultimate master tier
 
 ### **Difficulty Focus:**
 - **Easy words**: Focus on nuanced meanings and contexts
@@ -558,7 +656,7 @@ These words are on the more advanced side, but knowing them can give you a signi
 ### **Current Database Status:**
 - **Total words in list**: 500
 - **Coverage**: Complete SAT vocabulary set
-- **Tier distribution**: 25 + 75 + 100 + 100 + 100 + 100 = 500 words
+- **Tier distribution**: 20 tiers × 25 words each = 500 words
 
 ### **Recommendations:**
 1. **Start with Top 25** words (highest priority)
