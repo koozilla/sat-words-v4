@@ -158,15 +158,24 @@ export default function Dashboard() {
       };
       
       // Calculate tier progress
-      const tierProgress = ['Top 25', 'Top 100', 'Top 200', 'Top 300', 'Top 400', 'Top 500'].map(tier => {
-        const tierWords = words?.filter(w => w.tier === tier) || [];
+      const tierMappings = [
+        { display: 'Top 25', db: ['Top 25', 'Top25'] },
+        { display: 'Top 100', db: ['Top 100', 'Top100'] },
+        { display: 'Top 200', db: ['Top 200', 'Top200'] },
+        { display: 'Top 300', db: ['Top 300', 'Top300'] },
+        { display: 'Top 400', db: ['Top 400', 'Top400'] },
+        { display: 'Top 500', db: ['Top 500', 'Top500'] }
+      ];
+      
+      const tierProgress = tierMappings.map(tierMapping => {
+        const tierWords = words?.filter(w => tierMapping.db.includes(w.tier)) || [];
         const tierMastered = progress?.filter(p => 
           p.state === 'mastered' && 
           tierWords.some(w => w.id === p.word_id)
         ).length || 0;
         
         return {
-          tier,
+          tier: tierMapping.display,
           total: tierWords.length,
           mastered: tierMastered,
           percentage: tierWords.length > 0 ? Math.round((tierMastered / tierWords.length) * 100) : 0
@@ -334,24 +343,71 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <button
-            onClick={() => router.push('/mastered-words')}
-            className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-          >
-            <div className="flex items-center">
-              <CheckCircle className="h-8 w-8 text-green-600" />
-              <div className="ml-3">
-                <p className="text-sm font-medium text-gray-500">Mastered Words</p>
-                <p className="text-2xl font-bold text-gray-900">{stats?.masteredWords || 0}</p>
-                <p className="text-xs text-gray-400 mt-1">
-                  Current Tier: {stats?.tierProgress?.find(t => t.mastered > 0)?.tier || 'Top 25'}
-                </p>
+        {/* Mastered Words Card */}
+        {stats && stats.masteredWords > 0 && (
+          <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-xl p-6 text-white mb-8">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <CheckCircle className="h-8 w-8 mr-4" />
+                <div>
+                  <h3 className="text-lg font-semibold mb-1">Mastered Words</h3>
+                  <p className="text-green-100 mb-2">
+                    {stats.masteredWords} words mastered
+                  </p>
+                  <p className="text-green-200 text-sm">
+                    Current Tier: {stats?.tierProgress?.find(t => t.mastered > 0)?.tier || 'Top 25'}
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => router.push('/mastered-words')}
+                  className="bg-white text-green-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center"
+                >
+                  <CheckCircle className="h-5 w-5 mr-2" />
+                  See All
+                </button>
               </div>
             </div>
-          </button>
+          </div>
+        )}
 
+        {/* Tier Progress */}
+        {stats && stats.tierProgress && (
+          <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
+            <div className="flex items-center mb-6">
+              <Trophy className="h-6 w-6 text-yellow-600 mr-2" />
+              <h3 className="text-lg font-semibold text-gray-900">Tier Progress</h3>
+            </div>
+            <div className="space-y-4">
+              {stats.tierProgress.map((tier, index) => (
+                <div key={tier.tier} className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-gray-700">{tier.tier}</span>
+                      <span className="text-sm text-gray-500">{tier.mastered}/{tier.total}</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${tier.percentage}%` }}
+                      ></div>
+                    </div>
+                    <div className="flex items-center justify-between mt-1">
+                      <span className="text-xs text-gray-400">{tier.percentage}% complete</span>
+                      {tier.mastered === tier.total && tier.total > 0 && (
+                        <span className="text-xs text-green-600 font-medium">✓ Completed</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-1 gap-6 mb-8">
           <div className="bg-white p-6 rounded-xl shadow-sm">
             <div className="flex items-center">
               <TrendingUp className="h-8 w-8 text-purple-600" />

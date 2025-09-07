@@ -276,7 +276,7 @@ export default function WordsPage() {
             <div className="flex items-center">
               <Target className="h-6 w-6 text-blue-600 mr-2" />
               <span className="text-sm font-medium text-gray-700">
-                Current Words: {currentWords.length}
+                Active Words: {currentWords.length}
               </span>
             </div>
           </div>
@@ -288,9 +288,9 @@ export default function WordsPage() {
         <div className="mb-8">
           <div className="flex justify-between items-center mb-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Current Words</h1>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">Active Words</h1>
               <p className="text-gray-600">
-                View and manage your current study pool. See words you're studying and words ready for review.
+                View and manage your active study pool. See words you're studying and words ready for review.
               </p>
             </div>
             <button
