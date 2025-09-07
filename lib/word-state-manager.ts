@@ -159,11 +159,11 @@ export class WordStateManager {
         newStreak = 0;
         newInterval = Math.max(1, Math.floor(currentInterval / 2));
         
-        // If review fails, go back to ready state
+        // If review fails, go back to started state
         if (currentState === 'ready') {
-          newState = 'ready'; // Stay in ready state
+          newState = 'started'; // Go back to started state for more study
         } else if (currentState === 'mastered') {
-          newState = 'ready'; // Go back to ready state from mastered
+          newState = 'started'; // Go back to started state from mastered
         } else {
           newState = currentState; // Stay in same state for other states
         }
