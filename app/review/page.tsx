@@ -301,8 +301,23 @@ export default function ReviewSession() {
     }
   };
 
-  const finishSession = () => {
+  const finishSession = async () => {
     if (!session) return;
+    
+    // Ensure skipped/incorrect words are properly handled
+    const { data: { user } } = await supabase.auth.getUser();
+    const userId = user?.id || '11111111-1111-1111-1111-111111111111'; // fallback to test user
+    
+    if (userId) {
+      for (const result of session.wordResults) {
+        if (!result.correct) {
+          // For skipped/incorrect words in review, they should be reset to 'started' state
+          // The handleReviewAnswer already handles this, but we double-check here
+          console.log(`Ensuring word "${result.word}" is properly reset after incorrect/skip in review`);
+          await wordStateManager.markWordAsStarted(userId, result.wordId);
+        }
+      }
+    }
     
     // Session complete - pass session data to summary
     const sessionData = {
@@ -334,28 +349,43 @@ export default function ReviewSession() {
     router.push(`/review-summary?data=${encodedData}`);
   };
 
-  const nextQuestion = (isSkipped = true) => {
+  const nextQuestion = async (isSkipped = true) => {
     if (session && session.currentIndex < session.words.length - 1) {
       // Only update session if the question was skipped (no answer submitted)
       if (isSkipped && !showAnswer) {
         const currentWord = session.words[session.currentIndex];
         
+        // Handle word state transition for skipped questions (treat as wrong answer)
+        const { data: { user } } = await supabase.auth.getUser();
+        const userId = user?.id || '11111111-1111-1111-1111-111111111111'; // fallback to test user
+        
+        const transition = await wordStateManager.handleReviewAnswer(
+          userId,
+          currentWord.id,
+          false // Skipped = wrong answer
+        );
+        
+        if (transition) {
+          console.log('Skip treated as wrong answer in review - Word state transition:', transition);
+        }
+        
         // Update session with skipped answer - skipped questions count as wrong answers
+        const wordResult = {
+          wordId: currentWord.id,
+          word: currentWord.word,
+          definition: currentWord.definition,
+          tier: currentWord.tier,
+          correct: false, // Skipped questions are marked as incorrect
+          userInput: 'SKIPPED', // Mark as skipped
+          correctAnswer: currentWord.word,
+          fromState: transition?.fromState,
+          toState: transition?.toState
+        };
+        
         const updatedSession = {
           ...session,
           score: session.score, // No points for skipped questions (they count as wrong)
-          wordResults: [
-            ...session.wordResults,
-            {
-              wordId: currentWord.id,
-              word: currentWord.word,
-              definition: currentWord.definition,
-              tier: currentWord.tier,
-              correct: false, // Skipped questions are marked as incorrect
-              userInput: '', // No answer provided
-              correctAnswer: currentWord.word
-            }
-          ]
+          wordResults: [...session.wordResults, wordResult]
         };
         
         console.log('Skipped question - updating session:', {
@@ -598,9 +628,17 @@ export default function ReviewSession() {
 
             <button
               onClick={() => nextQuestion(!showAnswer)} // Skip only if no answer was submitted
-              className="flex items-center px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+              className={`flex items-center px-6 py-2 text-white rounded-lg disabled:opacity-50 ${
+                !showAnswer 
+                  ? 'bg-orange-600 hover:bg-orange-700' // Orange for skip
+                  : 'bg-green-600 hover:bg-green-700' // Green for next after answer
+              }`}
+              title={!showAnswer ? "Skip this question (counts as wrong answer and resets word to started state)" : "Continue to next question"}
             >
-              {session.currentIndex === session.words.length - 1 ? 'Finish' : 'Next'}
+              {session.currentIndex === session.words.length - 1 
+                ? 'Finish' 
+                : (!showAnswer ? 'Skip' : 'Next')
+              }
               <ArrowRight className="h-4 w-4 ml-2" />
             </button>
           </div>

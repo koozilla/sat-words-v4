@@ -281,7 +281,7 @@ export default function StudySession() {
     setShowCelebration(false);
     // Auto-advance to next question after celebration for correct answers
     if (session && session.currentIndex < session.words.length - 1) {
-      nextQuestion();
+      nextQuestion(false); // false = not skipped (this was a correct answer)
     } else {
       // If it's the last question, finish the session
       finishSession();
@@ -328,11 +328,27 @@ export default function StudySession() {
     router.push(`/study-summary?data=${encodedData}`);
   };
 
-  const nextQuestion = (isSkipped = true) => {
+  const nextQuestion = async (isSkipped = true) => {
     if (session && session.currentIndex < session.words.length - 1) {
       // Mark current question as incorrect (skipped) only if it was actually skipped
       const currentWord = session.words[session.currentIndex];
       const isCorrect = !isSkipped; // If not skipped, it was correct
+      
+      // Handle word state transition for skipped questions (treat as wrong answer)
+      if (isSkipped) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const transition = await wordStateManager.handleStudyAnswer(
+            user.id,
+            currentWord.id,
+            false // Skipped = wrong answer
+          );
+          
+          if (transition) {
+            console.log('Skip treated as wrong answer - Word state transition:', transition);
+          }
+        }
+      }
       
       // Update session with answer
       const updatedSession = {
@@ -350,7 +366,7 @@ export default function StudySession() {
             definition: currentWord.definition,
             tier: currentWord.tier,
             correct: isCorrect,
-            selectedAnswer: isSkipped ? '' : selectedAnswer || '', // No answer provided if skipped
+            selectedAnswer: isSkipped ? 'SKIPPED' : selectedAnswer || '', // Mark as skipped
             correctAnswer: currentWord.word
           }
         ]
@@ -524,10 +540,11 @@ export default function StudySession() {
             </button>
 
             <button
-              onClick={() => nextQuestion(true)} // true = skipped
-              className="flex items-center px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              onClick={() => nextQuestion(true)} // true = skipped (counts as wrong in challenge mode)
+              className="flex items-center px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50"
+              title="Skip this question (counts as wrong answer and resets progress)"
             >
-              {session.currentIndex === session.words.length - 1 ? 'Finish' : 'Next'}
+              {session.currentIndex === session.words.length - 1 ? 'Finish' : 'Skip'}
               <ArrowRight className="h-4 w-4 ml-2" />
             </button>
           </div>
