@@ -40,7 +40,7 @@ interface Badge {
   name: string;
   description: string;
   icon: string;
-  requirement: string;
+  criteria: any;
 }
 
 interface DashboardStats {
@@ -132,7 +132,7 @@ export default function Dashboard() {
             name,
             description,
             icon,
-            requirement
+            criteria
           )
         `)
         .eq('user_id', userId)
@@ -157,7 +157,10 @@ export default function Dashboard() {
         hard: activeWordsWithDetails.filter(w => w?.difficulty === 'Hard').length
       };
       
-      // Calculate tier progress - database now uses consistent 'top_100' format
+      // Get current tier and calculate progress for only that tier
+      const currentTierDisplay = await wordStateManager.getCurrentTier(userId);
+      
+      // Map display name to database format
       const tierMappings = [
         { display: 'Top 25', db: ['top_25'] },
         { display: 'Top 100', db: ['top_100'] },
@@ -167,20 +170,19 @@ export default function Dashboard() {
         { display: 'Top 500', db: ['top_500'] }
       ];
       
-      const tierProgress = tierMappings.map(tierMapping => {
-        const tierWords = words?.filter(w => tierMapping.db.includes(w.tier)) || [];
-        const tierMastered = progress?.filter(p => 
-          p.state === 'mastered' && 
-          tierWords.some(w => w.id === p.word_id)
-        ).length || 0;
-        
-        return {
-          tier: tierMapping.display,
-          total: tierWords.length,
-          mastered: tierMastered,
-          percentage: tierWords.length > 0 ? Math.round((tierMastered / tierWords.length) * 100) : 0
-        };
-      });
+      const currentTierMapping = tierMappings.find(t => t.display === currentTierDisplay);
+      const tierWords = currentTierMapping ? words?.filter(w => currentTierMapping.db.includes(w.tier)) || [] : [];
+      const tierMastered = progress?.filter(p => 
+        p.state === 'mastered' && 
+        tierWords.some(w => w.id === p.word_id)
+      ).length || 0;
+      
+      const tierProgress = [{
+        tier: currentTierDisplay,
+        total: tierWords.length,
+        mastered: tierMastered,
+        percentage: tierWords.length > 0 ? Math.round((tierMastered / tierWords.length) * 100) : 0
+      }];
 
       setStats({
         activePoolCount: currentActivePoolCount,
@@ -190,7 +192,7 @@ export default function Dashboard() {
         totalPoints: mastered * 10 + currentActivePoolCount * 5, // TODO: Calculate from sessions
         activeWordsBreakdown,
         tierProgress,
-        recentBadges: userBadges?.map(ub => ub.badges) || []
+        recentBadges: (userBadges?.map(ub => ub.badges).flat() || []) as Badge[]
       });
     } catch (error) {
       console.error('Error loading dashboard data:', error);
@@ -211,12 +213,7 @@ export default function Dashboard() {
         hard: 0
       },
       tierProgress: [
-        { tier: 'Top 25', total: 25, mastered: 0, percentage: 0 },
-        { tier: 'Top 100', total: 100, mastered: 0, percentage: 0 },
-        { tier: 'Top 200', total: 200, mastered: 0, percentage: 0 },
-        { tier: 'Top 300', total: 300, mastered: 0, percentage: 0 },
-        { tier: 'Top 400', total: 400, mastered: 0, percentage: 0 },
-        { tier: 'Top 500', total: 500, mastered: 0, percentage: 0 }
+        { tier: 'Top 25', total: 25, mastered: 0, percentage: 0 }
       ],
       recentBadges: []
     });
@@ -372,12 +369,25 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Tier Progress */}
+        {/* Streak Message */}
+        {stats && (
+          <div className="bg-white p-6 rounded-xl shadow-sm mb-6">
+            <div className="flex items-center">
+              <TrendingUp className="h-8 w-8 text-purple-600" />
+              <div className="ml-3">
+                <p className="text-sm font-medium text-gray-500">Streak</p>
+                <p className="text-2xl font-bold text-gray-900">{stats?.currentStreak || 0}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Progress */}
         {stats && stats.tierProgress && (
           <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
             <div className="flex items-center mb-6">
               <Trophy className="h-6 w-6 text-yellow-600 mr-2" />
-              <h3 className="text-xl font-bold text-gray-900 tracking-wide">Tier Progress</h3>
+              <h3 className="text-xl font-bold text-gray-900 tracking-wide">Progress</h3>
             </div>
             <div className="space-y-5">
               {stats.tierProgress.map((tier, index) => (
@@ -410,20 +420,6 @@ export default function Dashboard() {
             </div>
           </div>
         )}
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-1 gap-6 mb-8">
-          <div className="bg-white p-6 rounded-xl shadow-sm">
-            <div className="flex items-center">
-              <TrendingUp className="h-8 w-8 text-purple-600" />
-              <div className="ml-3">
-                <p className="text-sm font-medium text-gray-500">Streak</p>
-                <p className="text-2xl font-bold text-gray-900">{stats?.currentStreak || 0}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
 
         {/* Recent Achievements */}
         {stats?.recentBadges && stats.recentBadges.length > 0 && (
