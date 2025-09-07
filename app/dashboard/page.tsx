@@ -314,34 +314,28 @@ export default function Dashboard() {
                   </p>
                 </div>
               </div>
-              <button
-                onClick={startStudySession}
-                className="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center"
-              >
-                <BookOpen className="h-5 w-5 mr-2" />
-                Start Study
-              </button>
+              <div className="flex gap-3">
+                <button
+                  onClick={startStudySession}
+                  className="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center"
+                >
+                  <BookOpen className="h-5 w-5 mr-2" />
+                  Start Study
+                </button>
+                <button
+                  onClick={viewCurrentWords}
+                  className="bg-blue-400 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-300 transition-colors flex items-center"
+                >
+                  <Target className="h-5 w-5 mr-2" />
+                  See All
+                </button>
+              </div>
             </div>
           </div>
         )}
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <button
-            onClick={viewCurrentWords}
-            className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-          >
-            <div className="flex items-center">
-              <Target className="h-8 w-8 text-purple-600" />
-              <div className="ml-3">
-                <p className="text-sm font-medium text-gray-500">Active Words</p>
-                <p className="text-xs text-gray-500 mt-1">
-                  Easy {stats?.activeWordsBreakdown.easy || 0} Medium {stats?.activeWordsBreakdown.medium || 0} Hard {stats?.activeWordsBreakdown.hard || 0}
-                </p>
-              </div>
-            </div>
-          </button>
-
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <button
             onClick={() => router.push('/mastered-words')}
             className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow cursor-pointer"

@@ -135,23 +135,13 @@ export default function SessionSummary() {
             wordsIncorrect.push(wordData);
           }
 
-          // Add to promoted words if it was correct
-          if (result.correct) {
-            if (sessionInfo.session_type === 'study') {
-              // Study session: started → ready for review
-              wordsPromoted.push({
-                word: result.word,
-                fromState: result.fromState || 'started',
-                toState: result.toState || 'ready'
-              });
-            } else if (sessionInfo.session_type === 'review') {
-              // Review session: use actual state transitions
-              wordsPromoted.push({
-                word: result.word,
-                fromState: result.fromState || 'ready',
-                toState: result.toState || 'mastered'
-              });
-            }
+          // Only add to promoted words if there's actual state transition data
+          if (result.fromState && result.toState && result.fromState !== result.toState) {
+            wordsPromoted.push({
+              word: result.word,
+              fromState: result.fromState,
+              toState: result.toState
+            });
           }
         });
       } else {

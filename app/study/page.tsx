@@ -43,6 +43,8 @@ interface StudySession {
     correct: boolean;
     selectedAnswer: string;
     correctAnswer: string;
+    fromState?: string;
+    toState?: string;
   }>;
 }
 
@@ -216,7 +218,25 @@ export default function StudySession() {
             if (!prevSession) return prevSession;
             return {
               ...prevSession,
-              promotedWords: [...prevSession.promotedWords, currentWord.id]
+              promotedWords: [...prevSession.promotedWords, currentWord.id],
+              wordResults: prevSession.wordResults.map(result => 
+                result.wordId === currentWord.id 
+                  ? { ...result, fromState: transition.fromState, toState: transition.toState }
+                  : result
+              )
+            };
+          });
+        } else {
+          // Update wordResults with transition data even if not promoted
+          setSession(prevSession => {
+            if (!prevSession) return prevSession;
+            return {
+              ...prevSession,
+              wordResults: prevSession.wordResults.map(result => 
+                result.wordId === currentWord.id 
+                  ? { ...result, fromState: transition.fromState, toState: transition.toState }
+                  : result
+              )
             };
           });
         }
@@ -275,7 +295,9 @@ export default function StudySession() {
           correct: result.correct,
           userInput: result.userInput,
           correctAnswer: result.correctAnswer,
-          tier: session.words.find(w => w.word === result.word)?.tier || 'Unknown'
+          tier: session.words.find(w => w.word === result.word)?.tier || 'Unknown',
+          fromState: result.fromState,
+          toState: result.toState
         }))
       };
       
