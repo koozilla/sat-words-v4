@@ -190,7 +190,7 @@ export default function ReviewSession() {
     };
 
     // Update session with answer
-    setSession({
+    const updatedSession = {
       ...session,
       answers: {
         ...session.answers,
@@ -198,7 +198,17 @@ export default function ReviewSession() {
       },
       score: correct ? session.score + 1 : session.score,
       wordResults: [...session.wordResults, wordResult]
+    };
+    
+    console.log('Submitted answer - updating session:', {
+      word: currentWord.word,
+      correct: correct,
+      score: updatedSession.score,
+      totalQuestions: updatedSession.totalQuestions,
+      wordResultsLength: updatedSession.wordResults.length
     });
+    
+    setSession(updatedSession);
 
     // Handle word state transition
     const { data: { user } } = await supabase.auth.getUser();
@@ -221,10 +231,13 @@ export default function ReviewSession() {
         };
         
         // Update session with transition information
-        setSession(prevSession => ({
-          ...prevSession,
-          wordResults: [...prevSession.wordResults.slice(0, -1), updatedWordResult]
-        }));
+        setSession(prevSession => {
+          if (!prevSession) return prevSession;
+          return {
+            ...prevSession,
+            wordResults: [...prevSession.wordResults.slice(0, -1), updatedWordResult]
+          };
+        });
         
         // Show transition feedback and handle pool refilling
         if (transition.toState === 'mastered') {
@@ -254,10 +267,13 @@ export default function ReviewSession() {
         };
         
         // Update session with transition information
-        setSession(prevSession => ({
-          ...prevSession,
-          wordResults: [...prevSession.wordResults.slice(0, -1), updatedWordResult]
-        }));
+        setSession(prevSession => {
+          if (!prevSession) return prevSession;
+          return {
+            ...prevSession,
+            wordResults: [...prevSession.wordResults.slice(0, -1), updatedWordResult]
+          };
+        });
         
         // Show transition feedback and handle pool refilling
         if (transition.toState === 'mastered') {
@@ -278,7 +294,7 @@ export default function ReviewSession() {
     setShowCelebration(false);
     // Auto-advance to next question after celebration for correct answers
     if (session && session.currentIndex < session.words.length - 1) {
-      nextQuestion();
+      nextQuestion(false); // false = not skipped, answer was correct
     } else {
       // If it's the last question, finish the session
       finishSession();
@@ -309,37 +325,58 @@ export default function ReviewSession() {
       }))
     };
     
+    console.log('Review session data being passed:', sessionData);
+    console.log('Session score:', session.score);
+    console.log('Session totalQuestions:', session.totalQuestions);
+    console.log('Session wordResults:', session.wordResults);
+    
     const encodedData = encodeURIComponent(JSON.stringify(sessionData));
     router.push(`/review-summary?data=${encodedData}`);
   };
 
   const nextQuestion = (isSkipped = true) => {
     if (session && session.currentIndex < session.words.length - 1) {
-      // Mark current question as incorrect (skipped) only if it was actually skipped
-      const currentWord = session.words[session.currentIndex];
-      const isCorrect = !isSkipped; // If not skipped, it was correct
+      // Only update session if the question was skipped (no answer submitted)
+      if (isSkipped && !showAnswer) {
+        const currentWord = session.words[session.currentIndex];
+        
+        // Update session with skipped answer - skipped questions count as wrong answers
+        const updatedSession = {
+          ...session,
+          score: session.score, // No points for skipped questions (they count as wrong)
+          wordResults: [
+            ...session.wordResults,
+            {
+              wordId: currentWord.id,
+              word: currentWord.word,
+              definition: currentWord.definition,
+              tier: currentWord.tier,
+              correct: false, // Skipped questions are marked as incorrect
+              userInput: '', // No answer provided
+              correctAnswer: currentWord.word
+            }
+          ]
+        };
+        
+        console.log('Skipped question - updating session:', {
+          word: currentWord.word,
+          score: updatedSession.score,
+          totalQuestions: updatedSession.totalQuestions,
+          wordResultsLength: updatedSession.wordResults.length
+        });
+        
+        setSession({
+          ...updatedSession,
+          currentIndex: session.currentIndex + 1
+        });
+      } else {
+        // Just advance to next question without updating session (already handled by handleSubmit)
+        setSession({
+          ...session,
+          currentIndex: session.currentIndex + 1
+        });
+      }
       
-      // Update session with answer
-      const updatedSession = {
-        ...session,
-        score: session.score + (isCorrect ? 1 : 0),
-        wordResults: [
-          ...session.wordResults,
-          {
-            wordId: currentWord.id,
-            word: currentWord.word,
-            definition: currentWord.definition,
-            correct: isCorrect,
-            userInput: isSkipped ? '' : userInput.trim(), // No answer provided if skipped
-            correctAnswer: currentWord.word
-          }
-        ]
-      };
-      
-      setSession({
-        ...updatedSession,
-        currentIndex: session.currentIndex + 1
-      });
       setShowAnswer(false);
       setUserInput('');
       setIsCorrect(null);
@@ -560,7 +597,7 @@ export default function ReviewSession() {
             </button>
 
             <button
-              onClick={() => nextQuestion(true)} // true = skipped
+              onClick={() => nextQuestion(!showAnswer)} // Skip only if no answer was submitted
               className="flex items-center px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
             >
               {session.currentIndex === session.words.length - 1 ? 'Finish' : 'Next'}

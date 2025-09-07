@@ -57,7 +57,9 @@ export default function ReviewSummary() {
         }
 
         const sessionData = JSON.parse(decodeURIComponent(dataParam));
+        console.log('Review summary received data:', sessionData);
         const summary = await generateReviewSessionSummary(sessionData);
+        console.log('Generated summary:', summary);
         setSummaryData(summary);
       } catch (error) {
         console.error('Error loading summary data:', error);
@@ -71,10 +73,13 @@ export default function ReviewSummary() {
   }, [searchParams, router]);
 
   const generateReviewSessionSummary = async (sessionInfo: any): Promise<ReviewSessionSummary> => {
+    console.log('generateReviewSessionSummary called with:', sessionInfo);
+    
     const wordsPromoted: Array<{ word: string; fromState: string; toState: string }> = [];
     const wordsDemoted: Array<{ word: string; fromState: string; toState: string }> = [];
 
     if (sessionInfo.wordResults && sessionInfo.wordResults.length > 0) {
+      console.log('Processing wordResults:', sessionInfo.wordResults);
       // Handle state transitions (promotions and demotions for review)
       sessionInfo.wordResults.forEach((result: any) => {
         if (result.fromState && result.toState && result.fromState !== result.toState) {
@@ -107,6 +112,7 @@ export default function ReviewSummary() {
         }
       });
     } else {
+      console.log('No wordResults found, using fallback data');
       // Fallback to sample data if no word results available
       wordsPromoted.push(
         { word: 'Ephemeral', fromState: 'ready', toState: 'mastered' },
@@ -118,13 +124,22 @@ export default function ReviewSummary() {
       );
     }
 
-    const accuracy = sessionInfo.totalQuestions > 0 ? (sessionInfo.score / sessionInfo.totalQuestions) * 100 : 0;
-    const timeSpent = sessionInfo.endTime ? 
-      Math.round((new Date(sessionInfo.endTime).getTime() - new Date(sessionInfo.startTime).getTime()) / 1000) : 0;
+    const accuracy = sessionInfo.words_studied > 0 ? (sessionInfo.correct_answers / sessionInfo.words_studied) * 100 : 0;
+    const timeSpent = sessionInfo.completed_at ? 
+      Math.round((new Date(sessionInfo.completed_at).getTime() - new Date(sessionInfo.started_at).getTime()) / 1000) : 0;
+
+    console.log('Calculated metrics:', {
+      score: sessionInfo.correct_answers || 0,
+      totalQuestions: sessionInfo.words_studied || 0,
+      accuracy: Math.round(accuracy),
+      timeSpent,
+      wordsPromoted: wordsPromoted.length,
+      wordsDemoted: wordsDemoted.length
+    });
 
     return {
-      score: sessionInfo.score || 0,
-      totalQuestions: sessionInfo.totalQuestions || 0,
+      score: sessionInfo.correct_answers || 0,
+      totalQuestions: sessionInfo.words_studied || 0,
       accuracy: Math.round(accuracy),
       timeSpent,
       wordsPromoted,
