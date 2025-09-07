@@ -465,30 +465,14 @@ export default function SessionSummary() {
           </div>
         )}
 
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <button
-            onClick={() => router.push('/study')}
-            className="flex items-center justify-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <BookOpen className="h-5 w-5 mr-2" />
-            Study More Words
-          </button>
-
-          <button
-            onClick={() => router.push('/review')}
-            className="flex items-center justify-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-          >
-            <Target className="h-5 w-5 mr-2" />
-            Review Session
-          </button>
-
+        {/* Action Button */}
+        <div className="flex justify-center">
           <button
             onClick={() => router.push('/dashboard')}
-            className="flex items-center justify-center px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+            className="flex items-center justify-center px-8 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-lg font-semibold"
           >
-            <ArrowLeft className="h-5 w-5 mr-2" />
-            Back to Dashboard
+            <ArrowLeft className="h-6 w-6 mr-3" />
+            Go Back to Dashboard
           </button>
         </div>
       </main>
