@@ -49,6 +49,11 @@ interface DashboardStats {
   masteredWords: number;
   currentStreak: number;
   totalPoints: number;
+  activeWordsBreakdown: {
+    easy: number;
+    medium: number;
+    hard: number;
+  };
   tierProgress: {
     tier: string;
     total: number;
@@ -139,6 +144,19 @@ export default function Dashboard() {
       const reviewsDue = progress?.filter(p => p.state === 'ready').length || 0;
       const mastered = progress?.filter(p => p.state === 'mastered').length || 0;
       
+      // Calculate active words difficulty breakdown
+      const activeWords = progress?.filter(p => p.state === 'started') || [];
+      const activeWordsWithDetails = activeWords.map(progressItem => {
+        const word = words?.find(w => w.id === progressItem.word_id);
+        return word;
+      }).filter(Boolean);
+      
+      const activeWordsBreakdown = {
+        easy: activeWordsWithDetails.filter(w => w?.difficulty === 'Easy').length,
+        medium: activeWordsWithDetails.filter(w => w?.difficulty === 'Medium').length,
+        hard: activeWordsWithDetails.filter(w => w?.difficulty === 'Hard').length
+      };
+      
       // Calculate tier progress
       const tierProgress = ['Top 25', 'Top 100', 'Top 200', 'Top 300', 'Top 400', 'Top 500'].map(tier => {
         const tierWords = words?.filter(w => w.tier === tier) || [];
@@ -161,6 +179,7 @@ export default function Dashboard() {
         masteredWords: mastered,
         currentStreak: 7, // TODO: Calculate from sessions
         totalPoints: mastered * 10 + currentActivePoolCount * 5, // TODO: Calculate from sessions
+        activeWordsBreakdown,
         tierProgress,
         recentBadges: userBadges?.map(ub => ub.badges) || []
       });
@@ -177,6 +196,11 @@ export default function Dashboard() {
       masteredWords: 0,
       currentStreak: 0,
       totalPoints: 0,
+      activeWordsBreakdown: {
+        easy: 0,
+        medium: 0,
+        hard: 0
+      },
       tierProgress: [
         { tier: 'Top 25', total: 25, mastered: 0, percentage: 0 },
         { tier: 'Top 100', total: 100, mastered: 0, percentage: 0 },
@@ -285,9 +309,20 @@ export default function Dashboard() {
                 <BookOpen className="h-8 w-8 mr-4" />
                 <div>
                   <h3 className="text-lg font-semibold mb-1">Active Words</h3>
-                  <p className="text-blue-100">
+                  <p className="text-blue-100 mb-2">
                     {stats.activePoolCount} {stats.activePoolCount === 1 ? 'word' : 'words'} ready to study
                   </p>
+                  <div className="flex space-x-4 text-sm">
+                    <span className="text-green-200">
+                      <span className="font-semibold">{stats.activeWordsBreakdown.easy}</span> Easy
+                    </span>
+                    <span className="text-yellow-200">
+                      <span className="font-semibold">{stats.activeWordsBreakdown.medium}</span> Medium
+                    </span>
+                    <span className="text-red-200">
+                      <span className="font-semibold">{stats.activeWordsBreakdown.hard}</span> Hard
+                    </span>
+                  </div>
                 </div>
               </div>
               <button
@@ -312,6 +347,11 @@ export default function Dashboard() {
               <div className="ml-3">
                 <p className="text-sm font-medium text-gray-500">Active Words</p>
                 <p className="text-2xl font-bold text-gray-900">{stats?.activePoolCount || 0}</p>
+                <div className="flex space-x-2 text-xs text-gray-500 mt-1">
+                  <span className="text-green-600">{stats?.activeWordsBreakdown.easy || 0}E</span>
+                  <span className="text-yellow-600">{stats?.activeWordsBreakdown.medium || 0}M</span>
+                  <span className="text-red-600">{stats?.activeWordsBreakdown.hard || 0}H</span>
+                </div>
               </div>
             </div>
           </button>
