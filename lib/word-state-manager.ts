@@ -363,11 +363,23 @@ export class WordStateManager {
    */
   async initializeUserProgress(userId: string, tier: string): Promise<boolean> {
     try {
+      // Map display tier to database tier formats
+      const tierMappings: { [key: string]: string[] } = {
+        'Top 25': ['Top 25', 'Top25'],
+        'Top 100': ['Top 100', 'Top100'],
+        'Top 200': ['Top 200', 'Top200'],
+        'Top 300': ['Top 300', 'Top300'],
+        'Top 400': ['Top 400', 'Top400'],
+        'Top 500': ['Top 500', 'Top500']
+      };
+      
+      const dbTiers = tierMappings[tier] || [tier];
+      
       // Get all words in the tier
       const { data: words, error: wordsError } = await this.supabase
         .from('words')
         .select('id')
-        .eq('tier', tier);
+        .in('tier', dbTiers);
 
       if (wordsError) {
         console.error('Error fetching words for tier:', wordsError);
@@ -414,6 +426,209 @@ export class WordStateManager {
     } catch (error) {
       console.error('Error initializing user progress:', error);
       return false;
+    }
+  }
+
+  /**
+   * Get current active pool count
+   */
+  async getActivePoolCount(userId: string): Promise<number> {
+    try {
+      const { count, error } = await this.supabase
+        .from('user_progress')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .eq('state', 'started');
+
+      if (error) {
+        console.error('Error getting active pool count:', error);
+        return 0;
+      }
+
+      return count || 0;
+    } catch (error) {
+      console.error('Error getting active pool count:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * Get user's current tier based on mastered words
+   */
+  async getCurrentTier(userId: string): Promise<string> {
+    try {
+      // Handle both formats: "Top 25" and "Top25"
+      const tierMappings = [
+        { display: 'Top 25', db: ['Top 25', 'Top25'] },
+        { display: 'Top 100', db: ['Top 100', 'Top100'] },
+        { display: 'Top 200', db: ['Top 200', 'Top200'] },
+        { display: 'Top 300', db: ['Top 300', 'Top300'] },
+        { display: 'Top 400', db: ['Top 400', 'Top400'] },
+        { display: 'Top 500', db: ['Top 500', 'Top500'] }
+      ];
+      
+      for (const tierMapping of tierMappings) {
+        // Check if all words in this tier are mastered
+        const { data: tierWords } = await this.supabase
+          .from('words')
+          .select('id')
+          .in('tier', tierMapping.db);
+
+        if (!tierWords || tierWords.length === 0) continue;
+
+        const { data: masteredWords } = await this.supabase
+          .from('user_progress')
+          .select('word_id')
+          .eq('user_id', userId)
+          .eq('state', 'mastered')
+          .in('word_id', tierWords.map((w: any) => w.id));
+
+        const masteredCount = masteredWords?.length || 0;
+        const totalCount = tierWords.length;
+
+        // If not all words in this tier are mastered, this is the current tier
+        if (masteredCount < totalCount) {
+          return tierMapping.display;
+        }
+      }
+
+      return 'Top 500'; // All tiers completed
+    } catch (error) {
+      console.error('Error getting current tier:', error);
+      return 'Top 25';
+    }
+  }
+
+  /**
+   * Get available words for active pool (not started words in current tier)
+   */
+  async getAvailableWordsForPool(userId: string, limit: number = 15): Promise<any[]> {
+    try {
+      const currentTier = await this.getCurrentTier(userId);
+      
+      // Map display tier to database tier formats
+      const tierMappings: { [key: string]: string[] } = {
+        'Top 25': ['Top 25', 'Top25'],
+        'Top 100': ['Top 100', 'Top100'],
+        'Top 200': ['Top 200', 'Top200'],
+        'Top 300': ['Top 300', 'Top300'],
+        'Top 400': ['Top 400', 'Top400'],
+        'Top 500': ['Top 500', 'Top500']
+      };
+      
+      const dbTiers = tierMappings[currentTier] || ['Top25'];
+      
+      // Get words in current tier that are not started
+      const { data, error } = await this.supabase
+        .from('words')
+        .select(`
+          id,
+          word,
+          definition,
+          part_of_speech,
+          tier,
+          difficulty,
+          image_urls,
+          synonyms,
+          antonyms,
+          example_sentence
+        `)
+        .in('tier', dbTiers)
+        .not('id', 'in', `(
+          SELECT word_id 
+          FROM user_progress 
+          WHERE user_id = '${userId}' 
+          AND state IN ('started', 'ready', 'mastered')
+        )`)
+        .limit(limit);
+
+      if (error) {
+        console.error('Error fetching available words:', error);
+        return [];
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Error getting available words for pool:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Refill active pool to maintain 15 words
+   */
+  async refillActivePool(userId: string): Promise<boolean> {
+    try {
+      const currentCount = await this.getActivePoolCount(userId);
+      const targetCount = 15;
+      
+      if (currentCount >= targetCount) {
+        return true; // Pool is already full
+      }
+
+      const neededCount = targetCount - currentCount;
+      const availableWords = await this.getAvailableWordsForPool(userId, neededCount);
+
+      if (availableWords.length === 0) {
+        console.log('No available words to refill pool');
+        return true; // No words available, but not an error
+      }
+
+      // Add words to active pool
+      const progressEntries = availableWords.map(word => ({
+        user_id: userId,
+        word_id: word.id,
+        state: 'started',
+        study_streak: 0,
+        review_streak: 0,
+        last_studied: new Date().toISOString()
+      }));
+
+      const { error } = await this.supabase
+        .from('user_progress')
+        .insert(progressEntries);
+
+      if (error) {
+        console.error('Error refilling active pool:', error);
+        return false;
+      }
+
+      console.log(`Added ${progressEntries.length} words to active pool`);
+      return true;
+    } catch (error) {
+      console.error('Error refilling active pool:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Initialize new user with 15 words from Top 25 tier
+   */
+  async initializeNewUser(userId: string): Promise<boolean> {
+    try {
+      // First, initialize progress for all words in Top 25 tier
+      await this.initializeUserProgress(userId, 'Top 25');
+      
+      // Then refill the active pool
+      return await this.refillActivePool(userId);
+    } catch (error) {
+      console.error('Error initializing new user:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Handle word mastery - refill pool if needed
+   */
+  async handleWordMastery(userId: string): Promise<void> {
+    try {
+      // Check if we need to refill the pool
+      const currentCount = await this.getActivePoolCount(userId);
+      if (currentCount < 15) {
+        await this.refillActivePool(userId);
+      }
+    } catch (error) {
+      console.error('Error handling word mastery:', error);
     }
   }
 }

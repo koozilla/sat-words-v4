@@ -52,10 +52,12 @@ interface CurrentWord {
 
 export default function WordsPage() {
   const [currentWords, setCurrentWords] = useState<CurrentWord[]>([]);
+  const [availableWords, setAvailableWords] = useState<Word[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTier, setSelectedTier] = useState('All');
   const [selectedDifficulty, setSelectedDifficulty] = useState('All');
+  const [showAvailableWords, setShowAvailableWords] = useState(false);
   const [wordStateManager] = useState(() => new WordStateManager());
   const router = useRouter();
   const supabase = createClientComponentClient();
@@ -74,14 +76,42 @@ export default function WordsPage() {
         console.log('No user found, using test user for demo');
         const testUserId = '11111111-1111-1111-1111-111111111111';
         await loadCurrentWordsForUser(testUserId);
+        await loadAvailableWords(testUserId);
         return;
       }
 
       await loadCurrentWordsForUser(user.id);
+      await loadAvailableWords(user.id);
     } catch (error) {
       console.error('Error loading current words:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadAvailableWords = async (userId: string) => {
+    try {
+      const available = await wordStateManager.getAvailableWordsForPool(userId, 50);
+      setAvailableWords(available);
+    } catch (error) {
+      console.error('Error loading available words:', error);
+    }
+  };
+
+  const addToActivePool = async (wordId: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const userId = user?.id || '11111111-1111-1111-1111-111111111111';
+      
+      const success = await wordStateManager.addToActivePool(userId, wordId);
+      if (success) {
+        // Reload both current and available words
+        await loadCurrentWordsForUser(userId);
+        await loadAvailableWords(userId);
+        console.log('Word added to active pool successfully');
+      }
+    } catch (error) {
+      console.error('Error adding word to active pool:', error);
     }
   };
 
@@ -254,10 +284,55 @@ export default function WordsPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Current Words</h1>
-          <p className="text-gray-600">
-            View and manage your current study pool. See words you're studying and words ready for review.
-          </p>
+          <div className="flex justify-between items-center mb-4">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">Current Words</h1>
+              <p className="text-gray-600">
+                View and manage your current study pool. See words you're studying and words ready for review.
+              </p>
+            </div>
+            <button
+              onClick={() => setShowAvailableWords(!showAvailableWords)}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              {showAvailableWords ? 'Hide Available Words' : 'Add More Words'}
+            </button>
+          </div>
+          
+          {/* Available Words Section */}
+          {showAvailableWords && (
+            <div className="bg-blue-50 rounded-xl p-6 mb-6">
+              <h2 className="text-xl font-semibold text-blue-900 mb-2">Available Words</h2>
+              <p className="text-blue-700 mb-4">
+                Add words from your current tier to your active study pool. You can have up to 15 words in your active pool.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {availableWords.slice(0, 6).map((word) => (
+                  <div key={word.id} className="bg-white rounded-lg p-4 shadow-sm">
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="font-semibold text-gray-900">{word.word}</h3>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTierColor(word.tier)}`}>
+                        {word.tier}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-3">{word.definition}</p>
+                    <button
+                      onClick={() => addToActivePool(word.id)}
+                      className="w-full px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                    >
+                      Add to Study Pool
+                    </button>
+                  </div>
+                ))}
+              </div>
+              {availableWords.length > 6 && (
+                <p className="text-blue-600 text-sm mt-4">
+                  And {availableWords.length - 6} more words available...
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Search and Filters */}

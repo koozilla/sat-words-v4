@@ -183,9 +183,11 @@ export default function ReviewSession() {
       if (transition) {
         console.log('Word state transition:', transition);
         
-        // Show transition feedback
+        // Show transition feedback and handle pool refilling
         if (transition.toState === 'mastered') {
           console.log(`🎉 "${currentWord.word}" is now mastered!`);
+          // Refill active pool if needed
+          await wordStateManager.handleWordMastery(user.id);
         }
       }
     } else {
@@ -200,9 +202,11 @@ export default function ReviewSession() {
       if (transition) {
         console.log('Word state transition:', transition);
         
-        // Show transition feedback
+        // Show transition feedback and handle pool refilling
         if (transition.toState === 'mastered') {
           console.log(`🎉 "${currentWord.word}" is now mastered!`);
+          // Refill active pool if needed
+          await wordStateManager.handleWordMastery(testUserId);
         }
       }
     }

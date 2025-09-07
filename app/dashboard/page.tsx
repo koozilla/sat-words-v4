@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { WordStateManager } from '@/lib/word-state-manager';
 import { 
   BookOpen, 
   Clock, 
@@ -62,6 +63,7 @@ export default function Dashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [isGuest, setIsGuest] = useState(false);
+  const [wordStateManager] = useState(() => new WordStateManager());
   const router = useRouter();
   const supabase = createClientComponentClient();
 
@@ -96,6 +98,14 @@ export default function Dashboard() {
 
   const loadDashboardData = async (userId: string) => {
     try {
+      // Check if user needs initialization (no active pool words)
+      const activePoolCount = await wordStateManager.getActivePoolCount(userId);
+      
+      if (activePoolCount === 0) {
+        console.log('Initializing new user with active pool...');
+        await wordStateManager.initializeNewUser(userId);
+      }
+
       // Load user progress
       const { data: progress } = await supabase
         .from('user_progress')
@@ -124,8 +134,8 @@ export default function Dashboard() {
         .order('earned_at', { ascending: false })
         .limit(3);
 
-      // Calculate stats
-      const activePool = progress?.filter(p => p.state === 'started').length || 0;
+      // Calculate stats using WordStateManager
+      const currentActivePoolCount = await wordStateManager.getActivePoolCount(userId);
       const reviewsDue = progress?.filter(p => p.state === 'ready').length || 0;
       const mastered = progress?.filter(p => p.state === 'mastered').length || 0;
       
@@ -146,11 +156,11 @@ export default function Dashboard() {
       });
 
       setStats({
-        activePoolCount: activePool,
+        activePoolCount: currentActivePoolCount,
         reviewsDue,
         masteredWords: mastered,
         currentStreak: 7, // TODO: Calculate from sessions
-        totalPoints: mastered * 10 + activePool * 5, // TODO: Calculate from sessions
+        totalPoints: mastered * 10 + currentActivePoolCount * 5, // TODO: Calculate from sessions
         tierProgress,
         recentBadges: userBadges?.map(ub => ub.badges) || []
       });
@@ -250,9 +260,9 @@ export default function Dashboard() {
               <div className="flex items-center">
                 <Clock className="h-8 w-8 mr-4" />
                 <div>
-                  <h3 className="text-lg font-semibold mb-1">Reviews Due</h3>
+                  <h3 className="text-lg font-semibold mb-1">Challenges Due</h3>
                   <p className="text-green-100">
-                    {stats.reviewsDue} {stats.reviewsDue === 1 ? 'word' : 'words'} ready for review
+                    {stats.reviewsDue} {stats.reviewsDue === 1 ? 'word' : 'words'} ready for challenge
                   </p>
                 </div>
               </div>
@@ -261,7 +271,7 @@ export default function Dashboard() {
                 className="bg-white text-green-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center"
               >
                 <Clock className="h-5 w-5 mr-2" />
-                Start Review
+                Start Challenge
               </button>
             </div>
           </div>
@@ -300,7 +310,7 @@ export default function Dashboard() {
             <div className="flex items-center">
               <Target className="h-8 w-8 text-purple-600" />
               <div className="ml-3">
-                <p className="text-sm font-medium text-gray-500">Current Words</p>
+                <p className="text-sm font-medium text-gray-500">Active Words</p>
                 <p className="text-2xl font-bold text-gray-900">{stats?.activePoolCount || 0}</p>
               </div>
             </div>
