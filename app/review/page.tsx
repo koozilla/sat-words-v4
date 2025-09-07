@@ -210,8 +210,30 @@ export default function ReviewSession() {
 
   const nextQuestion = () => {
     if (session && session.currentIndex < session.words.length - 1) {
-      setSession({
+      // Mark current question as incorrect (skipped)
+      const currentWord = session.words[session.currentIndex];
+      const isCorrect = false;
+      
+      // Update session with incorrect answer
+      const updatedSession = {
         ...session,
+        score: session.score + (isCorrect ? 1 : 0),
+        wordResults: [
+          ...session.wordResults,
+          {
+            word: currentWord.word,
+            definition: currentWord.definition,
+            correct_answer: currentWord.word,
+            user_answer: null, // No answer provided
+            is_correct: isCorrect,
+            from_state: 'ready',
+            to_state: 'ready' // Stays in ready state
+          }
+        ]
+      };
+      
+      setSession({
+        ...updatedSession,
         currentIndex: session.currentIndex + 1
       });
       setShowAnswer(false);
