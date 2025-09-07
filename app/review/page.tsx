@@ -58,9 +58,23 @@ export default function ReviewSession() {
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [showHint, setShowHint] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
+  const [streak, setStreak] = useState(0);
   const [wordStateManager] = useState(() => new WordStateManager());
   const router = useRouter();
   const supabase = createClientComponentClient();
+
+  const getCelebrationMessage = (streak: number): string => {
+    if (streak === 1) return 'Good!';
+    if (streak === 2) return 'Good!';
+    if (streak === 3) return 'Great!';
+    if (streak === 4) return 'Great!';
+    if (streak === 5) return 'Awesome!';
+    if (streak === 6) return 'Awesome!';
+    if (streak === 7) return 'On Fire!';
+    if (streak === 8) return 'On Fire!';
+    if (streak >= 9) return 'CRAZY~';
+    return 'Correct!';
+  };
 
   useEffect(() => {
     initializeReviewSession();
@@ -88,7 +102,7 @@ export default function ReviewSession() {
           part_of_speech: p.words.part_of_speech,
           tier: p.words.tier,
           difficulty: p.words.difficulty,
-          image_url: p.words.image_urls?.[0] || '/api/placeholder/400/300',
+          image_url: p.words.image_urls?.[0] || null,
           synonyms: p.words.synonyms || [],
           antonyms: p.words.antonyms || [],
           example_sentence: p.words.example_sentence
@@ -122,7 +136,7 @@ export default function ReviewSession() {
         part_of_speech: p.words.part_of_speech,
         tier: p.words.tier,
         difficulty: p.words.difficulty,
-        image_url: p.words.image_urls?.[0] || '/api/placeholder/400/300',
+        image_url: p.words.image_urls?.[0] || null,
         synonyms: p.words.synonyms || [],
         antonyms: p.words.antonyms || [],
         example_sentence: p.words.example_sentence
@@ -152,6 +166,14 @@ export default function ReviewSession() {
     
     setIsCorrect(correct);
     setShowAnswer(true);
+
+    // Update streak
+    if (correct) {
+      setStreak(prev => prev + 1);
+      setShowCelebration(true);
+    } else {
+      setStreak(0);
+    }
 
     // Create detailed word result
     const wordResult = {
@@ -251,7 +273,7 @@ export default function ReviewSession() {
 
   const handleCelebrationComplete = () => {
     setShowCelebration(false);
-    // Auto-advance to next question after celebration
+    // Auto-advance to next question after celebration for correct answers
     if (session && session.currentIndex < session.words.length - 1) {
       nextQuestion();
     } else {
@@ -260,13 +282,41 @@ export default function ReviewSession() {
     }
   };
 
-  const nextQuestion = () => {
+  const finishSession = () => {
+    if (!session) return;
+    
+    // Session complete - pass session data to summary
+    const sessionData = {
+      session_type: 'review',
+      words_studied: session.totalQuestions,
+      correct_answers: session.score,
+      words_promoted: 0, // Words don't promote in review, they master
+      words_mastered: session.score, // All correct answers become mastered
+      started_at: session.startTime.toISOString(),
+      completed_at: new Date().toISOString(),
+      wordResults: session.wordResults.map(result => ({
+        word: result.word,
+        definition: result.definition,
+        correct: result.correct,
+        userInput: result.userInput,
+        correctAnswer: result.correctAnswer,
+        tier: result.tier || session.words.find(w => w.word === result.word)?.tier || 'Unknown',
+        fromState: result.fromState,
+        toState: result.toState
+      }))
+    };
+    
+    const encodedData = encodeURIComponent(JSON.stringify(sessionData));
+    router.push(`/session-summary?data=${encodedData}`);
+  };
+
+  const nextQuestion = (isSkipped = true) => {
     if (session && session.currentIndex < session.words.length - 1) {
-      // Mark current question as incorrect (skipped)
+      // Mark current question as incorrect (skipped) only if it was actually skipped
       const currentWord = session.words[session.currentIndex];
-      const isCorrect = false;
+      const isCorrect = !isSkipped; // If not skipped, it was correct
       
-      // Update session with incorrect answer
+      // Update session with answer
       const updatedSession = {
         ...session,
         score: session.score + (isCorrect ? 1 : 0),
@@ -277,7 +327,7 @@ export default function ReviewSession() {
             word: currentWord.word,
             definition: currentWord.definition,
             correct: isCorrect,
-            userInput: '', // No answer provided
+            userInput: isSkipped ? '' : userInput.trim(), // No answer provided if skipped
             correctAnswer: currentWord.word
           }
         ]
@@ -292,29 +342,7 @@ export default function ReviewSession() {
       setIsCorrect(null);
       setShowHint(false);
     } else {
-      // Session complete - pass session data to summary
-      const sessionData = {
-        session_type: 'review',
-        words_studied: session.totalQuestions,
-        correct_answers: session.score,
-        words_promoted: 0, // Words don't promote in review, they master
-        words_mastered: session.score, // All correct answers become mastered
-        started_at: session.startTime.toISOString(),
-        completed_at: new Date().toISOString(),
-        wordResults: session.wordResults.map(result => ({
-          word: result.word,
-          definition: result.definition,
-          correct: result.correct,
-          userInput: result.userInput,
-          correctAnswer: result.correctAnswer,
-          tier: result.tier || session.words.find(w => w.word === result.word)?.tier || 'Unknown',
-          fromState: result.fromState,
-          toState: result.toState
-        }))
-      };
-      
-      const encodedData = encodeURIComponent(JSON.stringify(sessionData));
-      router.push(`/session-summary?data=${encodedData}`);
+      finishSession();
     }
   };
 
@@ -425,8 +453,11 @@ export default function ReviewSession() {
           {currentWord.image_url && (
             <div className="mb-6 text-center">
               <div className="inline-block bg-gray-100 rounded-lg p-4">
-                <ImageIcon className="h-16 w-16 text-gray-400 mx-auto" />
-                <p className="text-sm text-gray-500 mt-2">Image placeholder</p>
+                <img 
+                  src={currentWord.image_url} 
+                  alt={`Visual representation of ${currentWord.word}`}
+                  className="h-32 w-32 object-cover rounded-lg mx-auto"
+                />
               </div>
             </div>
           )}
@@ -513,34 +544,6 @@ export default function ReviewSession() {
             </div>
           )}
 
-          {/* Answer Feedback */}
-          {showAnswer && (
-            <div className="mb-8">
-              <div className={`p-4 rounded-lg ${isCorrect ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
-                <div className="flex items-center mb-2">
-                  {isCorrect ? (
-                    <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
-                  ) : (
-                    <XCircle className="h-5 w-5 text-red-600 mr-2" />
-                  )}
-                  <span className={`font-medium ${isCorrect ? 'text-green-800' : 'text-red-800'}`}>
-                    {isCorrect ? 'Correct!' : 'Incorrect'}
-                  </span>
-                </div>
-                <p className={`text-sm ${isCorrect ? 'text-green-700' : 'text-red-700'}`}>
-                  {isCorrect 
-                    ? 'Great job! You got it right.' 
-                    : `The correct answer is "${currentWord.word}"`
-                  }
-                </p>
-                {currentWord.example_sentence && (
-                  <p className="text-sm text-gray-600 mt-2 italic">
-                    Example: {currentWord.example_sentence}
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
 
           {/* Navigation */}
           <div className="flex justify-between">
@@ -554,10 +557,10 @@ export default function ReviewSession() {
             </button>
 
             <button
-              onClick={nextQuestion}
+              onClick={() => nextQuestion(true)} // true = skipped
               className="flex items-center px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
             >
-              {session.currentIndex === session.words.length - 1 ? 'Finish' : 'Next'}
+              {session.currentIndex === session.words.length - 1 ? 'Finish' : 'Skip'}
               <ArrowRight className="h-4 w-4 ml-2" />
             </button>
           </div>
@@ -579,6 +582,7 @@ export default function ReviewSession() {
         isVisible={showCelebration}
         onComplete={handleCelebrationComplete}
         type="stars"
+        message={getCelebrationMessage(streak)}
       />
     </div>
   );

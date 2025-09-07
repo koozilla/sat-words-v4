@@ -7,12 +7,14 @@ interface CelebrationAnimationProps {
   isVisible: boolean;
   onComplete?: () => void;
   type?: 'confetti' | 'success' | 'stars';
+  message?: string;
 }
 
 export default function CelebrationAnimation({ 
   isVisible, 
   onComplete, 
-  type = 'success' 
+  type = 'success',
+  message
 }: CelebrationAnimationProps) {
   const [showAnimation, setShowAnimation] = useState(false);
 
@@ -78,6 +80,13 @@ export default function CelebrationAnimation({
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
             <div className="bg-white rounded-full p-4 shadow-lg">
               <CheckCircle className="h-16 w-16 text-green-500 animate-pulse" />
+              {message && (
+                <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2">
+                  <div className="bg-white rounded-lg px-4 py-2 shadow-lg">
+                    <span className="text-lg font-bold text-gray-800">{message}</span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
