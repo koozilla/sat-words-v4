@@ -518,8 +518,8 @@ export class WordStateManager {
       
       const dbTiers = tierMappings[currentTier] || ['Top25'];
       
-      // Get words in current tier that are not started
-      const { data, error } = await this.supabase
+      // First, get all words in the current tier
+      const { data: allWords, error: wordsError } = await this.supabase
         .from('words')
         .select(`
           id,
@@ -533,21 +533,36 @@ export class WordStateManager {
           antonyms,
           example_sentence
         `)
-        .in('tier', dbTiers)
-        .not('id', 'in', `(
-          SELECT word_id 
-          FROM user_progress 
-          WHERE user_id = '${userId}' 
-          AND state IN ('started', 'ready', 'mastered')
-        )`)
-        .limit(limit);
+        .in('tier', dbTiers);
 
-      if (error) {
-        console.error('Error fetching available words:', error);
+      if (wordsError) {
+        console.error('Error fetching words:', wordsError);
         return [];
       }
 
-      return data || [];
+      if (!allWords || allWords.length === 0) {
+        return [];
+      }
+
+      // Get words that are already in progress (started, ready, mastered)
+      const { data: progressWords, error: progressError } = await this.supabase
+        .from('user_progress')
+        .select('word_id')
+        .eq('user_id', userId)
+        .in('state', ['started', 'ready', 'mastered']);
+
+      if (progressError) {
+        console.error('Error fetching progress words:', progressError);
+        return [];
+      }
+
+      const progressWordIds = progressWords?.map((p: any) => p.word_id) || [];
+      
+      // Filter out words that are already in progress
+      const availableWords = allWords.filter((word: any) => !progressWordIds.includes(word.id));
+      
+      // Return limited results
+      return availableWords.slice(0, limit);
     } catch (error) {
       console.error('Error getting available words for pool:', error);
       return [];

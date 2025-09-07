@@ -14,7 +14,8 @@ import {
   Target,
   CheckCircle,
   XCircle,
-  Trash2
+  Trash2,
+  Plus
 } from 'lucide-react';
 
 interface Word {
@@ -73,10 +74,8 @@ export default function WordsPage() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        console.log('No user found, using test user for demo');
-        const testUserId = '11111111-1111-1111-1111-111111111111';
-        await loadCurrentWordsForUser(testUserId);
-        await loadAvailableWords(testUserId);
+        console.log('No user found, redirecting to login');
+        router.push('/auth/login');
         return;
       }
 
@@ -101,13 +100,17 @@ export default function WordsPage() {
   const addToActivePool = async (wordId: string) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      const userId = user?.id || '11111111-1111-1111-1111-111111111111';
+      if (!user) {
+        console.log('No user found, redirecting to login');
+        router.push('/auth/login');
+        return;
+      }
       
-      const success = await wordStateManager.addToActivePool(userId, wordId);
+      const success = await wordStateManager.addToActivePool(user.id, wordId);
       if (success) {
         // Reload both current and available words
-        await loadCurrentWordsForUser(userId);
-        await loadAvailableWords(userId);
+        await loadCurrentWordsForUser(user.id);
+        await loadAvailableWords(user.id);
         console.log('Word added to active pool successfully');
       }
     } catch (error) {
@@ -182,9 +185,8 @@ export default function WordsPage() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        console.log('No user found, using test user for demo');
-        const testUserId = '11111111-1111-1111-1111-111111111111';
-        await removeWordFromCurrent(testUserId, wordId);
+        console.log('No user found, redirecting to login');
+        router.push('/auth/login');
         return;
       }
 
