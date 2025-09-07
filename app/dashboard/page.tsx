@@ -12,7 +12,6 @@ import {
   Star,
   Plus,
   CheckCircle,
-  AlertCircle,
   Users,
   Award
 } from 'lucide-react';
@@ -245,7 +244,7 @@ export default function Dashboard() {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <button
             onClick={startStudySession}
             className="bg-blue-600 hover:bg-blue-700 text-white p-6 rounded-xl shadow-lg transition-colors"
@@ -253,15 +252,6 @@ export default function Dashboard() {
             <BookOpen className="h-8 w-8 mb-3" />
             <h3 className="text-lg font-semibold mb-2">Study Session</h3>
             <p className="text-blue-100">Learn new words with flashcards</p>
-          </button>
-
-          <button
-            onClick={startReviewSession}
-            className="bg-green-600 hover:bg-green-700 text-white p-6 rounded-xl shadow-lg transition-colors"
-          >
-            <Clock className="h-8 w-8 mb-3" />
-            <h3 className="text-lg font-semibold mb-2">Review Session</h3>
-            <p className="text-green-100">Practice with spaced repetition</p>
           </button>
 
           <button
@@ -274,24 +264,38 @@ export default function Dashboard() {
           </button>
         </div>
 
+        {/* Smart Review Card */}
+        {stats && stats.reviewsDue > 0 && (
+          <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl p-6 text-white mb-8">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <Clock className="h-8 w-8 mr-4" />
+                <div>
+                  <h3 className="text-lg font-semibold mb-1">Reviews Due</h3>
+                  <p className="text-green-100">
+                    {stats.reviewsDue} {stats.reviewsDue === 1 ? 'word' : 'words'} ready for review
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={startReviewSession}
+                className="bg-white text-green-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center"
+              >
+                <Clock className="h-5 w-5 mr-2" />
+                Start Review
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           <div className="bg-white p-6 rounded-xl shadow-sm">
             <div className="flex items-center">
               <Target className="h-8 w-8 text-blue-600" />
               <div className="ml-3">
                 <p className="text-sm font-medium text-gray-500">Active Pool</p>
                 <p className="text-2xl font-bold text-gray-900">{stats?.activePoolCount || 0}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded-xl shadow-sm">
-            <div className="flex items-center">
-              <AlertCircle className="h-8 w-8 text-orange-600" />
-              <div className="ml-3">
-                <p className="text-sm font-medium text-gray-500">Reviews Due</p>
-                <p className="text-2xl font-bold text-gray-900">{stats?.reviewsDue || 0}</p>
               </div>
             </div>
           </div>
