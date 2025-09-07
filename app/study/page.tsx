@@ -160,9 +160,8 @@ export default function StudySession() {
       wordId: currentWord.id,
       word: currentWord.word,
       definition: currentWord.definition,
-      tier: currentWord.tier,
       correct: correct,
-      selectedAnswer: answer,
+      userInput: answer,
       correctAnswer: currentWord.word
     };
 
@@ -216,13 +215,12 @@ export default function StudySession() {
         wordResults: [
           ...session.wordResults,
           {
+            wordId: currentWord.id,
             word: currentWord.word,
             definition: currentWord.definition,
-            correct_answer: currentWord.word,
-            user_answer: null, // No answer provided
-            is_correct: isCorrect,
-            from_state: 'started',
-            to_state: 'started' // Stays in started state
+            correct: isCorrect,
+            userInput: '', // No answer provided
+            correctAnswer: currentWord.word
           }
         ]
       };
@@ -242,9 +240,16 @@ export default function StudySession() {
         correct_answers: session.score,
         words_promoted: Object.values(session.answers).filter(Boolean).length,
         words_mastered: 0,
-        started_at: new Date(Date.now() - 300000).toISOString(), // 5 minutes ago
+        started_at: session.startTime.toISOString(),
         completed_at: new Date().toISOString(),
-        wordResults: session.wordResults
+        wordResults: session.wordResults.map(result => ({
+          word: result.word,
+          definition: result.definition,
+          correct: result.correct,
+          userInput: result.userInput,
+          correctAnswer: result.correctAnswer,
+          tier: session.words.find(w => w.word === result.word)?.tier || 'Unknown'
+        }))
       };
       
       const encodedData = encodeURIComponent(JSON.stringify(sessionData));
