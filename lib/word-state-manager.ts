@@ -308,7 +308,7 @@ export class WordStateManager {
   }
 
   /**
-   * Get active pool words (started state)
+   * Get active pool words (started state) - limited to target pool size
    */
   async getActivePoolWords(userId: string): Promise<any[]> {
     try {
@@ -331,7 +331,8 @@ export class WordStateManager {
         `)
         .eq('user_id', userId)
         .eq('state', 'started')
-        .order('last_studied', { ascending: true });
+        .order('last_studied', { ascending: true })
+        .limit(15); // Limit to target pool size
 
       if (error) {
         console.error('Error fetching active pool words:', error);
