@@ -360,6 +360,21 @@ export default function ReviewSession() {
             </div>
           </div>
 
+          {/* Word Hints */}
+          <div className="text-center mb-6">
+            <div className="inline-flex items-center space-x-4 bg-blue-50 rounded-lg px-4 py-2">
+              <div className="flex items-center space-x-2">
+                <span className="text-sm font-medium text-blue-800">Length:</span>
+                <span className="text-lg font-bold text-blue-900">{currentWord.word.length} letters</span>
+              </div>
+              <div className="w-px h-6 bg-blue-200"></div>
+              <div className="flex items-center space-x-2">
+                <span className="text-sm font-medium text-blue-800">Starts with:</span>
+                <span className="text-lg font-bold text-blue-900">{currentWord.word[0].toUpperCase()}</span>
+              </div>
+            </div>
+          </div>
+
           {/* Input Field */}
           <div className="mb-8">
             <div className="max-w-md mx-auto">
