@@ -320,20 +320,13 @@ export default function Dashboard() {
                   </p>
                 </div>
               </div>
-              <div className="flex gap-3">
+              <div className="flex gap-2">
                 <button
                   onClick={startStudySession}
                   className="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center"
                 >
                   <BookOpen className="h-5 w-5 mr-2" />
                   Start Study
-                </button>
-                <button
-                  onClick={viewCurrentWords}
-                  className="bg-blue-400 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-300 transition-colors flex items-center"
-                >
-                  <Target className="h-5 w-5 mr-2" />
-                  See All
                 </button>
               </div>
             </div>
@@ -351,18 +344,41 @@ export default function Dashboard() {
                   <p className="text-green-100 mb-2">
                     {stats.masteredWords} words mastered
                   </p>
-                  <p className="text-green-200 text-sm">
-                    Current Tier: {stats?.tierProgress?.find(t => t.mastered > 0)?.tier || 'Top 25'}
-                  </p>
                 </div>
               </div>
-              <div className="flex gap-3">
+              <div className="flex gap-2">
                 <button
                   onClick={() => router.push('/mastered-words')}
                   className="bg-white text-green-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center"
                 >
                   <CheckCircle className="h-5 w-5 mr-2" />
                   See All
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modify Active Words Card */}
+        {stats && stats.activePoolCount > 0 && (
+          <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl p-6 text-white mb-8">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <Plus className="h-8 w-8 mr-4" />
+                <div>
+                  <h3 className="text-lg font-semibold mb-1">Modify Active Words</h3>
+                  <p className="text-purple-100 mb-2">
+                    Manage your active study pool
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => router.push('/words')}
+                  className="bg-white text-purple-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center"
+                >
+                  <Plus className="h-5 w-5 mr-2" />
+                  Modify
                 </button>
               </div>
             </div>

@@ -129,19 +129,27 @@ export default function SessionSummary() {
             tier: result.tier
           };
 
+          // Categorize as correct or incorrect based on the answer
           if (result.correct) {
             wordsCorrect.push(wordData);
           } else {
             wordsIncorrect.push(wordData);
           }
+        });
 
-          // Only add to promoted words if there's actual state transition data
+        // Handle promoted words separately - these are words that had state transitions
+        // regardless of whether they were correct or incorrect in this session
+        sessionInfo.wordResults.forEach((result: any) => {
           if (result.fromState && result.toState && result.fromState !== result.toState) {
-            wordsPromoted.push({
-              word: result.word,
-              fromState: result.fromState,
-              toState: result.toState
-            });
+            // Check if this word is already in promoted list to avoid duplicates
+            const alreadyPromoted = wordsPromoted.some(promoted => promoted.word === result.word);
+            if (!alreadyPromoted) {
+              wordsPromoted.push({
+                word: result.word,
+                fromState: result.fromState,
+                toState: result.toState
+              });
+            }
           }
         });
       } else {
