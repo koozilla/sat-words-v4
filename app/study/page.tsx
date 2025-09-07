@@ -312,7 +312,7 @@ export default function StudySession() {
     };
     
     const encodedData = encodeURIComponent(JSON.stringify(sessionData));
-    router.push(`/session-summary?data=${encodedData}`);
+    router.push(`/study-summary?data=${encodedData}`);
   };
 
   const nextQuestion = (isSkipped = true) => {
@@ -513,7 +513,7 @@ export default function StudySession() {
               onClick={() => nextQuestion(true)} // true = skipped
               className="flex items-center px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
             >
-              {session.currentIndex === session.words.length - 1 ? 'Finish' : 'Skip'}
+              {session.currentIndex === session.words.length - 1 ? 'Finish' : 'Next'}
               <ArrowRight className="h-4 w-4 ml-2" />
             </button>
           </div>

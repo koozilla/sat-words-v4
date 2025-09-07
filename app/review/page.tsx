@@ -310,7 +310,7 @@ export default function ReviewSession() {
     };
     
     const encodedData = encodeURIComponent(JSON.stringify(sessionData));
-    router.push(`/session-summary?data=${encodedData}`);
+    router.push(`/review-summary?data=${encodedData}`);
   };
 
   const nextQuestion = (isSkipped = true) => {
@@ -563,7 +563,7 @@ export default function ReviewSession() {
               onClick={() => nextQuestion(true)} // true = skipped
               className="flex items-center px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
             >
-              {session.currentIndex === session.words.length - 1 ? 'Finish' : 'Skip'}
+              {session.currentIndex === session.words.length - 1 ? 'Finish' : 'Next'}
               <ArrowRight className="h-4 w-4 ml-2" />
             </button>
           </div>
