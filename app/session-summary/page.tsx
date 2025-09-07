@@ -141,15 +141,15 @@ export default function SessionSummary() {
               // Study session: started → ready for review
               wordsPromoted.push({
                 word: result.word,
-                fromState: 'started',
-                toState: 'ready'
+                fromState: result.fromState || 'started',
+                toState: result.toState || 'ready'
               });
             } else if (sessionInfo.session_type === 'review') {
-              // Review session: ready → mastered
+              // Review session: use actual state transitions
               wordsPromoted.push({
                 word: result.word,
-                fromState: 'ready',
-                toState: 'mastered'
+                fromState: result.fromState || 'ready',
+                toState: result.toState || 'mastered'
               });
             }
           }

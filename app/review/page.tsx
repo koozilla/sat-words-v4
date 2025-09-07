@@ -44,6 +44,8 @@ interface ReviewSession {
     correct: boolean;
     userInput: string;
     correctAnswer: string;
+    fromState?: string;
+    toState?: string;
   }>;
 }
 
@@ -183,6 +185,20 @@ export default function ReviewSession() {
       if (transition) {
         console.log('Word state transition:', transition);
         
+        // Update the word result with transition information
+        const updatedWordResult = {
+          ...wordResult,
+          fromState: transition.fromState,
+          toState: transition.toState,
+          tier: currentWord.tier
+        };
+        
+        // Update session with transition information
+        setSession(prevSession => ({
+          ...prevSession,
+          wordResults: [...prevSession.wordResults.slice(0, -1), updatedWordResult]
+        }));
+        
         // Show transition feedback and handle pool refilling
         if (transition.toState === 'mastered') {
           console.log(`🎉 "${currentWord.word}" is now mastered!`);
@@ -201,6 +217,20 @@ export default function ReviewSession() {
 
       if (transition) {
         console.log('Word state transition:', transition);
+        
+        // Update the word result with transition information
+        const updatedWordResult = {
+          ...wordResult,
+          fromState: transition.fromState,
+          toState: transition.toState,
+          tier: currentWord.tier
+        };
+        
+        // Update session with transition information
+        setSession(prevSession => ({
+          ...prevSession,
+          wordResults: [...prevSession.wordResults.slice(0, -1), updatedWordResult]
+        }));
         
         // Show transition feedback and handle pool refilling
         if (transition.toState === 'mastered') {
@@ -259,7 +289,9 @@ export default function ReviewSession() {
           correct: result.correct,
           userInput: result.userInput,
           correctAnswer: result.correctAnswer,
-          tier: session.words.find(w => w.word === result.word)?.tier || 'Unknown'
+          tier: result.tier || session.words.find(w => w.word === result.word)?.tier || 'Unknown',
+          fromState: result.fromState,
+          toState: result.toState
         }))
       };
       
