@@ -377,26 +377,31 @@ export default function Dashboard() {
           <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
             <div className="flex items-center mb-6">
               <Trophy className="h-6 w-6 text-yellow-600 mr-2" />
-              <h3 className="text-lg font-semibold text-gray-900">Tier Progress</h3>
+              <h3 className="text-xl font-bold text-gray-900 tracking-wide">Tier Progress</h3>
             </div>
-            <div className="space-y-4">
+            <div className="space-y-5">
               {stats.tierProgress.map((tier, index) => (
                 <div key={tier.tier} className="flex items-center justify-between">
                   <div className="flex-1">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-gray-700">{tier.tier}</span>
-                      <span className="text-sm text-gray-500">{tier.mastered}/{tier.total}</span>
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-base font-semibold text-gray-800 tracking-wide">{tier.tier}</span>
+                      <span className="text-sm font-medium text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
+                        {tier.mastered}/{tier.total}
+                      </span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="w-full bg-gray-200 rounded-full h-3 shadow-inner">
                       <div 
-                        className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full transition-all duration-300"
+                        className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-500 ease-out shadow-sm"
                         style={{ width: `${tier.percentage}%` }}
                       ></div>
                     </div>
-                    <div className="flex items-center justify-between mt-1">
-                      <span className="text-xs text-gray-400">{tier.percentage}% complete</span>
+                    <div className="flex items-center justify-between mt-2">
+                      <span className="text-sm font-medium text-gray-500 tracking-wide">{tier.percentage}% complete</span>
                       {tier.mastered === tier.total && tier.total > 0 && (
-                        <span className="text-xs text-green-600 font-medium">✓ Completed</span>
+                        <span className="text-sm font-bold text-green-600 bg-green-100 px-2 py-1 rounded-full flex items-center">
+                          <CheckCircle className="h-4 w-4 mr-1" />
+                          Completed
+                        </span>
                       )}
                     </div>
                   </div>
