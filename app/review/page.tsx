@@ -129,7 +129,10 @@ export default function ReviewSession() {
         return;
       }
 
-      const reviewWordsData: Word[] = reviewWords.map(p => ({
+      // Select only 5 words from the review words for the quiz
+      const selectedReviewWords = reviewWords.slice(0, 5);
+      
+      const reviewWordsData: Word[] = selectedReviewWords.map(p => ({
         id: p.words.id,
         word: p.words.word,
         definition: p.words.definition,

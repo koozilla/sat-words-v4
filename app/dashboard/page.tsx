@@ -105,10 +105,15 @@ export default function Dashboard() {
     try {
       // Check if user needs initialization (no active pool words)
       const activePoolCount = await wordStateManager.getActivePoolCount(userId);
+      console.log(`Current active pool count: ${activePoolCount}`);
       
       if (activePoolCount === 0) {
         console.log('Initializing new user with active pool...');
         await wordStateManager.initializeNewUser(userId);
+      } else if (activePoolCount < 15) {
+        console.log(`Refilling active pool: ${activePoolCount}/15 words`);
+        const refillResult = await wordStateManager.refillActivePool(userId);
+        console.log(`Refill result: ${refillResult}`);
       }
 
       // Load user progress

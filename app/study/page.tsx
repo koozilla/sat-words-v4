@@ -141,7 +141,10 @@ export default function StudySession() {
         return;
       }
 
-      const studyWords: Word[] = activePoolWords.map(p => ({
+      // Select only 5 words from the active pool for the quiz
+      const selectedWords = activePoolWords.slice(0, 5);
+      
+      const studyWords: Word[] = selectedWords.map(p => ({
         id: p.words.id,
         word: p.words.word,
         definition: p.words.definition,

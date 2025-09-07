@@ -332,7 +332,7 @@ export class WordStateManager {
         .eq('user_id', userId)
         .eq('state', 'started')
         .order('last_studied', { ascending: true })
-        .limit(10); // Limit to target pool size
+        .limit(15); // Limit to target pool size
 
       if (error) {
         console.error('Error fetching active pool words:', error);
@@ -513,7 +513,7 @@ export class WordStateManager {
   /**
    * Get available words for active pool (not started words in current tier)
    */
-  async getAvailableWordsForPool(userId: string, limit: number = 10): Promise<any[]> {
+  async getAvailableWordsForPool(userId: string, limit: number = 15): Promise<any[]> {
     try {
       const currentTier = await this.getCurrentTier(userId);
       
@@ -581,19 +581,21 @@ export class WordStateManager {
   }
 
   /**
-   * Refill active pool to maintain 10 words
+   * Refill active pool to maintain 15 words
    */
   async refillActivePool(userId: string): Promise<boolean> {
     try {
       const currentCount = await this.getActivePoolCount(userId);
-      const targetCount = 10;
+      const targetCount = 15;
       
       if (currentCount >= targetCount) {
         return true; // Pool is already full
       }
 
       const neededCount = targetCount - currentCount;
+      console.log(`Need to add ${neededCount} words to reach target of ${targetCount}`);
       const availableWords = await this.getAvailableWordsForPool(userId, neededCount);
+      console.log(`Found ${availableWords.length} available words`);
 
       if (availableWords.length === 0) {
         console.log('No available words to refill pool');
@@ -628,7 +630,7 @@ export class WordStateManager {
   }
 
   /**
-   * Initialize new user with 10 words from Top 25 tier
+   * Initialize new user with 15 words from Top 25 tier
    */
   async initializeNewUser(userId: string): Promise<boolean> {
     try {

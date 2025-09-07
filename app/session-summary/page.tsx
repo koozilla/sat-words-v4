@@ -152,8 +152,6 @@ export default function SessionSummary() {
             const fromIndex = stateHierarchy.indexOf(result.fromState);
             const toIndex = stateHierarchy.indexOf(result.toState);
             
-            console.log(`Word: ${result.word}, ${result.fromState} → ${result.toState}, fromIndex: ${fromIndex}, toIndex: ${toIndex}`);
-            
             if (toIndex > fromIndex) {
               // Promotion: moved to a better state
               const alreadyPromoted = wordsPromoted.some(promoted => promoted.word === result.word);
@@ -163,7 +161,6 @@ export default function SessionSummary() {
                   fromState: result.fromState,
                   toState: result.toState
                 });
-                console.log(`Added to promoted: ${result.word}`);
               }
             } else if (toIndex < fromIndex) {
               // Demotion: moved to a worse state
@@ -174,7 +171,6 @@ export default function SessionSummary() {
                   fromState: result.fromState,
                   toState: result.toState
                 });
-                console.log(`Added to demoted: ${result.word}`);
               }
             }
           }
