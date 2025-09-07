@@ -539,7 +539,8 @@ export class WordStateManager {
   }
 
   /**
-   * Get available words for active pool (not started words in current tier)
+   * Get available words for active pool with progressive tier unlocking
+   * Users can access next tier when 3 or fewer words remain in current tier
    */
   async getAvailableWordsForPool(userId: string, limit: number = 15): Promise<any[]> {
     try {
@@ -571,8 +572,8 @@ export class WordStateManager {
       
       const dbTiers = tierMappings[currentTier] || ['top_25'];
       
-      // First, get all words in the current tier
-      const { data: allWords, error: wordsError } = await this.supabase
+      // Get all words in the current tier
+      const { data: currentTierWords, error: wordsError } = await this.supabase
         .from('words')
         .select(`
           id,
@@ -590,6 +591,70 @@ export class WordStateManager {
 
       if (wordsError) {
         console.error('Error fetching words:', wordsError);
+        return [];
+      }
+
+      if (!currentTierWords || currentTierWords.length === 0) {
+        return [];
+      }
+
+      // Get mastered words count in current tier
+      const { data: masteredWords, error: masteredError } = await this.supabase
+        .from('user_progress')
+        .select('word_id')
+        .eq('user_id', userId)
+        .eq('state', 'mastered')
+        .in('word_id', currentTierWords.map((w: any) => w.id));
+
+      if (masteredError) {
+        console.error('Error fetching mastered words:', masteredError);
+        return [];
+      }
+
+      const masteredCount = masteredWords?.length || 0;
+      const remainingInCurrentTier = currentTierWords.length - masteredCount;
+      
+      // Determine which tiers to include based on progressive unlocking
+      let tiersToSearch = [...dbTiers];
+      
+      // If 3 or fewer words remain in current tier, include next tier
+      if (remainingInCurrentTier <= 3 && currentTier !== 'Top 500') {
+        const tierOrder = [
+          'Top 25', 'Top 50', 'Top 75', 'Top 100', 'Top 125', 'Top 150', 'Top 175', 'Top 200',
+          'Top 225', 'Top 250', 'Top 275', 'Top 300', 'Top 325', 'Top 350', 'Top 375', 'Top 400',
+          'Top 425', 'Top 450', 'Top 475', 'Top 500'
+        ];
+        
+        const currentIndex = tierOrder.indexOf(currentTier);
+        if (currentIndex !== -1 && currentIndex < tierOrder.length - 1) {
+          const nextTier = tierOrder[currentIndex + 1];
+          const nextTierDb = tierMappings[nextTier];
+          if (nextTierDb) {
+            tiersToSearch.push(...nextTierDb);
+            console.log(`Progressive unlock: ${remainingInCurrentTier} words remaining in ${currentTier}, unlocking ${nextTier}`);
+          }
+        }
+      }
+
+      // Get all words from available tiers
+      const { data: allWords, error: allWordsError } = await this.supabase
+        .from('words')
+        .select(`
+          id,
+          word,
+          definition,
+          part_of_speech,
+          tier,
+          difficulty,
+          image_urls,
+          synonyms,
+          antonyms,
+          example_sentence
+        `)
+        .in('tier', tiersToSearch);
+
+      if (allWordsError) {
+        console.error('Error fetching all words:', allWordsError);
         return [];
       }
 
@@ -614,8 +679,15 @@ export class WordStateManager {
       // Filter out words that are already in progress
       const availableWords = allWords.filter((word: any) => !progressWordIds.includes(word.id));
       
+      // Prioritize current tier words over next tier words
+      const currentTierAvailable = availableWords.filter((word: any) => dbTiers.includes(word.tier));
+      const nextTierAvailable = availableWords.filter((word: any) => !dbTiers.includes(word.tier));
+      
+      // Combine with current tier words first, then next tier words
+      const prioritizedWords = [...currentTierAvailable, ...nextTierAvailable];
+      
       // Return limited results
-      return availableWords.slice(0, limit);
+      return prioritizedWords.slice(0, limit);
     } catch (error) {
       console.error('Error getting available words for pool:', error);
       return [];
@@ -623,8 +695,87 @@ export class WordStateManager {
   }
 
   /**
-   * Refill active pool to maintain 15 words
+   * Check if next tier is unlocked (3 or fewer words remaining in current tier)
    */
+  async isNextTierUnlocked(userId: string): Promise<{ unlocked: boolean; remainingWords: number; nextTier?: string }> {
+    try {
+      const currentTier = await this.getCurrentTier(userId);
+      
+      if (currentTier === 'Top 500') {
+        return { unlocked: false, remainingWords: 0 };
+      }
+      
+      // Map display tier to database tier formats
+      const tierMappings: { [key: string]: string[] } = {
+        'Top 25': ['top_25'],
+        'Top 50': ['top_50'],
+        'Top 75': ['top_75'],
+        'Top 100': ['top_100'],
+        'Top 125': ['top_125'],
+        'Top 150': ['top_150'],
+        'Top 175': ['top_175'],
+        'Top 200': ['top_200'],
+        'Top 225': ['top_225'],
+        'Top 250': ['top_250'],
+        'Top 275': ['top_275'],
+        'Top 300': ['top_300'],
+        'Top 325': ['top_325'],
+        'Top 350': ['top_350'],
+        'Top 375': ['top_375'],
+        'Top 400': ['top_400'],
+        'Top 425': ['top_425'],
+        'Top 450': ['top_450'],
+        'Top 475': ['top_475'],
+        'Top 500': ['top_500']
+      };
+      
+      const dbTiers = tierMappings[currentTier] || ['top_25'];
+      
+      // Get all words in the current tier
+      const { data: currentTierWords, error: wordsError } = await this.supabase
+        .from('words')
+        .select('id')
+        .in('tier', dbTiers);
+
+      if (wordsError || !currentTierWords) {
+        return { unlocked: false, remainingWords: 0 };
+      }
+
+      // Get mastered words count in current tier
+      const { data: masteredWords, error: masteredError } = await this.supabase
+        .from('user_progress')
+        .select('word_id')
+        .eq('user_id', userId)
+        .eq('state', 'mastered')
+        .in('word_id', currentTierWords.map((w: any) => w.id));
+
+      if (masteredError) {
+        return { unlocked: false, remainingWords: 0 };
+      }
+
+      const masteredCount = masteredWords?.length || 0;
+      const remainingWords = currentTierWords.length - masteredCount;
+      
+      // Determine next tier
+      const tierOrder = [
+        'Top 25', 'Top 50', 'Top 75', 'Top 100', 'Top 125', 'Top 150', 'Top 175', 'Top 200',
+        'Top 225', 'Top 250', 'Top 275', 'Top 300', 'Top 325', 'Top 350', 'Top 375', 'Top 400',
+        'Top 425', 'Top 450', 'Top 475', 'Top 500'
+      ];
+      
+      const currentIndex = tierOrder.indexOf(currentTier);
+      const nextTier = currentIndex !== -1 && currentIndex < tierOrder.length - 1 ? tierOrder[currentIndex + 1] : undefined;
+      
+      return {
+        unlocked: remainingWords <= 3,
+        remainingWords,
+        nextTier
+      };
+    } catch (error) {
+      console.error('Error checking next tier unlock status:', error);
+      return { unlocked: false, remainingWords: 0 };
+    }
+  }
   async refillActivePool(userId: string): Promise<boolean> {
     try {
       const currentCount = await this.getActivePoolCount(userId);
