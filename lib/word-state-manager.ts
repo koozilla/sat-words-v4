@@ -158,10 +158,20 @@ export class WordStateManager {
         // Reset streak and decrease interval on incorrect answer
         newStreak = 0;
         newInterval = Math.max(1, Math.floor(currentInterval / 2));
+        
+        // If review fails, go back to ready state
+        if (currentState === 'ready') {
+          newState = 'ready'; // Stay in ready state
+        } else if (currentState === 'mastered') {
+          newState = 'ready'; // Go back to ready state from mastered
+        } else {
+          newState = currentState; // Stay in same state for other states
+        }
+        
         transition = {
           wordId,
           fromState: currentState,
-          toState: currentState, // Stay in same state
+          toState: newState,
           streak: newStreak,
           isCorrect: false
         };
