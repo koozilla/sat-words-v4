@@ -374,14 +374,28 @@ export class WordStateManager {
    */
   async initializeUserProgress(userId: string, tier: string): Promise<boolean> {
     try {
-      // Map display tier to database tier formats
+      // Map display tier to database tier formats - Updated for 20-tier system
       const tierMappings: { [key: string]: string[] } = {
-        'Top 25': ['Top 25', 'Top25'],
-        'Top 100': ['Top 100', 'Top100'],
-        'Top 200': ['Top 200', 'Top200'],
-        'Top 300': ['Top 300', 'Top300'],
-        'Top 400': ['Top 400', 'Top400'],
-        'Top 500': ['Top 500', 'Top500']
+        'Top 25': ['top_25'],
+        'Top 50': ['top_50'],
+        'Top 75': ['top_75'],
+        'Top 100': ['top_100'],
+        'Top 125': ['top_125'],
+        'Top 150': ['top_150'],
+        'Top 175': ['top_175'],
+        'Top 200': ['top_200'],
+        'Top 225': ['top_225'],
+        'Top 250': ['top_250'],
+        'Top 275': ['top_275'],
+        'Top 300': ['top_300'],
+        'Top 325': ['top_325'],
+        'Top 350': ['top_350'],
+        'Top 375': ['top_375'],
+        'Top 400': ['top_400'],
+        'Top 425': ['top_425'],
+        'Top 450': ['top_450'],
+        'Top 475': ['top_475'],
+        'Top 500': ['top_500']
       };
       
       const dbTiers = tierMappings[tier] || [tier];
@@ -468,13 +482,27 @@ export class WordStateManager {
    */
   async getCurrentTier(userId: string): Promise<string> {
     try {
-      // Database now uses consistent 'top_100' format
+      // Database now uses consistent 'top_XXX' format with 20 tiers
       const tierMappings = [
         { display: 'Top 25', db: ['top_25'] },
+        { display: 'Top 50', db: ['top_50'] },
+        { display: 'Top 75', db: ['top_75'] },
         { display: 'Top 100', db: ['top_100'] },
+        { display: 'Top 125', db: ['top_125'] },
+        { display: 'Top 150', db: ['top_150'] },
+        { display: 'Top 175', db: ['top_175'] },
         { display: 'Top 200', db: ['top_200'] },
+        { display: 'Top 225', db: ['top_225'] },
+        { display: 'Top 250', db: ['top_250'] },
+        { display: 'Top 275', db: ['top_275'] },
         { display: 'Top 300', db: ['top_300'] },
+        { display: 'Top 325', db: ['top_325'] },
+        { display: 'Top 350', db: ['top_350'] },
+        { display: 'Top 375', db: ['top_375'] },
         { display: 'Top 400', db: ['top_400'] },
+        { display: 'Top 425', db: ['top_425'] },
+        { display: 'Top 450', db: ['top_450'] },
+        { display: 'Top 475', db: ['top_475'] },
         { display: 'Top 500', db: ['top_500'] }
       ];
       
@@ -503,7 +531,7 @@ export class WordStateManager {
         }
       }
 
-      return 'Top 500'; // All tiers completed
+      return 'Top 500'; // All 20 tiers completed
     } catch (error) {
       console.error('Error getting current tier:', error);
       return 'Top 25';
@@ -517,17 +545,31 @@ export class WordStateManager {
     try {
       const currentTier = await this.getCurrentTier(userId);
       
-      // Map display tier to database tier formats
+      // Map display tier to database tier formats - Updated for 20-tier system
       const tierMappings: { [key: string]: string[] } = {
-        'Top 25': ['Top 25', 'Top25'],
-        'Top 100': ['Top 100', 'Top100'],
-        'Top 200': ['Top 200', 'Top200'],
-        'Top 300': ['Top 300', 'Top300'],
-        'Top 400': ['Top 400', 'Top400'],
-        'Top 500': ['Top 500', 'Top500']
+        'Top 25': ['top_25'],
+        'Top 50': ['top_50'],
+        'Top 75': ['top_75'],
+        'Top 100': ['top_100'],
+        'Top 125': ['top_125'],
+        'Top 150': ['top_150'],
+        'Top 175': ['top_175'],
+        'Top 200': ['top_200'],
+        'Top 225': ['top_225'],
+        'Top 250': ['top_250'],
+        'Top 275': ['top_275'],
+        'Top 300': ['top_300'],
+        'Top 325': ['top_325'],
+        'Top 350': ['top_350'],
+        'Top 375': ['top_375'],
+        'Top 400': ['top_400'],
+        'Top 425': ['top_425'],
+        'Top 450': ['top_450'],
+        'Top 475': ['top_475'],
+        'Top 500': ['top_500']
       };
       
-      const dbTiers = tierMappings[currentTier] || ['Top25'];
+      const dbTiers = tierMappings[currentTier] || ['top_25'];
       
       // First, get all words in the current tier
       const { data: allWords, error: wordsError } = await this.supabase
@@ -630,7 +672,7 @@ export class WordStateManager {
   }
 
   /**
-   * Initialize new user with 15 words from Top 25 tier
+   * Initialize new user with 15 words from Top 25 tier (first tier in 20-tier system)
    */
   async initializeNewUser(userId: string): Promise<boolean> {
     try {

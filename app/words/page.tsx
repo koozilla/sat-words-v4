@@ -63,7 +63,7 @@ export default function WordsPage() {
   const router = useRouter();
   const supabase = createClientComponentClient();
 
-  const tiers = ['All', 'Top 25', 'Top 100', 'Top 200', 'Top 300', 'Top 400', 'Top 500'];
+  const tiers = ['All', 'Top 25', 'Top 50', 'Top 75', 'Top 100', 'Top 125', 'Top 150', 'Top 175', 'Top 200', 'Top 225', 'Top 250', 'Top 275', 'Top 300', 'Top 325', 'Top 350', 'Top 375', 'Top 400', 'Top 425', 'Top 450', 'Top 475', 'Top 500'];
   const difficulties = ['All', 'Easy', 'Medium', 'Hard'];
 
   useEffect(() => {

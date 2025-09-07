@@ -165,13 +165,27 @@ export default function Dashboard() {
       // Get current tier and calculate progress for only that tier
       const currentTierDisplay = await wordStateManager.getCurrentTier(userId);
       
-      // Map display name to database format
+      // Map display name to database format - Updated for 20-tier system
       const tierMappings = [
         { display: 'Top 25', db: ['top_25'] },
+        { display: 'Top 50', db: ['top_50'] },
+        { display: 'Top 75', db: ['top_75'] },
         { display: 'Top 100', db: ['top_100'] },
+        { display: 'Top 125', db: ['top_125'] },
+        { display: 'Top 150', db: ['top_150'] },
+        { display: 'Top 175', db: ['top_175'] },
         { display: 'Top 200', db: ['top_200'] },
+        { display: 'Top 225', db: ['top_225'] },
+        { display: 'Top 250', db: ['top_250'] },
+        { display: 'Top 275', db: ['top_275'] },
         { display: 'Top 300', db: ['top_300'] },
+        { display: 'Top 325', db: ['top_325'] },
+        { display: 'Top 350', db: ['top_350'] },
+        { display: 'Top 375', db: ['top_375'] },
         { display: 'Top 400', db: ['top_400'] },
+        { display: 'Top 425', db: ['top_425'] },
+        { display: 'Top 450', db: ['top_450'] },
+        { display: 'Top 475', db: ['top_475'] },
         { display: 'Top 500', db: ['top_500'] }
       ];
       

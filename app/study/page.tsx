@@ -107,7 +107,7 @@ export default function StudySession() {
         const { data: testWords, error: testError } = await supabase
           .from('words')
           .select('*')
-          .eq('tier', 'Top 25')
+          .eq('tier', 'top_25')
           .limit(5);
 
         if (testError || !testWords || testWords.length === 0) {
