@@ -310,7 +310,7 @@ export default function WordsPage() {
                 Add words from your current tier to your active study pool. You can have up to 15 words in your active pool.
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {availableWords.slice(0, 6).map((word) => (
+                {availableWords?.slice(0, 6).map((word) => (
                   <div key={word.id} className="bg-white rounded-lg p-4 shadow-sm">
                     <div className="flex justify-between items-start mb-2">
                       <h3 className="font-semibold text-gray-900">{word.word}</h3>
@@ -328,7 +328,7 @@ export default function WordsPage() {
                   </div>
                 ))}
               </div>
-              {availableWords.length > 6 && (
+              {availableWords && availableWords.length > 6 && (
                 <p className="text-blue-600 text-sm mt-4">
                   And {availableWords.length - 6} more words available...
                 </p>
@@ -378,7 +378,7 @@ export default function WordsPage() {
 
         {/* Words Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredWords.map((word) => {
+          {filteredWords?.map((word) => {
             const isReady = word.state === 'ready';
             const isDueForReview = isReady && word.next_review_date && 
               new Date(word.next_review_date) <= new Date();
@@ -491,17 +491,17 @@ export default function WordsPage() {
         </div>
 
         {/* Empty State */}
-        {filteredWords.length === 0 && (
+        {filteredWords && filteredWords.length === 0 && (
           <div className="text-center py-12">
             <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No current words found</h3>
             <p className="text-gray-600 mb-4">
-              {currentWords.length === 0 
+              {currentWords && currentWords.length === 0 
                 ? "You don't have any words in your study pool yet. Start studying to add words here."
                 : "No words match your current search or filter criteria."
               }
             </p>
-            {currentWords.length === 0 && (
+            {currentWords && currentWords.length === 0 && (
               <button
                 onClick={() => router.push('/study')}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
