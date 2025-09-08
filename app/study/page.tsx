@@ -199,25 +199,7 @@ export default function StudySession() {
       setShowCelebration(true);
     } else {
       setStreak(0);
-      // Auto-advance after wrong answer with a delay
-      setTimeout(() => {
-        if (session && session.currentIndex < session.words.length - 1 && 
-            session.words[session.currentIndex]?.id === currentWord.id) {
-          // Just advance to next question without resetting display states
-          setSession({
-            ...session,
-            currentIndex: session.currentIndex + 1
-          });
-          // Reset display states for the new question
-          setShowAnswer(false);
-          setSelectedAnswer(null);
-          setIsCorrect(null);
-          setCurrentAnswers([]);
-        } else if (session && session.currentIndex === session.words.length - 1 &&
-                   session.words[session.currentIndex]?.id === currentWord.id) {
-          finishSession();
-        }
-      }, 2000);
+      // Don't auto-advance wrong answers - let user see the result and manually advance
     }
 
     // Create detailed word result
@@ -280,6 +262,16 @@ export default function StudySession() {
       }
 
       const newScore = session.score + scoreAdjustment;
+      
+      console.log('Study session - Answer submitted:', {
+        word: currentWord.word,
+        correct: correct,
+        selectedAnswer: answer,
+        scoreAdjustment: scoreAdjustment,
+        newScore: newScore,
+        wordResultsLength: updatedWordResults.length,
+        finalWordResult: finalWordResult
+      });
       
       setSession({
         ...session,
@@ -395,7 +387,19 @@ export default function StudySession() {
       }))
     };
     
-    console.log('Session data being passed to summary:', sessionData);
+    console.log('Study session - Session data being passed to summary:', sessionData);
+    console.log('Study session - Word results breakdown:', {
+      totalResults: sessionData.wordResults.length,
+      correctResults: sessionData.wordResults.filter(r => r.correct).length,
+      incorrectResults: sessionData.wordResults.filter(r => !r.correct && r.userInput !== 'SKIPPED').length,
+      skippedResults: sessionData.wordResults.filter(r => r.userInput === 'SKIPPED').length,
+      allResults: sessionData.wordResults.map(r => ({
+        word: r.word,
+        correct: r.correct,
+        userInput: r.userInput,
+        selectedAnswer: r.userInput
+      }))
+    });
     const encodedData = encodeURIComponent(JSON.stringify(sessionData));
     router.push(`/study-summary?data=${encodedData}`);
   };
@@ -617,14 +621,28 @@ export default function StudySession() {
               Previous
             </button>
 
-            <button
-              onClick={() => nextQuestion(true)} // true = skipped (counts as wrong in challenge mode)
-              className="flex items-center px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50"
-              title="Skip this question (counts as wrong answer and resets progress)"
-            >
-              {session.currentIndex === session.words.length - 1 ? 'Finish' : 'Skip'}
-              <ArrowRight className="h-4 w-4 ml-2" />
-            </button>
+            <div className="flex gap-2">
+              {!showAnswer && (
+                <button
+                  onClick={() => nextQuestion(true)} // true = skipped (counts as wrong in challenge mode)
+                  className="flex items-center px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50"
+                  title="Skip this question (counts as wrong answer and resets progress)"
+                >
+                  Skip
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </button>
+              )}
+              
+              {showAnswer && (
+                <button
+                  onClick={() => nextQuestion(false)} // false = not skipped, answer was submitted
+                  className="flex items-center px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {session.currentIndex === session.words.length - 1 ? 'Finish' : 'Next'}
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </button>
+              )}
+            </div>
           </div>
         </div>
 

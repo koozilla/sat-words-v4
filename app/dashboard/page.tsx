@@ -304,20 +304,20 @@ export default function Dashboard() {
 
         {/* Smart Review Card */}
         {stats && stats.reviewsDue > 0 && (
-          <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl p-6 text-white mb-4">
+          <div className="bg-gradient-to-r from-orange-500 to-red-600 rounded-xl p-6 text-white mb-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <Clock className="h-8 w-8 mr-4" />
                 <div>
                   <h3 className="text-lg font-semibold mb-1">Challenges Due</h3>
-                  <p className="text-green-100">
+                  <p className="text-orange-100">
                     {stats.reviewsDue} {stats.reviewsDue === 1 ? 'word' : 'words'} ready for challenge
                   </p>
                 </div>
               </div>
               <button
                 onClick={startReviewSession}
-                className="bg-white text-green-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center"
+                className="bg-white text-orange-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center"
               >
                 <Clock className="h-5 w-5 mr-2" />
                 Start Test

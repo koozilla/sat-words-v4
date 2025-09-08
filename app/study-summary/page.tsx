@@ -91,17 +91,25 @@ export default function StudySummary() {
     const wordsPromoted: Array<{ word: string; fromState: string; toState: string }> = [];
 
     if (sessionInfo.wordResults && sessionInfo.wordResults.length > 0) {
-      console.log('Processing word results:', sessionInfo.wordResults.length, 'entries');
-      console.log('Raw sessionInfo.wordResults:', sessionInfo.wordResults);
+      console.log('Study summary - Processing word results:', sessionInfo.wordResults.length, 'entries');
+      console.log('Study summary - Raw sessionInfo.wordResults:', sessionInfo.wordResults);
       
       // Data should already be clean from the session, but we'll process it directly
       // First pass: categorize correct vs incorrect vs skipped answers
-      sessionInfo.wordResults.forEach((result: any) => {
+      sessionInfo.wordResults.forEach((result: any, index: number) => {
         const wordData = {
           word: result.word,
           definition: result.definition,
           tier: result.tier
         };
+
+        console.log(`Study summary - Processing result ${index + 1}:`, {
+          word: result.word,
+          correct: result.correct,
+          userInput: result.userInput,
+          selectedAnswer: result.selectedAnswer,
+          willGoTo: result.correct ? 'correct' : (result.userInput === "SKIPPED" ? 'skipped' : 'incorrect')
+        });
 
         if (result.correct) {
           wordsCorrect.push(wordData);
@@ -148,11 +156,23 @@ export default function StudySummary() {
 
     // Calculate actual score from word results (don't trust sessionInfo.score due to potential double-counting)
     const actualCorrectCount = wordsCorrect.length;
-    const actualTotalQuestions = wordsCorrect.length + wordsIncorrect.length;
+    const actualTotalQuestions = wordsCorrect.length + wordsIncorrect.length + wordsSkipped.length;
     const accuracy = actualTotalQuestions > 0 ? (actualCorrectCount / actualTotalQuestions) * 100 : 0;
     
     const timeSpent = sessionInfo.completed_at && sessionInfo.started_at ? 
       Math.round((new Date(sessionInfo.completed_at).getTime() - new Date(sessionInfo.started_at).getTime()) / 1000) : 0;
+
+    console.log('Study summary - Final counts:', {
+      wordsCorrect: wordsCorrect.length,
+      wordsIncorrect: wordsIncorrect.length,
+      wordsSkipped: wordsSkipped.length,
+      actualCorrectCount,
+      actualTotalQuestions,
+      accuracy: Math.round(accuracy),
+      wordsCorrectList: wordsCorrect.map(w => w.word),
+      wordsIncorrectList: wordsIncorrect.map(w => w.word),
+      wordsSkippedList: wordsSkipped.map(w => w.word)
+    });
 
     return {
       score: actualCorrectCount,
