@@ -215,13 +215,13 @@ export default function CelebrationAnimation({
         </div>
       )}
 
-      {/* Wrong Answer Animation */}
+      {/* Wrong Answer Animation - Just the X image, no message */}
       {type === 'wrong' && (
         <div className="relative w-full h-full">
-          {/* Background pulse effect - red instead of green */}
-          <div className="absolute inset-0 bg-red-400 opacity-20 animate-pulse-scale" />
+          {/* Background pulse effect - soft orange */}
+          <div className="absolute inset-0 bg-orange-300 opacity-15 animate-pulse-scale" />
           
-          {/* Main X circle with bounce */}
+          {/* Main X icon with bounce */}
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
             <div className="relative">
               {/* Main X circle with scale animation */}
@@ -230,37 +230,7 @@ export default function CelebrationAnimation({
                   <div className="text-6xl font-bold">✗</div>
                 </div>
               </div>
-              
-              {/* Shake effects around the main icon */}
-              {animationPhase >= 1 && (
-                <>
-                  {/* Top shake effects */}
-                  <div className="absolute -top-4 -right-4 animate-shake-1">
-                    <div className="h-8 w-8 text-red-400 text-2xl">!</div>
-                  </div>
-                  <div className="absolute -top-2 -left-6 animate-shake-2">
-                    <div className="h-6 w-6 text-red-400 text-xl">?</div>
-                  </div>
-                  
-                  {/* Bottom shake effects */}
-                  <div className="absolute -bottom-4 -left-4 animate-shake-3">
-                    <div className="h-7 w-7 text-red-400 text-xl">!</div>
-                  </div>
-                  <div className="absolute -bottom-2 -right-6 animate-shake-4">
-                    <div className="h-5 w-5 text-red-400 text-lg">?</div>
-                  </div>
-                </>
-              )}
             </div>
-            
-            {/* Wrong message with slide-in effect */}
-            {animationPhase >= 2 && message && (
-              <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2 animate-slide-up">
-                <div className="bg-gradient-to-r from-red-500 to-orange-500 text-white rounded-full px-6 py-3 shadow-xl">
-                  <span className="text-xl font-bold tracking-wide">{message}</span>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       )}

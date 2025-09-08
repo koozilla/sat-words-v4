@@ -222,150 +222,69 @@ export default function StudySummary() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+      <div className="container mx-auto px-4 py-4 sm:py-8">
+        {/* Header - Mobile Optimized */}
+        <div className="flex items-center justify-between mb-6 sm:mb-8">
           <button
             onClick={() => router.push('/dashboard')}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors"
+            className="flex items-center gap-1 sm:gap-2 text-gray-600 hover:text-gray-800 transition-colors text-sm sm:text-base"
           >
-            <ArrowLeft className="h-5 w-5" />
-            Back to Dashboard
+            <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
+            <span className="hidden sm:inline">Back to Dashboard</span>
+            <span className="sm:hidden">Back</span>
           </button>
-          <h1 className="text-3xl font-bold text-gray-900">Study Session Complete!</h1>
-          <div className="w-24"></div> {/* Spacer for centering */}
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 text-center">Study Complete!</h1>
+          <div className="w-16 sm:w-24"></div> {/* Spacer for centering */}
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-xl p-6 shadow-lg">
-            <div className="flex items-center gap-3 mb-2">
-              <Trophy className="h-8 w-8 text-yellow-500" />
-              <h3 className="text-lg font-semibold text-gray-900">Score</h3>
-            </div>
-            <p className="text-3xl font-bold text-gray-900">{summaryData.score}/{summaryData.totalQuestions}</p>
+        {/* Main Stats Card - Mobile Optimized */}
+        <div className="bg-white rounded-xl p-4 sm:p-6 shadow-lg mb-6 sm:mb-8">
+          <div className="text-center mb-4 sm:mb-6">
+            <Trophy className="h-12 w-12 sm:h-16 sm:w-16 text-yellow-500 mx-auto mb-2 sm:mb-3" />
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">Great Job!</h2>
+            <p className="text-sm sm:text-base text-gray-600">You completed your study session</p>
           </div>
-
-          <div className="bg-white rounded-xl p-6 shadow-lg">
-            <div className="flex items-center gap-3 mb-2">
-              <Target className="h-8 w-8 text-green-500" />
-              <h3 className="text-lg font-semibold text-gray-900">Accuracy</h3>
+          
+          {/* Stats Grid - Mobile Optimized */}
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
+            <div className="text-center p-3 sm:p-4 bg-green-50 rounded-lg">
+              <Target className="h-6 w-6 sm:h-8 sm:w-8 text-green-500 mx-auto mb-1 sm:mb-2" />
+              <p className="text-lg sm:text-2xl font-bold text-gray-900">{summaryData.score}/{summaryData.totalQuestions}</p>
+              <p className="text-xs sm:text-sm text-gray-600">Score</p>
             </div>
-            <p className="text-3xl font-bold text-gray-900">{summaryData.accuracy}%</p>
-          </div>
-
-          <div className="bg-white rounded-xl p-6 shadow-lg">
-            <div className="flex items-center gap-3 mb-2">
-              <Clock className="h-8 w-8 text-blue-500" />
-              <h3 className="text-lg font-semibold text-gray-900">Time</h3>
+            
+            <div className="text-center p-3 sm:p-4 bg-blue-50 rounded-lg">
+              <TrendingUp className="h-6 w-6 sm:h-8 sm:w-8 text-blue-500 mx-auto mb-1 sm:mb-2" />
+              <p className="text-lg sm:text-2xl font-bold text-gray-900">{summaryData.accuracy}%</p>
+              <p className="text-xs sm:text-sm text-gray-600">Accuracy</p>
             </div>
-            <p className="text-3xl font-bold text-gray-900">{formatTime(summaryData.timeSpent)}</p>
-          </div>
-
-          <div className="bg-white rounded-xl p-6 shadow-lg">
-            <div className="flex items-center gap-3 mb-2">
-              <TrendingUp className="h-8 w-8 text-purple-500" />
-              <h3 className="text-lg font-semibold text-gray-900">Promoted</h3>
+            
+            <div className="text-center p-3 sm:p-4 bg-purple-50 rounded-lg">
+              <Clock className="h-6 w-6 sm:h-8 sm:w-8 text-purple-500 mx-auto mb-1 sm:mb-2" />
+              <p className="text-lg sm:text-2xl font-bold text-gray-900">{formatTime(summaryData.timeSpent)}</p>
+              <p className="text-xs sm:text-sm text-gray-600">Time</p>
             </div>
-            <p className="text-3xl font-bold text-gray-900">{summaryData.wordsPromoted.length}</p>
+            
+            <div className="text-center p-3 sm:p-4 bg-yellow-50 rounded-lg">
+              <Star className="h-6 w-6 sm:h-8 sm:w-8 text-yellow-500 mx-auto mb-1 sm:mb-2" />
+              <p className="text-lg sm:text-2xl font-bold text-gray-900">{summaryData.wordsPromoted.length}</p>
+              <p className="text-xs sm:text-sm text-gray-600">Promoted</p>
+            </div>
           </div>
         </div>
 
-        {/* Words You Got Right */}
-        {summaryData.wordsCorrect.length > 0 && (
-          <div className="bg-white rounded-xl p-6 shadow-lg mb-6">
-            <div className="flex items-center gap-3 mb-4">
-              <CheckCircle className="h-6 w-6 text-green-500" />
-              <h2 className="text-xl font-semibold text-gray-900">Words You Got Right</h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {summaryData.wordsCorrect.map((word, index) => (
-                <div key={index} className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <h3 className="font-semibold text-green-800 mb-1">{word.word}</h3>
-                  <p className="text-green-700 text-sm">{word.definition}</p>
-                  <span className="inline-block mt-2 px-2 py-1 bg-green-100 text-green-600 text-xs rounded-full">
-                    {word.tier}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Words You Got Wrong */}
-        {summaryData.wordsIncorrect.length > 0 && (
-          <div className="bg-white rounded-xl p-6 shadow-lg mb-6">
-            <div className="flex items-center gap-3 mb-4">
-              <XCircle className="h-6 w-6 text-red-500" />
-              <h2 className="text-xl font-semibold text-gray-900">Words You Got Wrong</h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {summaryData.wordsIncorrect.map((word, index) => (
-                <div key={index} className="bg-red-50 border border-red-200 rounded-lg p-4">
-                  <h3 className="font-semibold text-red-800 mb-1">{word.word}</h3>
-                  <p className="text-red-700 text-sm">{word.definition}</p>
-                  <span className="inline-block mt-2 px-2 py-1 bg-red-100 text-red-600 text-xs rounded-full">
-                    {word.tier}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Words You Skipped */}
-        {summaryData.wordsSkipped.length > 0 && (
-          <div className="bg-white rounded-xl p-6 shadow-lg mb-6">
-            <div className="flex items-center gap-3 mb-4">
-              <ArrowRight className="h-6 w-6 text-orange-500" />
-              <h2 className="text-xl font-semibold text-gray-900">Words You Skipped</h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {summaryData.wordsSkipped.map((word, index) => (
-                <div key={index} className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                  <h3 className="font-semibold text-orange-800 mb-1">{word.word}</h3>
-                  <p className="text-orange-700 text-sm">{word.definition}</p>
-                  <span className="inline-block mt-2 px-2 py-1 bg-orange-100 text-orange-600 text-xs rounded-full">
-                    {word.tier}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Words Promoted */}
-        {summaryData.wordsPromoted.length > 0 && (
-          <div className="bg-white rounded-xl p-6 shadow-lg mb-6">
-            <div className="flex items-center gap-3 mb-4">
-              <Star className="h-6 w-6 text-blue-500" />
-              <h2 className="text-xl font-semibold text-gray-900">Words Promoted!</h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {summaryData.wordsPromoted.map((word, index) => (
-                <div key={index} className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h3 className="font-semibold text-blue-800 mb-1">{word.word}</h3>
-                  <p className="text-blue-700 text-sm">
-                    {word.fromState} → {word.toState}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Action Buttons */}
-        <div className="flex justify-center gap-4">
+        {/* Action Buttons - Mobile Optimized */}
+        <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
           <button
             onClick={() => router.push('/study')}
-            className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold flex items-center"
+            className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold flex items-center justify-center text-sm sm:text-base"
           >
-            <BookOpen className="h-5 w-5 mr-2" />
+            <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
             Study Again
           </button>
           <button
             onClick={() => router.push('/dashboard')}
-            className="px-8 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-semibold"
+            className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-semibold text-sm sm:text-base"
           >
             Back to Dashboard
           </button>

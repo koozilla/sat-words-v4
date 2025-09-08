@@ -126,7 +126,7 @@ export default function StudySession() {
           .from('words')
           .select('*')
           .eq('tier', 'top_25')
-          .limit(15);
+          .limit(5);
 
         if (testError || !testWords || testWords.length === 0) {
           router.push('/words');
@@ -161,9 +161,9 @@ export default function StudySession() {
         return;
       }
 
-      // Select words from the active pool for the quiz
+      // Select 5 words from the active pool for the quiz
       console.log(`Found ${activePoolWords.length} words in active pool:`, activePoolWords.map(p => p.words.word));
-      const selectedWords = activePoolWords.slice(0, 15); // Use more words to ensure enough distractors
+      const selectedWords = activePoolWords.slice(0, 5); // Select 5 words for study session
       
       const studyWords: Word[] = selectedWords.map(p => ({
         id: p.words.id,
@@ -611,10 +611,9 @@ export default function StudySession() {
               Match the definition:
             </h2>
             <div className="bg-blue-50 rounded-lg p-3 sm:p-6">
-              <p className="text-base sm:text-lg text-gray-800 mb-1 sm:mb-2">
+              <p className="text-base sm:text-lg text-gray-800">
                 {truncateDefinition(currentWord.definition)}
               </p>
-              <p className="text-xs sm:text-sm text-gray-600 italic">{currentWord.part_of_speech}</p>
             </div>
           </div>
 
@@ -647,13 +646,11 @@ export default function StudySession() {
                     {showAnswer && answer === currentWord.word && (
                       <div className="flex items-center gap-2">
                         <CheckCircle className="h-8 w-8 sm:h-10 sm:w-10 text-green-600 flex-shrink-0 animate-pulse" />
-                        <span className="text-green-600 font-bold text-sm">Correct!</span>
                       </div>
                     )}
                     {showAnswer && answer === selectedAnswer && answer !== currentWord.word && (
                       <div className="flex items-center gap-2">
                         <XCircle className="h-6 w-6 sm:h-7 sm:w-7 text-red-600 flex-shrink-0" />
-                        <span className="text-red-600 font-bold text-sm">Wrong</span>
                       </div>
                     )}
                   </div>
@@ -672,7 +669,6 @@ export default function StudySession() {
         isVisible={showCelebration}
         onComplete={handleCelebrationComplete}
         type="duolingo"
-        message={celebrationMessage}
       />
 
       {/* Wrong Answer Animation */}
@@ -680,7 +676,6 @@ export default function StudySession() {
         isVisible={showWrongAnimation}
         onComplete={handleWrongAnimationComplete}
         type="wrong"
-        message="Try again!"
       />
     </div>
   );
