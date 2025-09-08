@@ -98,7 +98,7 @@ export default function SignupPage() {
           <div>
             <h2 className="text-3xl font-bold text-gray-900">Check your email</h2>
             <p className="mt-2 text-gray-600">
-              We've sent a confirmation link to <strong>{email}</strong>
+              We&apos;ve sent a confirmation link to <strong>{email}</strong>
             </p>
             <p className="mt-4 text-sm text-gray-500">
               Click the link in your email to activate your account and start mastering SAT vocabulary!

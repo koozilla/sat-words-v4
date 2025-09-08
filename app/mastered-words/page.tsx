@@ -331,7 +331,7 @@ export default function MasteredWords() {
                 {word.example_sentence && (
                   <div className="mb-4">
                     <p className="text-sm text-gray-600 italic">
-                      "{word.example_sentence}"
+                      &ldquo;{word.example_sentence}&rdquo;
                     </p>
                   </div>
                 )}

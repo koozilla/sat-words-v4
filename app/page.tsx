@@ -133,7 +133,7 @@ export default function LandingPage() {
         {/* Testimonial */}
         <div className="mt-16 text-center">
           <blockquote className="text-xl text-gray-600 italic max-w-2xl mx-auto">
-            "This app made studying SAT words actually fun! The 15-word system kept me focused and the progress tracking motivated me to keep going."
+            &ldquo;This app made studying SAT words actually fun! The 15-word system kept me focused and the progress tracking motivated me to keep going.&rdquo;
           </blockquote>
           <cite className="text-gray-500 mt-2 block">— Sarah, High School Student</cite>
         </div>

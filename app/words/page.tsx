@@ -155,7 +155,7 @@ export default function WordsPage() {
       }
 
       // Transform the data to match our interface
-      const transformedWords: CurrentWord[] = currentWordsData?.map(item => ({
+      const transformedWords: CurrentWord[] = currentWordsData?.map((item: any) => ({
         id: item.words.id,
         word: item.words.word,
         definition: item.words.definition,
@@ -290,7 +290,7 @@ export default function WordsPage() {
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">Active Words</h1>
               <p className="text-gray-600">
-                View and manage your active study pool. See words you're studying and words ready for review.
+                View and manage your active study pool. See words you&apos;re studying and words ready for review.
               </p>
             </div>
             <button
@@ -454,7 +454,7 @@ export default function WordsPage() {
                 {word.example_sentence && (
                   <div className="mb-4">
                     <p className="text-sm text-gray-600 italic">
-                      "{word.example_sentence}"
+                      &ldquo;{word.example_sentence}&rdquo;
                     </p>
                   </div>
                 )}

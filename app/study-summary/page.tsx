@@ -57,7 +57,7 @@ export default function StudySummary() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClientComponentClient();
-  const wordStateManager = new WordStateManager(supabase);
+  const wordStateManager = new WordStateManager();
 
   useEffect(() => {
     const loadSummaryData = async () => {
