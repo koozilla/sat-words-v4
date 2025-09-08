@@ -260,6 +260,7 @@ export default function StudySession() {
         updatedWordResults = [...session.wordResults, finalWordResult];
         scoreAdjustment = correct ? 1 : 0;
         console.log(`Adding new result for word: ${currentWord.word}, score adjustment: ${scoreAdjustment}`);
+      console.log('Current wordResults before adding:', session.wordResults.map(r => ({ word: r.word, correct: r.correct })));
       }
 
       setSession({
@@ -316,15 +317,43 @@ export default function StudySession() {
       wordResults: session.wordResults.map(r => ({ word: r.word, correct: r.correct, wordId: r.wordId }))
     });
 
+    // Deduplicate word results before sending to summary - keep the best entry for each word
+    const uniqueResults = new Map();
+    session.wordResults.forEach(result => {
+      const wordKey = result.wordId || result.word;
+      if (!uniqueResults.has(wordKey)) {
+        uniqueResults.set(wordKey, result);
+      } else {
+        const existing = uniqueResults.get(wordKey);
+        // Prefer results with transition data, or correct answers over incorrect ones
+        if ((result.fromState && result.toState && (!existing.fromState || !existing.toState)) ||
+            (result.correct && !existing.correct)) {
+          uniqueResults.set(wordKey, result);
+        }
+      }
+    });
+    
+    const deduplicatedResults = Array.from(uniqueResults.values());
+    const actualScore = deduplicatedResults.filter(r => r.correct).length;
+    const actualTotalQuestions = deduplicatedResults.length;
+    
+    console.log('After deduplication:', {
+      originalCount: session.wordResults.length,
+      deduplicatedCount: deduplicatedResults.length,
+      originalScore: session.score,
+      actualScore: actualScore,
+      actualTotalQuestions: actualTotalQuestions
+    });
+
     const sessionData = {
       session_type: 'study',
-      words_studied: session.totalQuestions,
-      correct_answers: session.score,
+      words_studied: actualTotalQuestions,
+      correct_answers: actualScore,
       words_promoted: session.promotedWords.length,
       words_mastered: 0,
       started_at: session.startTime?.toISOString() || new Date().toISOString(),
       completed_at: new Date().toISOString(),
-      wordResults: session.wordResults.map(result => ({
+      wordResults: deduplicatedResults.map(result => ({
         word: result.word,
         definition: result.definition,
         correct: result.correct,
