@@ -129,8 +129,8 @@ export default function ReviewSession() {
         return;
       }
 
-      // Select only 5 words from the review words for the quiz
-      const selectedReviewWords = reviewWords.slice(0, 5);
+      // Select only 3 words from the review words for the quiz
+      const selectedReviewWords = reviewWords.slice(0, 3);
       
       const reviewWordsData: Word[] = selectedReviewWords.map(p => ({
         id: p.words.id,
@@ -319,13 +319,17 @@ export default function ReviewSession() {
       }
     }
     
+    // Calculate actual counts from wordResults to ensure accuracy
+    const actualTotalQuestions = session.wordResults.length;
+    const actualCorrectAnswers = session.wordResults.filter(r => r.correct).length;
+    
     // Session complete - pass session data to summary
     const sessionData = {
       session_type: 'review',
-      words_studied: session.totalQuestions,
-      correct_answers: session.score,
+      words_studied: actualTotalQuestions, // Use actual count from wordResults
+      correct_answers: actualCorrectAnswers, // Use actual count from wordResults
       words_promoted: 0, // Words don't promote in review, they master
-      words_mastered: session.score, // All correct answers become mastered
+      words_mastered: actualCorrectAnswers, // All correct answers become mastered
       started_at: session.startTime.toISOString(),
       completed_at: new Date().toISOString(),
       wordResults: session.wordResults.map(result => ({
@@ -341,9 +345,19 @@ export default function ReviewSession() {
     };
     
     console.log('Review session data being passed:', sessionData);
-    console.log('Session score:', session.score);
-    console.log('Session totalQuestions:', session.totalQuestions);
-    console.log('Session wordResults:', session.wordResults);
+    console.log('Session debug info:', {
+      sessionScore: session.score,
+      sessionTotalQuestions: session.totalQuestions,
+      actualTotalQuestions: actualTotalQuestions,
+      actualCorrectAnswers: actualCorrectAnswers,
+      wordResultsLength: session.wordResults.length,
+      wordsArrayLength: session.words.length,
+      wordResults: session.wordResults.map(r => ({
+        word: r.word,
+        correct: r.correct,
+        userInput: r.userInput
+      }))
+    });
     
     const encodedData = encodeURIComponent(JSON.stringify(sessionData));
     router.push(`/review-summary?data=${encodedData}`);
@@ -401,10 +415,16 @@ export default function ReviewSession() {
         });
       } else {
         // Just advance to next question without updating session (already handled by handleSubmit)
-        setSession({
-          ...session,
-          currentIndex: session.currentIndex + 1
-        });
+        if (session.currentIndex < session.words.length - 1) {
+          setSession({
+            ...session,
+            currentIndex: session.currentIndex + 1
+          });
+        } else {
+          // If it's the last question and answer was submitted, finish the session
+          finishSession();
+          return;
+        }
       }
       
       setShowAnswer(false);
