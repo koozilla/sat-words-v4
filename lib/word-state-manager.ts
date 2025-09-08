@@ -108,6 +108,7 @@ export class WordStateManager {
 
   /**
    * Handle review session answer and update word state
+   * New two-try system: requires 2 consecutive correct answers to master
    */
   async handleReviewAnswer(
     userId: string,
@@ -140,8 +141,8 @@ export class WordStateManager {
       if (isCorrect) {
         newStreak = currentStreak + 1;
         
-        // Check if ready to transition to mastered (1 correct answer in ready state)
-        if (currentState === 'ready') {
+        // Check if ready to transition to mastered (2 consecutive correct answers in ready state)
+        if (currentState === 'ready' && newStreak >= 2) {
           newState = 'mastered';
           transition = {
             wordId,

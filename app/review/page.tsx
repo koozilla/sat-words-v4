@@ -45,6 +45,7 @@ interface ReviewSession {
     fromState?: string;
     toState?: string;
   }>;
+  wordStreaks: { [key: string]: number }; // Track review streaks for each word
 }
 
 export default function ReviewSession() {
@@ -85,9 +86,10 @@ export default function ReviewSession() {
     
     const currentWord = session?.words[session.currentIndex];
     const wordLength = currentWord?.word.length || 0;
+    const currentStreak = currentWord?.id ? (session?.wordStreaks[currentWord.id] || 0) : 0;
     
-    // Don't allow editing first and last letters
-    if (index === 0 || index === wordLength - 1) {
+    // Don't allow editing first and last letters only when streak = 0 (hints shown)
+    if (currentStreak === 0 && (index === 0 || index === wordLength - 1)) {
       return;
     }
     
@@ -113,14 +115,15 @@ export default function ReviewSession() {
     
     const currentWord = session?.words[session.currentIndex];
     const wordLength = currentWord?.word.length || 0;
+    const currentStreak = currentWord?.id ? (session?.wordStreaks[currentWord.id] || 0) : 0;
     
-    // Don't allow editing first and last letters
-    if (index === 0 || index === wordLength - 1) {
+    // Don't allow editing first and last letters only when streak = 0 (hints shown)
+    if (currentStreak === 0 && (index === 0 || index === wordLength - 1)) {
       return;
     }
     
-    if (e.key === 'Backspace' && !letterInputs[index] && index > 1) {
-      // Move to previous input if current is empty (skip first letter)
+    if (e.key === 'Backspace' && !letterInputs[index] && index > (currentStreak === 0 ? 1 : 0)) {
+      // Move to previous input if current is empty
       const prevInput = document.getElementById(`letter-${index - 1}`);
       if (prevInput) {
         prevInput.focus();
@@ -137,15 +140,18 @@ export default function ReviewSession() {
     initializeReviewSession();
   }, []);
 
-  // Initialize letter inputs when current word changes - Updated to remove reset function
+  // Initialize letter inputs when current word changes - Updated for streak-based hints
   useEffect(() => {
     if (session && session.words.length > 0) {
       const currentWord = session.words[session.currentIndex];
       const wordLength = currentWord.word.length;
       const letters = new Array(wordLength).fill('');
       
-      // Show first and last letters
-      if (wordLength > 0) {
+      // Get current streak for this word
+      const currentStreak = session.wordStreaks[currentWord.id] || 0;
+      
+      // Show first and last letters only when streak = 0 (first attempt)
+      if (wordLength > 0 && currentStreak === 0) {
         letters[0] = currentWord.word[0].toUpperCase();
         letters[wordLength - 1] = currentWord.word[wordLength - 1].toUpperCase();
       }
@@ -153,7 +159,7 @@ export default function ReviewSession() {
       setLetterInputs(letters);
       setUserInput(letters.join(''));
     }
-  }, [session?.currentIndex, session?.words]);
+  }, [session?.currentIndex, session?.words, session?.wordStreaks]);
 
   const initializeReviewSession = async () => {
     try {
@@ -186,6 +192,12 @@ export default function ReviewSession() {
           example_sentence: p.words.example_sentence
         }));
 
+        // Create word streaks mapping
+        const wordStreaks: { [key: string]: number } = {};
+        selectedReviewWords.forEach(p => {
+          wordStreaks[p.words.id] = p.review_streak || 0;
+        });
+
         setSession({
           words: reviewWordsData,
           currentIndex: 0,
@@ -193,7 +205,8 @@ export default function ReviewSession() {
           totalQuestions: reviewWordsData.length,
           answers: {},
           startTime: new Date(),
-          wordResults: []
+          wordResults: [],
+          wordStreaks
         });
         return;
       }
@@ -223,6 +236,12 @@ export default function ReviewSession() {
         example_sentence: p.words.example_sentence
       }));
 
+      // Create word streaks mapping
+      const wordStreaks: { [key: string]: number } = {};
+      selectedReviewWords.forEach(p => {
+        wordStreaks[p.words.id] = p.review_streak || 0;
+      });
+
       setSession({
         words: reviewWordsData,
         currentIndex: 0,
@@ -230,7 +249,8 @@ export default function ReviewSession() {
         totalQuestions: reviewWordsData.length,
         answers: {},
         startTime: new Date(),
-        wordResults: []
+        wordResults: [],
+        wordStreaks
       });
     } catch (error) {
       console.error('Error initializing review session:', error);
@@ -309,12 +329,16 @@ export default function ReviewSession() {
           tier: currentWord.tier
         };
         
-        // Update session with transition information
+        // Update session with transition information and word streaks
         setSession(prevSession => {
           if (!prevSession) return prevSession;
           return {
             ...prevSession,
-            wordResults: [...prevSession.wordResults.slice(0, -1), updatedWordResult]
+            wordResults: [...prevSession.wordResults.slice(0, -1), updatedWordResult],
+            wordStreaks: {
+              ...prevSession.wordStreaks,
+              [currentWord.id]: transition.streak
+            }
           };
         });
         
@@ -345,12 +369,16 @@ export default function ReviewSession() {
           tier: currentWord.tier
         };
         
-        // Update session with transition information
+        // Update session with transition information and word streaks
         setSession(prevSession => {
           if (!prevSession) return prevSession;
           return {
             ...prevSession,
-            wordResults: [...prevSession.wordResults.slice(0, -1), updatedWordResult]
+            wordResults: [...prevSession.wordResults.slice(0, -1), updatedWordResult],
+            wordStreaks: {
+              ...prevSession.wordStreaks,
+              [currentWord.id]: transition.streak
+            }
           };
         });
         
@@ -623,6 +651,22 @@ export default function ReviewSession() {
             <h2 className="text-lg sm:text-2xl font-bold text-gray-900 mb-2 sm:mb-4">
               Type the word:
             </h2>
+            
+            {/* Streak Indicator */}
+            <div className="mb-3 sm:mb-4">
+              <div className="inline-flex items-center gap-2 bg-blue-50 rounded-full px-3 py-1">
+                <span className="text-xs sm:text-sm font-medium text-blue-700">
+                  Attempt {session.wordStreaks[currentWord.id] + 1} of 2
+                </span>
+                {session.wordStreaks[currentWord.id] === 0 && (
+                  <span className="text-xs text-blue-600">(with hints)</span>
+                )}
+                {session.wordStreaks[currentWord.id] === 1 && (
+                  <span className="text-xs text-blue-600">(no hints)</span>
+                )}
+              </div>
+            </div>
+            
             <div className="bg-green-50 rounded-lg p-3 sm:p-6">
               <p className="text-sm sm:text-base text-gray-600 font-medium mb-2">
                 {currentWord.part_of_speech}:
@@ -641,6 +685,7 @@ export default function ReviewSession() {
                 const correctLetter = currentWord?.word[index]?.toUpperCase() || '';
                 const isCorrectLetter = letter === correctLetter;
                 const wordLength = currentWord?.word.length || 0;
+                const currentStreak = session?.wordStreaks[currentWord?.id] || 0;
                 
                 let boxClass = "w-8 h-8 sm:w-10 sm:h-10 text-center text-base sm:text-lg font-bold rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-200 ";
                 
@@ -656,6 +701,9 @@ export default function ReviewSession() {
                   boxClass += "border-gray-200 bg-white hover:border-blue-300 focus:border-blue-500";
                 }
                 
+                // Determine if this input should be disabled
+                const isHintLetter = currentStreak === 0 && (index === 0 || index === wordLength - 1);
+                
                 return (
                   <input
                     key={index}
@@ -666,8 +714,8 @@ export default function ReviewSession() {
                     onKeyDown={(e) => handleKeyDown(index, e)}
                     maxLength={1}
                     className={boxClass}
-                    disabled={showAnswer || index === 0 || index === wordLength - 1}
-                    autoFocus={index === 1}
+                    disabled={showAnswer || isHintLetter}
+                    autoFocus={index === (currentStreak === 0 ? 1 : 0)}
                   />
                 );
               })}
