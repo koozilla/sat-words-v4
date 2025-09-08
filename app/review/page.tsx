@@ -7,13 +7,10 @@ import { WordStateManager } from '@/lib/word-state-manager';
 import { 
   ArrowLeft, 
   ArrowRight, 
-  RotateCcw, 
   CheckCircle, 
   XCircle,
   Clock,
-  Image as ImageIcon,
-  Eye,
-  EyeOff
+  Image as ImageIcon
 } from 'lucide-react';
 import CelebrationAnimation from '@/components/ui/CelebrationAnimation';
 
@@ -57,7 +54,6 @@ export default function ReviewSession() {
   const [letterInputs, setLetterInputs] = useState<string[]>([]);
   const [showAnswer, setShowAnswer] = useState(false);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
-  const [showHint, setShowHint] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
   const [showWrongAnimation, setShowWrongAnimation] = useState(false);
   const [streak, setStreak] = useState(0);
@@ -87,6 +83,14 @@ export default function ReviewSession() {
   const handleLetterInput = (index: number, letter: string) => {
     if (showAnswer) return;
     
+    const currentWord = session?.words[session.currentIndex];
+    const wordLength = currentWord?.word.length || 0;
+    
+    // Don't allow editing first and last letters
+    if (index === 0 || index === wordLength - 1) {
+      return;
+    }
+    
     const newLetterInputs = [...letterInputs];
     newLetterInputs[index] = letter.toUpperCase();
     setLetterInputs(newLetterInputs);
@@ -95,8 +99,8 @@ export default function ReviewSession() {
     const currentInput = newLetterInputs.join('');
     setUserInput(currentInput);
     
-    // Auto-focus next input
-    if (letter && index < letterInputs.length - 1) {
+    // Auto-focus next input (skip if it's the last letter)
+    if (letter && index < wordLength - 2) {
       const nextInput = document.getElementById(`letter-${index + 1}`);
       if (nextInput) {
         nextInput.focus();
@@ -107,8 +111,16 @@ export default function ReviewSession() {
   const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
     if (showAnswer) return;
     
-    if (e.key === 'Backspace' && !letterInputs[index] && index > 0) {
-      // Move to previous input if current is empty
+    const currentWord = session?.words[session.currentIndex];
+    const wordLength = currentWord?.word.length || 0;
+    
+    // Don't allow editing first and last letters
+    if (index === 0 || index === wordLength - 1) {
+      return;
+    }
+    
+    if (e.key === 'Backspace' && !letterInputs[index] && index > 1) {
+      // Move to previous input if current is empty (skip first letter)
       const prevInput = document.getElementById(`letter-${index - 1}`);
       if (prevInput) {
         prevInput.focus();
@@ -125,13 +137,21 @@ export default function ReviewSession() {
     initializeReviewSession();
   }, []);
 
-  // Initialize letter inputs when current word changes
+  // Initialize letter inputs when current word changes - Updated to remove reset function
   useEffect(() => {
     if (session && session.words.length > 0) {
       const currentWord = session.words[session.currentIndex];
       const wordLength = currentWord.word.length;
-      setLetterInputs(new Array(wordLength).fill(''));
-      setUserInput('');
+      const letters = new Array(wordLength).fill('');
+      
+      // Show first and last letters
+      if (wordLength > 0) {
+        letters[0] = currentWord.word[0].toUpperCase();
+        letters[wordLength - 1] = currentWord.word[wordLength - 1].toUpperCase();
+      }
+      
+      setLetterInputs(letters);
+      setUserInput(letters.join(''));
     }
   }, [session?.currentIndex, session?.words]);
 
@@ -507,7 +527,6 @@ export default function ReviewSession() {
       setUserInput('');
       setLetterInputs(new Array(letterInputs.length).fill(''));
       setIsCorrect(null);
-      setShowHint(false);
     }
   };
 
@@ -521,16 +540,7 @@ export default function ReviewSession() {
       setUserInput('');
       setLetterInputs(new Array(letterInputs.length).fill(''));
       setIsCorrect(null);
-      setShowHint(false);
     }
-  };
-
-  const resetCurrentQuestion = () => {
-    setUserInput('');
-    setLetterInputs(new Array(letterInputs.length).fill(''));
-    setShowAnswer(false);
-    setIsCorrect(null);
-    setShowHint(false);
   };
 
   if (loading) {
@@ -614,6 +624,9 @@ export default function ReviewSession() {
               Type the word:
             </h2>
             <div className="bg-green-50 rounded-lg p-3 sm:p-6">
+              <p className="text-sm sm:text-base text-gray-600 font-medium mb-2">
+                {currentWord.part_of_speech}:
+              </p>
               <p className="text-base sm:text-lg text-gray-800">
                 {truncateDefinition(currentWord.definition)}
               </p>
@@ -627,8 +640,9 @@ export default function ReviewSession() {
                 const currentWord = session?.words[session.currentIndex];
                 const correctLetter = currentWord?.word[index]?.toUpperCase() || '';
                 const isCorrectLetter = letter === correctLetter;
+                const wordLength = currentWord?.word.length || 0;
                 
-                let boxClass = "w-10 h-10 sm:w-12 sm:h-12 text-center text-lg sm:text-xl font-bold rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-200 ";
+                let boxClass = "w-8 h-8 sm:w-10 sm:h-10 text-center text-base sm:text-lg font-bold rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-200 ";
                 
                 if (showAnswer) {
                   if (isCorrectLetter) {
@@ -652,8 +666,8 @@ export default function ReviewSession() {
                     onKeyDown={(e) => handleKeyDown(index, e)}
                     maxLength={1}
                     className={boxClass}
-                    disabled={showAnswer}
-                    autoFocus={index === 0}
+                    disabled={showAnswer || index === 0 || index === wordLength - 1}
+                    autoFocus={index === 1}
                   />
                 );
               })}
@@ -671,43 +685,8 @@ export default function ReviewSession() {
                 Submit Answer
               </button>
             )}
-            
-            <button
-              onClick={() => setShowHint(!showHint)}
-              className="flex items-center justify-center px-4 py-3 text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50"
-            >
-              {showHint ? <EyeOff className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
-              {showHint ? 'Hide Hint' : 'Show Hint'}
-            </button>
-
-            <button
-              onClick={resetCurrentQuestion}
-              className="flex items-center justify-center px-4 py-3 text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50"
-            >
-              <RotateCcw className="h-4 w-4 mr-2" />
-              Reset
-            </button>
           </div>
 
-          {/* Hint */}
-          {showHint && (
-            <div className="mb-4 sm:mb-8">
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 sm:p-4">
-                <h4 className="font-medium text-yellow-800 mb-2 text-sm sm:text-base">Hint:</h4>
-                <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
-                  <div className="flex items-center space-x-2">
-                    <span className="text-yellow-700 text-sm sm:text-base">Length:</span>
-                    <span className="font-bold text-yellow-800 text-sm sm:text-base">{currentWord.word.length} letters</span>
-                  </div>
-                  <div className="hidden sm:block w-px h-4 bg-yellow-300"></div>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-yellow-700 text-sm sm:text-base">Starts with:</span>
-                    <span className="font-bold text-yellow-800 text-sm sm:text-base">{currentWord.word[0].toUpperCase()}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
 
 
           {/* Navigation - Simplified for mobile */}
@@ -743,7 +722,7 @@ export default function ReviewSession() {
                 router.push('/dashboard');
               }
             }}
-            className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-semibold text-sm sm:text-base flex items-center justify-center gap-2"
+            className="w-full sm:w-auto px-8 sm:px-12 py-3 sm:py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-semibold text-sm sm:text-base flex items-center justify-center gap-2"
           >
             <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
             Back to Dashboard
