@@ -192,7 +192,7 @@ export default function Dashboard() {
         percentage: tierWords.length > 0 ? Math.round((tierMastered / tierWords.length) * 100) : 0
       }];
 
-      setStats({
+      const finalStats = {
         activePoolCount: currentActivePoolCount,
         reviewsDue,
         masteredWords: mastered,
@@ -201,7 +201,10 @@ export default function Dashboard() {
         activeWordsBreakdown,
         tierProgress,
         recentBadges: (userBadges?.map(ub => ub.badges).flat() || []) as Badge[]
-      });
+      };
+      
+      console.log('Final stats being set:', finalStats);
+      setStats(finalStats);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
     }

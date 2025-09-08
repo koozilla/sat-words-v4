@@ -54,10 +54,12 @@ export default function ReviewSession() {
   const [session, setSession] = useState<ReviewSession | null>(null);
   const [loading, setLoading] = useState(true);
   const [userInput, setUserInput] = useState('');
+  const [letterInputs, setLetterInputs] = useState<string[]>([]);
   const [showAnswer, setShowAnswer] = useState(false);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [showHint, setShowHint] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
+  const [showWrongAnimation, setShowWrongAnimation] = useState(false);
   const [streak, setStreak] = useState(0);
   const [wordStateManager] = useState(() => new WordStateManager());
   const router = useRouter();
@@ -65,20 +67,73 @@ export default function ReviewSession() {
 
   const getCelebrationMessage = (streak: number): string => {
     if (streak === 1) return 'Good!';
-    if (streak === 2) return 'Good!';
-    if (streak === 3) return 'Great!';
-    if (streak === 4) return 'Great!';
-    if (streak === 5) return 'Awesome!';
-    if (streak === 6) return 'Awesome!';
+    if (streak === 2) return 'Great!';
+    if (streak === 3) return 'Awesome!';
+    if (streak === 4) return 'Excellent!';
+    if (streak === 5) return 'Fantastic!';
+    if (streak === 6) return 'Incredible!';
     if (streak === 7) return 'On Fire!';
-    if (streak === 8) return 'On Fire!';
+    if (streak === 8) return 'Unstoppable!';
     if (streak >= 9) return 'CRAZY~';
     return 'Correct!';
+  };
+
+  const truncateDefinition = (definition: string, maxWords: number = 20): string => {
+    const words = definition.split(' ');
+    if (words.length <= maxWords) return definition;
+    return words.slice(0, maxWords).join(' ') + '...';
+  };
+
+  const handleLetterInput = (index: number, letter: string) => {
+    if (showAnswer) return;
+    
+    const newLetterInputs = [...letterInputs];
+    newLetterInputs[index] = letter.toUpperCase();
+    setLetterInputs(newLetterInputs);
+    
+    // Update userInput for submission
+    const currentInput = newLetterInputs.join('');
+    setUserInput(currentInput);
+    
+    // Auto-focus next input
+    if (letter && index < letterInputs.length - 1) {
+      const nextInput = document.getElementById(`letter-${index + 1}`);
+      if (nextInput) {
+        nextInput.focus();
+      }
+    }
+  };
+
+  const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
+    if (showAnswer) return;
+    
+    if (e.key === 'Backspace' && !letterInputs[index] && index > 0) {
+      // Move to previous input if current is empty
+      const prevInput = document.getElementById(`letter-${index - 1}`);
+      if (prevInput) {
+        prevInput.focus();
+      }
+    } else if (e.key === 'Enter') {
+      // Submit if all letters are filled
+      if (letterInputs.every(letter => letter !== '')) {
+        handleSubmit();
+      }
+    }
   };
 
   useEffect(() => {
     initializeReviewSession();
   }, []);
+
+  // Initialize letter inputs when current word changes
+  useEffect(() => {
+    if (session && session.words.length > 0) {
+      const currentWord = session.words[session.currentIndex];
+      const wordLength = currentWord.word.length;
+      setLetterInputs(new Array(wordLength).fill(''));
+      setUserInput('');
+    }
+  }, [session?.currentIndex, session?.words]);
 
   const initializeReviewSession = async () => {
     try {
@@ -179,6 +234,7 @@ export default function ReviewSession() {
       setShowCelebration(true);
     } else {
       setStreak(0);
+      setShowWrongAnimation(true);
     }
 
     // Create detailed word result
@@ -287,10 +343,6 @@ export default function ReviewSession() {
       }
     }
 
-    // Show celebration animation for correct answers and auto-advance
-    if (correct) {
-      setShowCelebration(true);
-    }
   };
 
   const handleCelebrationComplete = () => {
@@ -298,6 +350,17 @@ export default function ReviewSession() {
     // Auto-advance to next question after celebration for correct answers
     if (session && session.currentIndex < session.words.length - 1) {
       nextQuestion(false); // false = not skipped, answer was correct
+    } else {
+      // If it's the last question, finish the session
+      finishSession();
+    }
+  };
+
+  const handleWrongAnimationComplete = () => {
+    setShowWrongAnimation(false);
+    // Auto-advance to next question after wrong animation
+    if (session && session.currentIndex < session.words.length - 1) {
+      nextQuestion(false); // false = not skipped, answer was submitted
     } else {
       // If it's the last question, finish the session
       finishSession();
@@ -442,6 +505,7 @@ export default function ReviewSession() {
       
       setShowAnswer(false);
       setUserInput('');
+      setLetterInputs(new Array(letterInputs.length).fill(''));
       setIsCorrect(null);
       setShowHint(false);
     }
@@ -455,6 +519,7 @@ export default function ReviewSession() {
       });
       setShowAnswer(false);
       setUserInput('');
+      setLetterInputs(new Array(letterInputs.length).fill(''));
       setIsCorrect(null);
       setShowHint(false);
     }
@@ -462,6 +527,7 @@ export default function ReviewSession() {
 
   const resetCurrentQuestion = () => {
     setUserInput('');
+    setLetterInputs(new Array(letterInputs.length).fill(''));
     setShowAnswer(false);
     setIsCorrect(null);
     setShowHint(false);
@@ -517,92 +583,90 @@ export default function ReviewSession() {
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <button
-              onClick={() => router.push('/dashboard')}
-              className="flex items-center text-gray-600 hover:text-gray-900"
-            >
-              <ArrowLeft className="h-5 w-5 mr-2" />
-              Back to Dashboard
-            </button>
-            <div className="flex items-center text-sm text-gray-500">
-              <Clock className="h-4 w-4 mr-1" />
-              {Math.floor(timeElapsed / 60)}:{(timeElapsed % 60).toString().padStart(2, '0')}
+          <div className="flex justify-center items-center h-12 sm:h-16">
+            <div className="text-xs sm:text-sm text-gray-500">
+              {session.currentIndex + 1}/{session.totalQuestions}
             </div>
           </div>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Progress Bar */}
-        <div className="mb-8">
-          <div className="flex justify-between text-sm font-medium text-gray-700 mb-2">
-            <span>Progress</span>
-            <span>{Math.round(progress)}%</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div
-              className="bg-green-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${progress}%` }}
-            ></div>
-          </div>
-        </div>
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
 
         {/* Question Card */}
-        <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
+        <div className="bg-white rounded-xl shadow-lg p-4 sm:p-8 mb-4 sm:mb-8">
           {/* Word Image */}
           {currentWord.image_url && (
-            <div className="mb-6 text-center">
-              <div className="inline-block bg-gray-100 rounded-lg p-4">
+            <div className="mb-4 sm:mb-6 text-center">
+              <div className="inline-block bg-gray-100 rounded-lg p-2 sm:p-4">
                 <img 
                   src={currentWord.image_url} 
                   alt={`Visual representation of ${currentWord.word}`}
-                  className="h-32 w-32 object-cover rounded-lg mx-auto"
+                  className="h-24 w-24 sm:h-32 sm:w-32 object-cover rounded-lg mx-auto"
                 />
               </div>
             </div>
           )}
 
           {/* Definition */}
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              Type the word that matches this definition:
+          <div className="text-center mb-4 sm:mb-8">
+            <h2 className="text-lg sm:text-2xl font-bold text-gray-900 mb-2 sm:mb-4">
+              Type the word:
             </h2>
-            <div className="bg-green-50 rounded-lg p-6">
-              <p className="text-lg text-gray-800 mb-2">{currentWord.definition}</p>
-              <p className="text-sm text-gray-600 italic">{currentWord.part_of_speech}</p>
+            <div className="bg-green-50 rounded-lg p-3 sm:p-6">
+              <p className="text-base sm:text-lg text-gray-800">
+                {truncateDefinition(currentWord.definition)}
+              </p>
             </div>
           </div>
 
-          {/* Input Field */}
-          <div className="mb-8">
-            <div className="max-w-md mx-auto">
-              <input
-                type="text"
-                value={userInput}
-                onChange={(e) => setUserInput(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && !showAnswer && handleSubmit()}
-                placeholder="Type your answer here..."
-                className={`w-full p-4 text-lg text-center rounded-lg border-2 transition-colors ${
-                  showAnswer
-                    ? isCorrect
-                      ? 'border-green-500 bg-green-50 text-green-800'
-                      : 'border-red-500 bg-red-50 text-red-800'
-                    : 'border-gray-200 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200'
-                }`}
-                disabled={showAnswer}
-                autoFocus
-              />
+          {/* Letter Input Boxes */}
+          <div className="mb-4 sm:mb-8">
+            <div className="flex justify-center gap-2 sm:gap-3 flex-wrap">
+              {letterInputs.map((letter, index) => {
+                const currentWord = session?.words[session.currentIndex];
+                const correctLetter = currentWord?.word[index]?.toUpperCase() || '';
+                const isCorrectLetter = letter === correctLetter;
+                
+                let boxClass = "w-10 h-10 sm:w-12 sm:h-12 text-center text-lg sm:text-xl font-bold rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-200 ";
+                
+                if (showAnswer) {
+                  if (isCorrectLetter) {
+                    boxClass += "border-green-500 bg-green-50 text-green-800";
+                  } else if (letter) {
+                    boxClass += "border-red-500 bg-red-50 text-red-800";
+                  } else {
+                    boxClass += "border-gray-300 bg-gray-100 text-gray-500";
+                  }
+                } else {
+                  boxClass += "border-gray-200 bg-white hover:border-blue-300 focus:border-blue-500";
+                }
+                
+                return (
+                  <input
+                    key={index}
+                    id={`letter-${index}`}
+                    type="text"
+                    value={letter}
+                    onChange={(e) => handleLetterInput(index, e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(index, e)}
+                    maxLength={1}
+                    className={boxClass}
+                    disabled={showAnswer}
+                    autoFocus={index === 0}
+                  />
+                );
+              })}
             </div>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex justify-center space-x-4 mb-8">
+          <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 mb-4 sm:mb-8">
             {!showAnswer && (
               <button
                 onClick={handleSubmit}
-                disabled={!userInput.trim()}
-                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={!letterInputs.every(letter => letter !== '')}
+                className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-sm sm:text-base"
               >
                 Submit Answer
               </button>
@@ -610,7 +674,7 @@ export default function ReviewSession() {
             
             <button
               onClick={() => setShowHint(!showHint)}
-              className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-900"
+              className="flex items-center justify-center px-4 py-3 text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50"
             >
               {showHint ? <EyeOff className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
               {showHint ? 'Hide Hint' : 'Show Hint'}
@@ -618,7 +682,7 @@ export default function ReviewSession() {
 
             <button
               onClick={resetCurrentQuestion}
-              className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-900"
+              className="flex items-center justify-center px-4 py-3 text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50"
             >
               <RotateCcw className="h-4 w-4 mr-2" />
               Reset
@@ -627,18 +691,18 @@ export default function ReviewSession() {
 
           {/* Hint */}
           {showHint && (
-            <div className="mb-8">
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <h4 className="font-medium text-yellow-800 mb-2">Hint:</h4>
-                <div className="flex items-center space-x-4">
+            <div className="mb-4 sm:mb-8">
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 sm:p-4">
+                <h4 className="font-medium text-yellow-800 mb-2 text-sm sm:text-base">Hint:</h4>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
                   <div className="flex items-center space-x-2">
-                    <span className="text-yellow-700">Length:</span>
-                    <span className="font-bold text-yellow-800">{currentWord.word.length} letters</span>
+                    <span className="text-yellow-700 text-sm sm:text-base">Length:</span>
+                    <span className="font-bold text-yellow-800 text-sm sm:text-base">{currentWord.word.length} letters</span>
                   </div>
-                  <div className="w-px h-4 bg-yellow-300"></div>
+                  <div className="hidden sm:block w-px h-4 bg-yellow-300"></div>
                   <div className="flex items-center space-x-2">
-                    <span className="text-yellow-700">Starts with:</span>
-                    <span className="font-bold text-yellow-800">{currentWord.word[0].toUpperCase()}</span>
+                    <span className="text-yellow-700 text-sm sm:text-base">Starts with:</span>
+                    <span className="font-bold text-yellow-800 text-sm sm:text-base">{currentWord.word[0].toUpperCase()}</span>
                   </div>
                 </div>
               </div>
@@ -646,43 +710,44 @@ export default function ReviewSession() {
           )}
 
 
-          {/* Navigation */}
-          <div className="flex justify-between">
-            <button
-              onClick={previousQuestion}
-              disabled={session.currentIndex === 0}
-              className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Previous
-            </button>
-
-            <button
-              onClick={() => nextQuestion(!showAnswer)} // Skip only if no answer was submitted
-              className={`flex items-center px-6 py-2 text-white rounded-lg disabled:opacity-50 ${
-                !showAnswer 
-                  ? 'bg-orange-600 hover:bg-orange-700' // Orange for skip
-                  : 'bg-green-600 hover:bg-green-700' // Green for next after answer
-              }`}
-              title={!showAnswer ? "Skip this question (counts as wrong answer and resets word to started state)" : "Continue to next question"}
-            >
-              {session.currentIndex === session.words.length - 1 
-                ? 'Finish' 
-                : (!showAnswer ? 'Skip' : 'Next')
-              }
-              <ArrowRight className="h-4 w-4 ml-2" />
-            </button>
+          {/* Navigation - Simplified for mobile */}
+          <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
+            {showAnswer && !isCorrect && (
+              <button
+                onClick={() => nextQuestion(false)} // Continue after wrong answer
+                className="w-full sm:w-auto px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold text-sm sm:text-base flex items-center justify-center"
+              >
+                Next
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </button>
+            )}
+            
+            {!showAnswer && (
+              <button
+                onClick={() => nextQuestion(true)} // Skip question
+                className="w-full sm:w-auto px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 font-semibold text-sm sm:text-base flex items-center justify-center"
+                title="Skip this question (counts as wrong answer and resets word to started state)"
+              >
+                {session.currentIndex === session.words.length - 1 ? 'Finish' : 'Skip'}
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Score Display */}
-        <div className="text-center">
-          <div className="inline-flex items-center bg-white rounded-lg px-6 py-3 shadow-sm">
-            <Clock className="h-5 w-5 text-green-600 mr-2" />
-            <span className="text-sm font-medium text-gray-700">
-              Score: {session.score}/{session.currentIndex + 1}
-            </span>
-          </div>
+        {/* Bottom Navigation */}
+        <div className="flex justify-center mt-6 sm:mt-8">
+          <button
+            onClick={() => {
+              if (confirm('Are you sure you want to leave the review session? Your progress will be saved.')) {
+                router.push('/dashboard');
+              }
+            }}
+            className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-semibold text-sm sm:text-base flex items-center justify-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
+            Back to Dashboard
+          </button>
         </div>
       </main>
 
@@ -690,8 +755,14 @@ export default function ReviewSession() {
       <CelebrationAnimation 
         isVisible={showCelebration}
         onComplete={handleCelebrationComplete}
-        type="stars"
-        message={getCelebrationMessage(streak)}
+        type="duolingo"
+      />
+
+      {/* Wrong Answer Animation */}
+      <CelebrationAnimation 
+        isVisible={showWrongAnimation}
+        onComplete={handleWrongAnimationComplete}
+        type="wrong"
       />
     </div>
   );
