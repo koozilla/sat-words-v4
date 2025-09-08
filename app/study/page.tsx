@@ -57,6 +57,7 @@ export default function StudySession() {
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [currentAnswers, setCurrentAnswers] = useState<string[]>([]);
   const [showCelebration, setShowCelebration] = useState(false);
+  const [showWrongAnimation, setShowWrongAnimation] = useState(false);
   const [streak, setStreak] = useState(0);
   const [celebrationMessage, setCelebrationMessage] = useState('');
   const [celebrationTriggered, setCelebrationTriggered] = useState(false);
@@ -246,7 +247,8 @@ export default function StudySession() {
     } else if (!correct) {
       setStreak(0);
       setCelebrationTriggered(false);
-      // Don't auto-advance wrong answers - let user see the result and manually advance
+      setShowWrongAnimation(true);
+      // Auto-advance wrong answers after animation
     }
 
     // Create detailed word result
@@ -343,6 +345,17 @@ export default function StudySession() {
     // Auto-advance to next question after celebration for correct answers
     if (session && session.currentIndex < session.words.length - 1) {
       nextQuestion(false); // false = not skipped (this was a correct answer)
+    } else {
+      // If it's the last question, finish the session
+      finishSession();
+    }
+  };
+
+  const handleWrongAnimationComplete = () => {
+    setShowWrongAnimation(false);
+    // Auto-advance to next question after wrong animation
+    if (session && session.currentIndex < session.words.length - 1) {
+      nextQuestion(false); // false = not skipped (this was a wrong answer)
     } else {
       // If it's the last question, finish the session
       finishSession();
@@ -650,20 +663,7 @@ export default function StudySession() {
           </div>
 
 
-          {/* Navigation */}
-          <div className="flex justify-end">
-            <div className="flex gap-2">
-              {showAnswer && !isCorrect && (
-                <button
-                  onClick={() => nextQuestion(false)} // false = not skipped, answer was submitted
-                  className="flex items-center justify-center px-4 py-2 sm:px-6 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm sm:text-base w-full sm:w-auto"
-                >
-                  {session.currentIndex === session.words.length - 1 ? 'Finish' : 'Next'}
-                  <ArrowRight className="h-4 w-4 ml-1 sm:ml-2" />
-                </button>
-              )}
-            </div>
-          </div>
+          {/* Navigation - No manual navigation needed, auto-advance handles both correct and wrong answers */}
         </div>
       </main>
 
@@ -673,6 +673,14 @@ export default function StudySession() {
         onComplete={handleCelebrationComplete}
         type="duolingo"
         message={celebrationMessage}
+      />
+
+      {/* Wrong Answer Animation */}
+      <CelebrationAnimation 
+        isVisible={showWrongAnimation}
+        onComplete={handleWrongAnimationComplete}
+        type="wrong"
+        message="Try again!"
       />
     </div>
   );
