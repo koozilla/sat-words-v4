@@ -54,4 +54,30 @@
   .animate-pulse-slow {
     animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
+  
+  /* Mobile-specific button reset */
+  .btn-mobile-reset {
+    transform: none !important;
+    -webkit-transform: none !important;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+  
+  /* Ensure proper button state reset on mobile */
+  @media (max-width: 768px) {
+    button:not(:disabled) {
+      transform: none !important;
+      -webkit-transform: none !important;
+    }
+    
+    button:active {
+      transform: scale(0.95) !important;
+      -webkit-transform: scale(0.95) !important;
+    }
+  }
 }
