@@ -193,12 +193,31 @@ export default function StudySession() {
     setIsCorrect(correct);
     setShowAnswer(true);
 
-    // Update streak
+    // Update streak and set auto-advance for wrong answers
     if (correct) {
       setStreak(prev => prev + 1);
       setShowCelebration(true);
     } else {
       setStreak(0);
+      // Auto-advance after wrong answer with a delay
+      setTimeout(() => {
+        if (session && session.currentIndex < session.words.length - 1 && 
+            session.words[session.currentIndex]?.id === currentWord.id) {
+          // Just advance to next question without resetting display states
+          setSession({
+            ...session,
+            currentIndex: session.currentIndex + 1
+          });
+          // Reset display states for the new question
+          setShowAnswer(false);
+          setSelectedAnswer(null);
+          setIsCorrect(null);
+          setCurrentAnswers([]);
+        } else if (session && session.currentIndex === session.words.length - 1 &&
+                   session.words[session.currentIndex]?.id === currentWord.id) {
+          finishSession();
+        }
+      }, 2000);
     }
 
     // Create detailed word result
@@ -254,22 +273,21 @@ export default function StudySession() {
           scoreAdjustment = -1; // Was correct, now wrong
         } // else no change needed
         
-        console.log(`Replacing existing result for word: ${currentWord.word}, score adjustment: ${scoreAdjustment}`);
       } else {
         // Add new result
         updatedWordResults = [...session.wordResults, finalWordResult];
         scoreAdjustment = correct ? 1 : 0;
-        console.log(`Adding new result for word: ${currentWord.word}, score adjustment: ${scoreAdjustment}`);
-      console.log('Current wordResults before adding:', session.wordResults.map(r => ({ word: r.word, correct: r.correct })));
       }
 
+      const newScore = session.score + scoreAdjustment;
+      
       setSession({
         ...session,
         answers: {
           ...session.answers,
           [currentWord.id]: correct
         },
-        score: session.score + scoreAdjustment,
+        score: newScore,
         wordResults: updatedWordResults,
         promotedWords: (transition?.toState === 'ready' && transition?.fromState === 'started') 
           ? [...session.promotedWords, currentWord.id]

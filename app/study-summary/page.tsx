@@ -6,6 +6,7 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { WordStateManager } from '@/lib/word-state-manager';
 import { 
   ArrowLeft, 
+  ArrowRight,
   Trophy, 
   Target, 
   Clock, 
@@ -28,6 +29,11 @@ interface StudySessionSummary {
     tier: string;
   }>;
   wordsIncorrect: Array<{
+    word: string;
+    definition: string;
+    tier: string;
+  }>;
+  wordsSkipped: Array<{
     word: string;
     definition: string;
     tier: string;
@@ -81,6 +87,7 @@ export default function StudySummary() {
   const generateStudySessionSummary = async (sessionInfo: any): Promise<StudySessionSummary> => {
     const wordsCorrect: Array<{ word: string; definition: string; tier: string }> = [];
     const wordsIncorrect: Array<{ word: string; definition: string; tier: string }> = [];
+    const wordsSkipped: Array<{ word: string; definition: string; tier: string }> = [];
     const wordsPromoted: Array<{ word: string; fromState: string; toState: string }> = [];
 
     if (sessionInfo.wordResults && sessionInfo.wordResults.length > 0) {
@@ -88,7 +95,7 @@ export default function StudySummary() {
       console.log('Raw sessionInfo.wordResults:', sessionInfo.wordResults);
       
       // Data should already be clean from the session, but we'll process it directly
-      // First pass: categorize correct vs incorrect answers
+      // First pass: categorize correct vs incorrect vs skipped answers
       sessionInfo.wordResults.forEach((result: any) => {
         const wordData = {
           word: result.word,
@@ -98,6 +105,8 @@ export default function StudySummary() {
 
         if (result.correct) {
           wordsCorrect.push(wordData);
+        } else if (result.userInput === "SKIPPED") {
+          wordsSkipped.push(wordData);
         } else {
           wordsIncorrect.push(wordData);
         }
@@ -152,6 +161,7 @@ export default function StudySummary() {
       timeSpent,
       wordsCorrect,
       wordsIncorrect,
+      wordsSkipped,
       wordsPromoted,
       newBadges: [] // TODO: Implement badge system
     };
@@ -275,6 +285,27 @@ export default function StudySummary() {
                   <h3 className="font-semibold text-red-800 mb-1">{word.word}</h3>
                   <p className="text-red-700 text-sm">{word.definition}</p>
                   <span className="inline-block mt-2 px-2 py-1 bg-red-100 text-red-600 text-xs rounded-full">
+                    {word.tier}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Words You Skipped */}
+        {summaryData.wordsSkipped.length > 0 && (
+          <div className="bg-white rounded-xl p-6 shadow-lg mb-6">
+            <div className="flex items-center gap-3 mb-4">
+              <ArrowRight className="h-6 w-6 text-orange-500" />
+              <h2 className="text-xl font-semibold text-gray-900">Words You Skipped</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {summaryData.wordsSkipped.map((word, index) => (
+                <div key={index} className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                  <h3 className="font-semibold text-orange-800 mb-1">{word.word}</h3>
+                  <p className="text-orange-700 text-sm">{word.definition}</p>
+                  <span className="inline-block mt-2 px-2 py-1 bg-orange-100 text-orange-600 text-xs rounded-full">
                     {word.tier}
                   </span>
                 </div>
