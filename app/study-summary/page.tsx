@@ -280,7 +280,7 @@ export default function StudySummary() {
             className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold flex items-center justify-center text-sm sm:text-base"
           >
             <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-            Study Again
+            Keep studying
           </button>
           <button
             onClick={() => router.push('/dashboard')}
