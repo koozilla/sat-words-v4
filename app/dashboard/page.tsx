@@ -266,20 +266,20 @@ export default function Dashboard() {
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          <div className="flex justify-between items-center h-14 sm:h-16">
             <div className="flex items-center">
-              <BookOpen className="h-8 w-8 text-blue-600" />
-              <h1 className="ml-2 text-xl font-bold text-gray-900">SAT Word Mastery</h1>
+              <BookOpen className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600" />
+              <h1 className="ml-2 text-lg sm:text-xl font-bold text-gray-900">SAT Word Mastery</h1>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4">
               {isGuest && (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-1">
-                  <span className="text-yellow-800 text-sm font-medium">Guest Mode</span>
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg px-2 py-1 sm:px-3">
+                  <span className="text-yellow-800 text-xs sm:text-sm font-medium">Guest</span>
                 </div>
               )}
               <button
                 onClick={() => supabase.auth.signOut()}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-gray-500 hover:text-gray-700 text-sm sm:text-base"
               >
                 Sign Out
               </button>
@@ -288,13 +288,13 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
         {/* Welcome Section */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+        <div className="mb-6 sm:mb-8">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
             Welcome back{user ? `, ${user.email?.split('@')[0]}` : ''}!
           </h2>
-          <p className="text-gray-600">
+          <p className="text-sm sm:text-base text-gray-600">
             {isGuest 
               ? "You're in guest mode. Sign up to save your progress and unlock all features."
               : "Ready to master SAT vocabulary? Let's continue your learning journey."
@@ -304,22 +304,22 @@ export default function Dashboard() {
 
         {/* Smart Review Card */}
         {stats && stats.reviewsDue > 0 && (
-          <div className="bg-gradient-to-r from-orange-500 to-red-600 rounded-xl p-6 text-white mb-4">
-            <div className="flex items-center justify-between">
+          <div className="bg-gradient-to-r from-orange-500 to-red-600 rounded-xl p-4 sm:p-6 text-white mb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-center">
-                <Clock className="h-8 w-8 mr-4" />
-                <div>
-                  <h3 className="text-lg font-semibold mb-1">Challenges Due</h3>
-                  <p className="text-orange-100">
+                <Clock className="h-6 w-6 sm:h-8 sm:w-8 mr-3 sm:mr-4 flex-shrink-0" />
+                <div className="min-w-0">
+                  <h3 className="text-base sm:text-lg font-semibold mb-1">Challenges Due</h3>
+                  <p className="text-orange-100 text-sm sm:text-base">
                     {stats.reviewsDue} {stats.reviewsDue === 1 ? 'word' : 'words'} ready for challenge
                   </p>
                 </div>
               </div>
               <button
                 onClick={startReviewSession}
-                className="bg-white text-orange-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center"
+                className="bg-white text-orange-600 px-4 py-2 sm:px-6 sm:py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center justify-center w-full sm:w-auto"
               >
-                <Clock className="h-5 w-5 mr-2" />
+                <Clock className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                 Start Test
               </button>
             </div>
@@ -328,13 +328,13 @@ export default function Dashboard() {
 
         {/* Smart Study Card */}
         {stats && stats.activePoolCount > 0 && (
-          <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-6 text-white mb-4">
-            <div className="flex items-center justify-between">
+          <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-4 sm:p-6 text-white mb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-center">
-                <BookOpen className="h-8 w-8 mr-4" />
-                <div>
-                  <h3 className="text-lg font-semibold mb-1">Active Words</h3>
-                  <p className="text-blue-100 mb-2">
+                <BookOpen className="h-6 w-6 sm:h-8 sm:w-8 mr-3 sm:mr-4 flex-shrink-0" />
+                <div className="min-w-0">
+                  <h3 className="text-base sm:text-lg font-semibold mb-1">Active Words</h3>
+                  <p className="text-blue-100 text-sm sm:text-base mb-2">
                     Easy {stats.activeWordsBreakdown.easy} Medium {stats.activeWordsBreakdown.medium} Hard {stats.activeWordsBreakdown.hard}
                   </p>
                 </div>
@@ -342,9 +342,9 @@ export default function Dashboard() {
               <div className="flex gap-1">
                 <button
                   onClick={startStudySession}
-                  className="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center"
+                  className="bg-white text-blue-600 px-4 py-2 sm:px-6 sm:py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center justify-center w-full sm:w-auto"
                 >
-                  <BookOpen className="h-5 w-5 mr-2" />
+                  <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                   Start Study
                 </button>
               </div>
@@ -354,13 +354,13 @@ export default function Dashboard() {
 
         {/* Mastered Words Card */}
         {stats && stats.masteredWords > 0 && (
-          <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-xl p-6 text-white mb-4">
-            <div className="flex items-center justify-between">
+          <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-xl p-4 sm:p-6 text-white mb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-center">
-                <CheckCircle className="h-8 w-8 mr-4" />
-                <div>
-                  <h3 className="text-lg font-semibold mb-1">Mastered Words</h3>
-                  <p className="text-green-100 mb-2">
+                <CheckCircle className="h-6 w-6 sm:h-8 sm:w-8 mr-3 sm:mr-4 flex-shrink-0" />
+                <div className="min-w-0">
+                  <h3 className="text-base sm:text-lg font-semibold mb-1">Mastered Words</h3>
+                  <p className="text-green-100 text-sm sm:text-base mb-2">
                     {stats.masteredWords} words mastered
                   </p>
                 </div>
@@ -368,9 +368,9 @@ export default function Dashboard() {
               <div className="flex gap-1">
                 <button
                   onClick={() => router.push('/mastered-words')}
-                  className="bg-white text-green-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center"
+                  className="bg-white text-green-600 px-4 py-2 sm:px-6 sm:py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center justify-center w-full sm:w-auto"
                 >
-                  <CheckCircle className="h-5 w-5 mr-2" />
+                  <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                   See All
                 </button>
               </div>
@@ -380,13 +380,13 @@ export default function Dashboard() {
 
         {/* Modify Active Words Card */}
         {stats && stats.activePoolCount > 0 && (
-          <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl p-6 text-white mb-4">
-            <div className="flex items-center justify-between">
+          <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl p-4 sm:p-6 text-white mb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-center">
-                <Plus className="h-8 w-8 mr-4" />
-                <div>
-                  <h3 className="text-lg font-semibold mb-1">Modify Active Words</h3>
-                  <p className="text-purple-100 mb-2">
+                <Plus className="h-6 w-6 sm:h-8 sm:w-8 mr-3 sm:mr-4 flex-shrink-0" />
+                <div className="min-w-0">
+                  <h3 className="text-base sm:text-lg font-semibold mb-1">Modify Active Words</h3>
+                  <p className="text-purple-100 text-sm sm:text-base mb-2">
                     Manage your active study pool
                   </p>
                 </div>
@@ -394,9 +394,9 @@ export default function Dashboard() {
               <div className="flex gap-1">
                 <button
                   onClick={() => router.push('/words')}
-                  className="bg-white text-purple-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center"
+                  className="bg-white text-purple-600 px-4 py-2 sm:px-6 sm:py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center justify-center w-full sm:w-auto"
                 >
-                  <Plus className="h-5 w-5 mr-2" />
+                  <Plus className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                   Modify
                 </button>
               </div>
@@ -406,12 +406,12 @@ export default function Dashboard() {
 
         {/* Streak Message */}
         {stats && (
-          <div className="bg-white p-6 rounded-xl shadow-sm mb-4">
+          <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm mb-4">
             <div className="flex items-center">
-              <TrendingUp className="h-8 w-8 text-purple-600" />
+              <TrendingUp className="h-6 w-6 sm:h-8 sm:w-8 text-purple-600" />
               <div className="ml-3">
-                <p className="text-sm font-medium text-gray-500">Streak</p>
-                <p className="text-2xl font-bold text-gray-900">{stats?.currentStreak || 0}</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-500">Streak</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats?.currentStreak || 0}</p>
               </div>
             </div>
           </div>
@@ -419,32 +419,32 @@ export default function Dashboard() {
 
         {/* Progress */}
         {stats && stats.tierProgress && (
-          <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
-            <div className="flex items-center mb-6">
-              <Trophy className="h-6 w-6 text-yellow-600 mr-2" />
-              <h3 className="text-xl font-bold text-gray-900 tracking-wide">Progress</h3>
+          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 mb-6 sm:mb-8">
+            <div className="flex items-center mb-4 sm:mb-6">
+              <Trophy className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-600 mr-2" />
+              <h3 className="text-lg sm:text-xl font-bold text-gray-900 tracking-wide">Progress</h3>
             </div>
-            <div className="space-y-5">
+            <div className="space-y-4 sm:space-y-5">
               {stats.tierProgress.map((tier, index) => (
                 <div key={tier.tier} className="flex items-center justify-between">
                   <div className="flex-1">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-base font-semibold text-gray-800 tracking-wide">{tier.tier}</span>
-                      <span className="text-sm font-medium text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
+                    <div className="flex items-center justify-between mb-2 sm:mb-3">
+                      <span className="text-sm sm:text-base font-semibold text-gray-800 tracking-wide">{tier.tier}</span>
+                      <span className="text-xs sm:text-sm font-medium text-gray-600 bg-gray-100 px-2 py-1 sm:px-3 sm:py-1 rounded-full">
                         {tier.mastered}/{tier.total}
                       </span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-3 shadow-inner">
+                    <div className="w-full bg-gray-200 rounded-full h-2 sm:h-3 shadow-inner">
                       <div 
-                        className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-500 ease-out shadow-sm"
+                        className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 sm:h-3 rounded-full transition-all duration-500 ease-out shadow-sm"
                         style={{ width: `${tier.percentage}%` }}
                       ></div>
                     </div>
-                    <div className="flex items-center justify-between mt-2">
-                      <span className="text-sm font-medium text-gray-500 tracking-wide">{tier.percentage}% complete</span>
+                    <div className="flex items-center justify-between mt-1 sm:mt-2">
+                      <span className="text-xs sm:text-sm font-medium text-gray-500 tracking-wide">{tier.percentage}% complete</span>
                       {tier.mastered === tier.total && tier.total > 0 && (
-                        <span className="text-sm font-bold text-green-600 bg-green-100 px-2 py-1 rounded-full flex items-center">
-                          <CheckCircle className="h-4 w-4 mr-1" />
+                        <span className="text-xs sm:text-sm font-bold text-green-600 bg-green-100 px-1 py-1 sm:px-2 sm:py-1 rounded-full flex items-center">
+                          <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                           Completed
                         </span>
                       )}
@@ -458,15 +458,15 @@ export default function Dashboard() {
 
         {/* Recent Achievements */}
         {stats?.recentBadges && stats.recentBadges.length > 0 && (
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Achievements</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Recent Achievements</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {stats.recentBadges.map((badge) => (
-                <div key={badge.id} className="flex items-center p-4 bg-yellow-50 rounded-lg">
-                  <Award className="h-6 w-6 text-yellow-600" />
-                  <div className="ml-3">
-                    <p className="font-medium text-gray-900">{badge.name}</p>
-                    <p className="text-sm text-gray-600">{badge.description}</p>
+                <div key={badge.id} className="flex items-center p-3 sm:p-4 bg-yellow-50 rounded-lg">
+                  <Award className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-600 flex-shrink-0" />
+                  <div className="ml-3 min-w-0">
+                    <p className="font-medium text-gray-900 text-sm sm:text-base truncate">{badge.name}</p>
+                    <p className="text-xs sm:text-sm text-gray-600 line-clamp-2">{badge.description}</p>
                   </div>
                 </div>
               ))}
@@ -476,17 +476,17 @@ export default function Dashboard() {
 
         {/* Guest Mode CTA */}
         {isGuest && (
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-6 text-white mt-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold mb-2">Unlock Your Full Potential</h3>
-                <p className="text-blue-100">
+          <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-4 sm:p-6 text-white mt-6 sm:mt-8">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="min-w-0">
+                <h3 className="text-base sm:text-lg font-semibold mb-2">Unlock Your Full Potential</h3>
+                <p className="text-blue-100 text-sm sm:text-base">
                   Sign up to save your progress, track achievements, and access all features.
                 </p>
               </div>
               <button
                 onClick={() => router.push('/auth/signup')}
-                className="bg-white text-blue-600 px-6 py-2 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+                className="bg-white text-blue-600 px-4 py-2 sm:px-6 sm:py-2 rounded-lg font-semibold hover:bg-gray-100 transition-colors w-full sm:w-auto"
               >
                 Sign Up Now
               </button>
