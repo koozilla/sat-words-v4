@@ -615,7 +615,7 @@ export default function StudySession() {
           <div className="inline-flex items-center bg-white rounded-lg px-6 py-3 shadow-sm">
             <BookOpen className="h-5 w-5 text-blue-600 mr-2" />
             <span className="text-sm font-medium text-gray-700">
-              Score: {session.score}/{session.currentIndex + 1}
+              Question: {session.currentIndex + 1}/{session.words.length} | Score: {session.score}
             </span>
           </div>
         </div>
