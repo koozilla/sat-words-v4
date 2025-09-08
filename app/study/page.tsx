@@ -515,66 +515,67 @@ export default function StudySession() {
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          <div className="flex justify-between items-center h-12 sm:h-16">
             <button
               onClick={() => router.push('/dashboard')}
-              className="flex items-center text-gray-600 hover:text-gray-900"
+              className="flex items-center text-gray-600 hover:text-gray-900 text-sm sm:text-base"
             >
-              <ArrowLeft className="h-5 w-5 mr-2" />
-              Back to Dashboard
+              <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Back to Dashboard</span>
+              <span className="sm:hidden">Back</span>
             </button>
-            <div className="text-sm text-gray-500">
-              Question {session.currentIndex + 1} of {session.totalQuestions}
+            <div className="text-xs sm:text-sm text-gray-500">
+              {session.currentIndex + 1}/{session.totalQuestions}
             </div>
           </div>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
         {/* Progress Bar */}
-        <div className="mb-8">
-          <div className="flex justify-between text-sm font-medium text-gray-700 mb-2">
+        <div className="mb-4 sm:mb-8">
+          <div className="flex justify-between text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
             <span>Progress</span>
             <span>{Math.round(progress)}%</span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
+          <div className="w-full bg-gray-200 rounded-full h-1 sm:h-2">
             <div
-              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+              className="bg-blue-600 h-1 sm:h-2 rounded-full transition-all duration-300"
               style={{ width: `${progress}%` }}
             ></div>
           </div>
         </div>
 
         {/* Question Card */}
-        <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
+        <div className="bg-white rounded-xl shadow-lg p-4 sm:p-8 mb-4 sm:mb-8">
           {/* Word Image */}
           {currentWord.image_url && (
-            <div className="mb-6 text-center">
-              <div className="inline-block bg-gray-100 rounded-lg p-4">
+            <div className="mb-4 sm:mb-6 text-center">
+              <div className="inline-block bg-gray-100 rounded-lg p-2 sm:p-4">
                 <img 
                   src={currentWord.image_url} 
                   alt={`Visual representation of ${currentWord.word}`}
-                  className="h-32 w-32 object-cover rounded-lg mx-auto"
+                  className="h-24 w-24 sm:h-32 sm:w-32 object-cover rounded-lg mx-auto"
                 />
               </div>
             </div>
           )}
 
           {/* Definition */}
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-4 sm:mb-8">
+            <h2 className="text-lg sm:text-2xl font-bold text-gray-900 mb-2 sm:mb-4">
               What word matches this definition?
             </h2>
-            <div className="bg-blue-50 rounded-lg p-6">
-              <p className="text-lg text-gray-800 mb-2">{currentWord.definition}</p>
-              <p className="text-sm text-gray-600 italic">{currentWord.part_of_speech}</p>
+            <div className="bg-blue-50 rounded-lg p-3 sm:p-6">
+              <p className="text-base sm:text-lg text-gray-800 mb-1 sm:mb-2">{currentWord.definition}</p>
+              <p className="text-xs sm:text-sm text-gray-600 italic">{currentWord.part_of_speech}</p>
             </div>
           </div>
 
           {/* Answer Options */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          <div className="grid grid-cols-1 gap-3 sm:gap-4 mb-4 sm:mb-8">
             {currentAnswers.map((answer, index) => {
-              let buttonClass = "w-full p-4 text-left rounded-lg border-2 transition-colors ";
+              let buttonClass = "w-full p-3 sm:p-4 text-left rounded-lg border-2 transition-colors ";
               
               if (showAnswer) {
                 if (answer === currentWord.word) {
@@ -596,12 +597,12 @@ export default function StudySession() {
                   disabled={showAnswer}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-medium">{answer}</span>
+                    <span className="font-medium text-sm sm:text-base">{answer}</span>
                     {showAnswer && answer === currentWord.word && (
-                      <CheckCircle className="h-8 w-8 text-green-600" />
+                      <CheckCircle className="h-6 w-6 sm:h-8 sm:w-8 text-green-600 flex-shrink-0" />
                     )}
                     {showAnswer && answer === selectedAnswer && answer !== currentWord.word && (
-                      <XCircle className="h-5 w-5 text-red-600" />
+                      <XCircle className="h-5 w-5 sm:h-5 sm:w-5 text-red-600 flex-shrink-0" />
                     )}
                   </div>
                 </button>
@@ -611,13 +612,13 @@ export default function StudySession() {
 
 
           {/* Navigation */}
-          <div className="flex justify-between">
+          <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-0">
             <button
               onClick={previousQuestion}
               disabled={session.currentIndex === 0}
-              className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center justify-center px-3 py-2 sm:px-4 sm:py-2 text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
             >
-              <ArrowLeft className="h-4 w-4 mr-2" />
+              <ArrowLeft className="h-4 w-4 mr-1 sm:mr-2" />
               Previous
             </button>
 
@@ -625,21 +626,21 @@ export default function StudySession() {
               {!showAnswer && (
                 <button
                   onClick={() => nextQuestion(true)} // true = skipped (counts as wrong in challenge mode)
-                  className="flex items-center px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50"
+                  className="flex items-center justify-center px-4 py-2 sm:px-6 sm:py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 text-sm sm:text-base w-full sm:w-auto"
                   title="Skip this question (counts as wrong answer and resets progress)"
                 >
                   Skip
-                  <ArrowRight className="h-4 w-4 ml-2" />
+                  <ArrowRight className="h-4 w-4 ml-1 sm:ml-2" />
                 </button>
               )}
               
               {showAnswer && (
                 <button
                   onClick={() => nextQuestion(false)} // false = not skipped, answer was submitted
-                  className="flex items-center px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  className="flex items-center justify-center px-4 py-2 sm:px-6 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm sm:text-base w-full sm:w-auto"
                 >
                   {session.currentIndex === session.words.length - 1 ? 'Finish' : 'Next'}
-                  <ArrowRight className="h-4 w-4 ml-2" />
+                  <ArrowRight className="h-4 w-4 ml-1 sm:ml-2" />
                 </button>
               )}
             </div>
@@ -648,9 +649,9 @@ export default function StudySession() {
 
         {/* Score Display */}
         <div className="text-center">
-          <div className="inline-flex items-center bg-white rounded-lg px-6 py-3 shadow-sm">
-            <BookOpen className="h-5 w-5 text-blue-600 mr-2" />
-            <span className="text-sm font-medium text-gray-700">
+          <div className="inline-flex items-center bg-white rounded-lg px-4 py-2 sm:px-6 sm:py-3 shadow-sm">
+            <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 mr-2" />
+            <span className="text-xs sm:text-sm font-medium text-gray-700">
               Question: {session.currentIndex + 1}/{session.words.length} | Score: {session.score}
             </span>
           </div>
