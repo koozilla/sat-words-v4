@@ -320,16 +320,24 @@ export default function StudySession() {
     // Deduplicate word results before sending to summary - keep the best entry for each word
     const uniqueResults = new Map();
     session.wordResults.forEach(result => {
-      const wordKey = result.wordId || result.word;
+      // Use word text as the primary key since wordId might be inconsistent
+      const wordKey = result.word;
       if (!uniqueResults.has(wordKey)) {
         uniqueResults.set(wordKey, result);
       } else {
         const existing = uniqueResults.get(wordKey);
-        // Prefer results with transition data, or correct answers over incorrect ones
-        if ((result.fromState && result.toState && (!existing.fromState || !existing.toState)) ||
-            (result.correct && !existing.correct)) {
+        // Priority: 1) Results with state transition data, 2) Correct answers over incorrect ones
+        const hasTransition = result.fromState && result.toState;
+        const existingHasTransition = existing.fromState && existing.toState;
+        
+        if (!existingHasTransition && hasTransition) {
+          // Replace with entry that has transition data
+          uniqueResults.set(wordKey, result);
+        } else if (existingHasTransition === hasTransition && result.correct && !existing.correct) {
+          // If both have same transition status, prefer correct answer
           uniqueResults.set(wordKey, result);
         }
+        // Otherwise keep existing entry
       }
     });
     
@@ -342,8 +350,11 @@ export default function StudySession() {
       deduplicatedCount: deduplicatedResults.length,
       originalScore: session.score,
       actualScore: actualScore,
-      actualTotalQuestions: actualTotalQuestions
+      actualTotalQuestions: actualTotalQuestions,
+      originalWords: session.wordResults.map(r => r.word),
+      deduplicatedWords: deduplicatedResults.map(r => r.word)
     });
+    
 
     const sessionData = {
       session_type: 'study',
