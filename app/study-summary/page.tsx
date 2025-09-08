@@ -85,8 +85,27 @@ export default function StudySummary() {
 
     if (sessionInfo.wordResults && sessionInfo.wordResults.length > 0) {
       console.log('Processing word results:', sessionInfo.wordResults);
-      // First pass: categorize correct vs incorrect answers
+      
+      // Deduplicate word results to handle any double-counting issues
+      const uniqueWordResults = new Map();
       sessionInfo.wordResults.forEach((result: any) => {
+        const wordId = result.wordId || result.word; // Use wordId if available, fallback to word
+        if (!uniqueWordResults.has(wordId)) {
+          uniqueWordResults.set(wordId, result);
+        } else {
+          // If we have duplicate, prefer the one with more complete data (has fromState/toState)
+          const existing = uniqueWordResults.get(wordId);
+          if (result.fromState && result.toState && (!existing.fromState || !existing.toState)) {
+            uniqueWordResults.set(wordId, result);
+          }
+        }
+      });
+      
+      const deduplicatedResults = Array.from(uniqueWordResults.values());
+      console.log('Deduplicated word results:', deduplicatedResults);
+      
+      // First pass: categorize correct vs incorrect answers
+      deduplicatedResults.forEach((result: any) => {
         const wordData = {
           word: result.word,
           definition: result.definition,
@@ -101,7 +120,7 @@ export default function StudySummary() {
       });
 
       // Second pass: handle state transitions (promotions only for study)
-      sessionInfo.wordResults.forEach((result: any) => {
+      deduplicatedResults.forEach((result: any) => {
         if (result.fromState && result.toState && result.fromState !== result.toState) {
           // Determine if this is a promotion
           const stateHierarchy = ['not_started', 'started', 'ready', 'mastered'];
@@ -110,14 +129,11 @@ export default function StudySummary() {
           
           if (toIndex > fromIndex) {
             // Promotion: moved to a better state
-            const alreadyPromoted = wordsPromoted.some(promoted => promoted.word === result.word);
-            if (!alreadyPromoted) {
-              wordsPromoted.push({
-                word: result.word,
-                fromState: result.fromState,
-                toState: result.toState
-              });
-            }
+            wordsPromoted.push({
+              word: result.word,
+              fromState: result.fromState,
+              toState: result.toState
+            });
           }
         }
       });
@@ -137,13 +153,17 @@ export default function StudySummary() {
       wordsIncorrect.push(...sampleWords.slice(correctCount));
     }
 
-    const accuracy = sessionInfo.totalQuestions > 0 ? (sessionInfo.score / sessionInfo.totalQuestions) * 100 : 0;
-    const timeSpent = sessionInfo.endTime ? 
-      Math.round((new Date(sessionInfo.endTime).getTime() - new Date(sessionInfo.startTime).getTime()) / 1000) : 0;
+    // Calculate actual score from word results (don't trust sessionInfo.score due to potential double-counting)
+    const actualCorrectCount = wordsCorrect.length;
+    const actualTotalQuestions = wordsCorrect.length + wordsIncorrect.length;
+    const accuracy = actualTotalQuestions > 0 ? (actualCorrectCount / actualTotalQuestions) * 100 : 0;
+    
+    const timeSpent = sessionInfo.completed_at && sessionInfo.started_at ? 
+      Math.round((new Date(sessionInfo.completed_at).getTime() - new Date(sessionInfo.started_at).getTime()) / 1000) : 0;
 
     return {
-      score: sessionInfo.score || 0,
-      totalQuestions: sessionInfo.totalQuestions || 0,
+      score: actualCorrectCount,
+      totalQuestions: actualTotalQuestions,
       accuracy: Math.round(accuracy),
       timeSpent,
       wordsCorrect,

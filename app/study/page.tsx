@@ -330,12 +330,11 @@ export default function StudySession() {
 
   const nextQuestion = async (isSkipped = true) => {
     if (session && session.currentIndex < session.words.length - 1) {
-      // Mark current question as incorrect (skipped) only if it was actually skipped
       const currentWord = session.words[session.currentIndex];
-      const isCorrect = !isSkipped; // If not skipped, it was correct
       
-      // Handle word state transition for skipped questions (treat as wrong answer)
-      if (isSkipped) {
+      // Only add word result if the question was actually skipped (no answer was already recorded)
+      if (isSkipped && !showAnswer) {
+        // Handle word state transition for skipped questions (treat as wrong answer)
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           const transition = await wordStateManager.handleStudyAnswer(
@@ -348,34 +347,41 @@ export default function StudySession() {
             console.log('Skip treated as wrong answer - Word state transition:', transition);
           }
         }
+        
+        // Update session with skipped answer
+        const updatedSession = {
+          ...session,
+          answers: {
+            ...session.answers,
+            [currentWord.id]: false
+          },
+          score: session.score, // No points for skipped questions
+          wordResults: [
+            ...session.wordResults,
+            {
+              wordId: currentWord.id,
+              word: currentWord.word,
+              definition: currentWord.definition,
+              tier: currentWord.tier,
+              correct: false,
+              selectedAnswer: 'SKIPPED',
+              correctAnswer: currentWord.word
+            }
+          ]
+        };
+        
+        setSession({
+          ...updatedSession,
+          currentIndex: session.currentIndex + 1
+        });
+      } else {
+        // Just advance to next question (answer was already processed by handleAnswerSelect)
+        setSession({
+          ...session,
+          currentIndex: session.currentIndex + 1
+        });
       }
       
-      // Update session with answer
-      const updatedSession = {
-        ...session,
-        answers: {
-          ...session.answers,
-          [currentWord.id]: isCorrect
-        },
-        score: session.score + (isCorrect ? 1 : 0),
-        wordResults: [
-          ...session.wordResults,
-          {
-            wordId: currentWord.id,
-            word: currentWord.word,
-            definition: currentWord.definition,
-            tier: currentWord.tier,
-            correct: isCorrect,
-            selectedAnswer: isSkipped ? 'SKIPPED' : selectedAnswer || '', // Mark as skipped
-            correctAnswer: currentWord.word
-          }
-        ]
-      };
-      
-      setSession({
-        ...updatedSession,
-        currentIndex: session.currentIndex + 1
-      });
       setShowAnswer(false);
       setSelectedAnswer(null);
       setIsCorrect(null);

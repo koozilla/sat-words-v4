@@ -124,13 +124,19 @@ export default function ReviewSummary() {
       );
     }
 
-    const accuracy = sessionInfo.words_studied > 0 ? (sessionInfo.correct_answers / sessionInfo.words_studied) * 100 : 0;
-    const timeSpent = sessionInfo.completed_at ? 
+    // Calculate actual score from word results (don't trust sessionInfo values due to potential issues)
+    const actualCorrectCount = sessionInfo.wordResults && sessionInfo.wordResults.length > 0 ? 
+      sessionInfo.wordResults.filter((result: any) => result.correct).length : 0;
+    const actualTotalQuestions = sessionInfo.wordResults && sessionInfo.wordResults.length > 0 ? 
+      sessionInfo.wordResults.length : sessionInfo.words_studied || 0;
+    const accuracy = actualTotalQuestions > 0 ? (actualCorrectCount / actualTotalQuestions) * 100 : 0;
+    
+    const timeSpent = sessionInfo.completed_at && sessionInfo.started_at ? 
       Math.round((new Date(sessionInfo.completed_at).getTime() - new Date(sessionInfo.started_at).getTime()) / 1000) : 0;
 
     console.log('Calculated metrics:', {
-      score: sessionInfo.correct_answers || 0,
-      totalQuestions: sessionInfo.words_studied || 0,
+      score: actualCorrectCount,
+      totalQuestions: actualTotalQuestions,
       accuracy: Math.round(accuracy),
       timeSpent,
       wordsPromoted: wordsPromoted.length,
@@ -138,8 +144,8 @@ export default function ReviewSummary() {
     });
 
     return {
-      score: sessionInfo.correct_answers || 0,
-      totalQuestions: sessionInfo.words_studied || 0,
+      score: actualCorrectCount,
+      totalQuestions: actualTotalQuestions,
       accuracy: Math.round(accuracy),
       timeSpent,
       wordsPromoted,
