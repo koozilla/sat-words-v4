@@ -11,7 +11,8 @@ import {
   CheckCircle, 
   XCircle,
   BookOpen,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Target
 } from 'lucide-react';
 import CelebrationAnimation from '@/components/ui/CelebrationAnimation';
 
@@ -577,15 +578,7 @@ export default function StudySession() {
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-12 sm:h-16">
-            <button
-              onClick={() => router.push('/dashboard')}
-              className="flex items-center text-gray-600 hover:text-gray-900 text-sm sm:text-base"
-            >
-              <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" />
-              <span className="hidden sm:inline">Back to Dashboard</span>
-              <span className="sm:hidden">Back</span>
-            </button>
+          <div className="flex justify-center items-center h-12 sm:h-16">
             <div className="text-xs sm:text-sm text-gray-500">
               {session.currentIndex + 1}/{session.totalQuestions}
             </div>
@@ -665,6 +658,21 @@ export default function StudySession() {
 
 
           {/* Navigation - No manual navigation needed, auto-advance handles both correct and wrong answers */}
+        </div>
+
+        {/* Bottom Navigation */}
+        <div className="flex justify-center mt-6 sm:mt-8">
+          <button
+            onClick={() => {
+              if (confirm('Are you sure you want to leave the study session? Your progress will be saved.')) {
+                router.push('/dashboard');
+              }
+            }}
+            className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-semibold text-sm sm:text-base flex items-center justify-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
+            Back to Dashboard
+          </button>
         </div>
       </main>
 
