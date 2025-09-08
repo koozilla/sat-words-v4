@@ -23,13 +23,13 @@ interface ReviewSessionSummary {
   timeSpent: number;
   wordsPromoted: Array<{
     word: string;
-    fromState: string;
-    toState: string;
+    definition: string;
+    tier: string;
   }>;
   wordsDemoted: Array<{
     word: string;
-    fromState: string;
-    toState: string;
+    definition: string;
+    tier: string;
   }>;
   newBadges: Array<{
     id: string;
@@ -75,8 +75,8 @@ export default function ReviewSummary() {
   const generateReviewSessionSummary = async (sessionInfo: any): Promise<ReviewSessionSummary> => {
     console.log('generateReviewSessionSummary called with:', sessionInfo);
     
-    const wordsPromoted: Array<{ word: string; fromState: string; toState: string }> = [];
-    const wordsDemoted: Array<{ word: string; fromState: string; toState: string }> = [];
+    const wordsPromoted: Array<{ word: string; definition: string; tier: string }> = [];
+    const wordsDemoted: Array<{ word: string; definition: string; tier: string }> = [];
 
     if (sessionInfo.wordResults && sessionInfo.wordResults.length > 0) {
       console.log('Processing wordResults:', sessionInfo.wordResults);
@@ -94,8 +94,8 @@ export default function ReviewSummary() {
             if (!alreadyPromoted) {
               wordsPromoted.push({
                 word: result.word,
-                fromState: result.fromState,
-                toState: result.toState
+                definition: result.definition || 'Definition not available',
+                tier: result.tier || 'Unknown'
               });
             }
           } else if (toIndex < fromIndex) {
@@ -104,8 +104,8 @@ export default function ReviewSummary() {
             if (!alreadyDemoted) {
               wordsDemoted.push({
                 word: result.word,
-                fromState: result.fromState,
-                toState: result.toState
+                definition: result.definition || 'Definition not available',
+                tier: result.tier || 'Unknown'
               });
             }
           }
@@ -115,12 +115,12 @@ export default function ReviewSummary() {
       console.log('No wordResults found, using fallback data');
       // Fallback to sample data if no word results available
       wordsPromoted.push(
-        { word: 'Ephemeral', fromState: 'ready', toState: 'mastered' },
-        { word: 'Censure', fromState: 'ready', toState: 'mastered' }
+        { word: 'Ephemeral', definition: 'Lasting for a very short time; transitory.', tier: 'Top 25' },
+        { word: 'Censure', definition: 'To express severe disapproval of someone or something.', tier: 'Top 25' }
       );
       wordsDemoted.push(
-        { word: 'Benevolent', fromState: 'ready', toState: 'started' },
-        { word: 'Camaraderie', fromState: 'ready', toState: 'started' }
+        { word: 'Benevolent', definition: 'Well meaning and kindly; characterized by doing good for others.', tier: 'Top 25' },
+        { word: 'Camaraderie', definition: 'Mutual trust and friendship among people who spend a lot of time together.', tier: 'Top 25' }
       );
     }
 
@@ -258,7 +258,10 @@ export default function ReviewSummary() {
                       <div key={index} className="bg-green-50 border border-green-200 rounded-lg p-4">
                         <h4 className="font-semibold text-green-800 mb-1">{word.word}</h4>
                         <p className="text-green-700 text-sm">
-                          {word.fromState} → {word.toState}
+                          {word.definition}
+                        </p>
+                        <p className="text-green-600 text-xs mt-1">
+                          {word.tier}
                         </p>
                       </div>
                     ))}
@@ -278,7 +281,10 @@ export default function ReviewSummary() {
                       <div key={index} className="bg-red-50 border border-red-200 rounded-lg p-4">
                         <h4 className="font-semibold text-red-800 mb-1">{word.word}</h4>
                         <p className="text-red-700 text-sm">
-                          {word.fromState} → {word.toState}
+                          {word.definition}
+                        </p>
+                        <p className="text-red-600 text-xs mt-1">
+                          {word.tier}
                         </p>
                       </div>
                     ))}
@@ -290,7 +296,14 @@ export default function ReviewSummary() {
         )}
 
         {/* Action Buttons */}
-        <div className="flex justify-center">
+        <div className="flex justify-center gap-4">
+          <button
+            onClick={() => router.push('/review')}
+            className="px-8 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-semibold flex items-center"
+          >
+            <Target className="h-5 w-5 mr-2" />
+            Continue Challenge
+          </button>
           <button
             onClick={() => router.push('/dashboard')}
             className="px-8 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-semibold"

@@ -976,6 +976,7 @@ export class WordStateManager {
 
   /**
    * Mark a word as started (ensure it's in active pool for study)
+   * Also resets streaks when putting mastered words back to study
    */
   async markWordAsStarted(userId: string, wordId: string): Promise<boolean> {
     try {
@@ -983,7 +984,10 @@ export class WordStateManager {
         .from('user_progress')
         .update({ 
           state: 'started',
-          last_studied: new Date().toISOString()
+          study_streak: 0, // Reset study streak
+          review_streak: 0, // Reset review streak
+          last_studied: new Date().toISOString(),
+          next_review_date: null // Clear review date since it's back to study
         })
         .eq('user_id', userId)
         .eq('word_id', wordId);

@@ -355,7 +355,14 @@ export default function StudySummary() {
         )}
 
         {/* Action Buttons */}
-        <div className="flex justify-center">
+        <div className="flex justify-center gap-4">
+          <button
+            onClick={() => router.push('/study')}
+            className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold flex items-center"
+          >
+            <BookOpen className="h-5 w-5 mr-2" />
+            Study Again
+          </button>
           <button
             onClick={() => router.push('/dashboard')}
             className="px-8 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-semibold"

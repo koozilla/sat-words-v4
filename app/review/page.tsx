@@ -129,8 +129,8 @@ export default function ReviewSession() {
         return;
       }
 
-      // Select only 3 words from the review words for the quiz
-      const selectedReviewWords = reviewWords.slice(0, 3);
+      // Select only 2 words from the review words for the quiz
+      const selectedReviewWords = reviewWords.slice(0, 2);
       
       const reviewWordsData: Word[] = selectedReviewWords.map(p => ({
         id: p.words.id,
@@ -364,8 +364,8 @@ export default function ReviewSession() {
   };
 
   const nextQuestion = async (isSkipped = true) => {
-    if (session && session.currentIndex < session.words.length - 1) {
-      // Only update session if the question was skipped (no answer submitted)
+    if (session) {
+      // Handle skipped questions (both last and non-last questions)
       if (isSkipped && !showAnswer) {
         const currentWord = session.words[session.currentIndex];
         
@@ -406,33 +406,41 @@ export default function ReviewSession() {
           word: currentWord.word,
           score: updatedSession.score,
           totalQuestions: updatedSession.totalQuestions,
-          wordResultsLength: updatedSession.wordResults.length
+          wordResultsLength: updatedSession.wordResults.length,
+          isLastQuestion: session.currentIndex === session.words.length - 1
         });
         
+        // Update session with skipped result
+        setSession(updatedSession);
+        
+        // Check if this was the last question
+        if (session.currentIndex === session.words.length - 1) {
+          // Last question was skipped, finish the session
+          finishSession();
+          return;
+        } else {
+          // Not the last question, advance to next
+          setSession({
+            ...updatedSession,
+            currentIndex: session.currentIndex + 1
+          });
+        }
+      } else if (session.currentIndex < session.words.length - 1) {
+        // Just advance to next question without updating session (already handled by handleSubmit)
         setSession({
-          ...updatedSession,
+          ...session,
           currentIndex: session.currentIndex + 1
         });
       } else {
-        // Just advance to next question without updating session (already handled by handleSubmit)
-        if (session.currentIndex < session.words.length - 1) {
-          setSession({
-            ...session,
-            currentIndex: session.currentIndex + 1
-          });
-        } else {
-          // If it's the last question and answer was submitted, finish the session
-          finishSession();
-          return;
-        }
+        // If it's the last question and answer was submitted, finish the session
+        finishSession();
+        return;
       }
       
       setShowAnswer(false);
       setUserInput('');
       setIsCorrect(null);
       setShowHint(false);
-    } else {
-      finishSession();
     }
   };
 

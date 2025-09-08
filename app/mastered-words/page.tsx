@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { WordStateManager } from '@/lib/word-state-manager';
 import { 
   BookOpen, 
   CheckCircle,
@@ -10,7 +11,8 @@ import {
   Search,
   Filter,
   Trophy,
-  Target
+  Target,
+  RotateCcw
 } from 'lucide-react';
 
 interface Word {
@@ -38,6 +40,7 @@ export default function MasteredWords() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTier, setSelectedTier] = useState('all');
   const [isGuest, setIsGuest] = useState(false);
+  const [wordStateManager] = useState(() => new WordStateManager());
   const router = useRouter();
   const supabase = createClientComponentClient();
 
@@ -104,6 +107,28 @@ export default function MasteredWords() {
   const loadGuestMasteredWords = async () => {
     // Mock data for guest mode
     setMasteredWords([]);
+  };
+
+  const putBackToStudy = async (wordId: string, word: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        alert('You must be logged in to modify word states.');
+        return;
+      }
+
+      // Reset word from mastered back to started state
+      await wordStateManager.markWordAsStarted(user.id, wordId);
+      
+      // Remove the word from the mastered words list
+      setMasteredWords(prev => prev.filter(w => w.id !== wordId));
+      
+      console.log(`Word "${word}" has been reset to study state`);
+    } catch (error) {
+      console.error('Error resetting word to study state:', error);
+      alert('Failed to reset word to study state. Please try again.');
+    }
   };
 
   const filteredWords = masteredWords.filter(word => {
@@ -289,6 +314,17 @@ export default function MasteredWords() {
                     </span>
                     <CheckCircle className="h-5 w-5 text-green-600" />
                   </div>
+                </div>
+
+                {/* Put back to Study Button */}
+                <div className="mb-4">
+                  <button
+                    onClick={() => putBackToStudy(word.id, word.word)}
+                    className="w-full flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
+                  >
+                    <RotateCcw className="h-4 w-4 mr-2" />
+                    Put back to Study
+                  </button>
                 </div>
 
                 {/* Example Sentence */}
