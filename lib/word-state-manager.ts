@@ -403,8 +403,8 @@ export class WordStateManager {
         return { success: false };
       }
 
-      const activeCount = progressData?.filter(p => p.state === 'started').length || 0;
-      const reviewCount = progressData?.filter(p => p.state === 'ready').length || 0;
+      const activeCount = progressData?.filter((p: any) => p.state === 'started').length || 0;
+      const reviewCount = progressData?.filter((p: any) => p.state === 'ready').length || 0;
       const totalCount = activeCount + reviewCount;
       const targetTotal = 15;
 
