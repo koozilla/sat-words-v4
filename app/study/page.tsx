@@ -574,14 +574,14 @@ export default function StudySession() {
               
               if (showAnswer) {
                 if (answer === currentWord.word) {
-                  buttonClass += "border-green-500 bg-green-50 text-green-800";
+                  buttonClass += "border-green-500 bg-gradient-to-r from-green-50 to-green-100 text-green-800 shadow-lg transform scale-105";
                 } else if (answer === selectedAnswer) {
-                  buttonClass += "border-red-500 bg-red-50 text-red-800";
+                  buttonClass += "border-red-500 bg-gradient-to-r from-red-50 to-red-100 text-red-800 shadow-lg";
                 } else {
                   buttonClass += "border-gray-200 bg-gray-50 text-gray-600";
                 }
               } else {
-                buttonClass += "border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50";
+                buttonClass += "border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50 transition-all duration-200";
               }
 
               return (
@@ -594,10 +594,16 @@ export default function StudySession() {
                   <div className="flex items-center justify-between">
                     <span className="font-medium text-sm sm:text-base">{answer}</span>
                     {showAnswer && answer === currentWord.word && (
-                      <CheckCircle className="h-6 w-6 sm:h-8 sm:w-8 text-green-600 flex-shrink-0" />
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="h-8 w-8 sm:h-10 sm:w-10 text-green-600 flex-shrink-0 animate-pulse" />
+                        <span className="text-green-600 font-bold text-sm">Correct!</span>
+                      </div>
                     )}
                     {showAnswer && answer === selectedAnswer && answer !== currentWord.word && (
-                      <XCircle className="h-5 w-5 sm:h-5 sm:w-5 text-red-600 flex-shrink-0" />
+                      <div className="flex items-center gap-2">
+                        <XCircle className="h-6 w-6 sm:h-7 sm:w-7 text-red-600 flex-shrink-0" />
+                        <span className="text-red-600 font-bold text-sm">Wrong</span>
+                      </div>
                     )}
                   </div>
                 </button>
@@ -627,7 +633,7 @@ export default function StudySession() {
       <CelebrationAnimation 
         isVisible={showCelebration}
         onComplete={handleCelebrationComplete}
-        type="confetti"
+        type="duolingo"
         message={getCelebrationMessage(streak)}
       />
     </div>
