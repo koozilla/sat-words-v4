@@ -84,7 +84,8 @@ export default function StudySummary() {
     const wordsPromoted: Array<{ word: string; fromState: string; toState: string }> = [];
 
     if (sessionInfo.wordResults && sessionInfo.wordResults.length > 0) {
-      console.log('Processing word results:', sessionInfo.wordResults);
+      console.log('Processing word results:', sessionInfo.wordResults.length, 'entries');
+      console.log('Raw sessionInfo.wordResults:', sessionInfo.wordResults);
       
       // Deduplicate word results to handle any double-counting issues
       // Use word as the primary key (not word + correct) since each word should only appear once per session

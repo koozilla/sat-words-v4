@@ -234,16 +234,42 @@ export default function StudySession() {
       toState: transition?.toState
     };
 
-    // Single session update with all data
+    // Single session update with all data - check for existing results to prevent duplicates
     if (session) {
+      // Check if we already have a result for this word
+      const existingResultIndex = session.wordResults.findIndex(result => result.wordId === currentWord.id);
+      let updatedWordResults;
+      let scoreAdjustment = 0;
+      
+      if (existingResultIndex >= 0) {
+        // Replace existing result
+        const existingResult = session.wordResults[existingResultIndex];
+        updatedWordResults = [...session.wordResults];
+        updatedWordResults[existingResultIndex] = finalWordResult;
+        
+        // Adjust score based on the change from existing to new result
+        if (correct && !existingResult.correct) {
+          scoreAdjustment = 1; // Was wrong, now correct
+        } else if (!correct && existingResult.correct) {
+          scoreAdjustment = -1; // Was correct, now wrong
+        } // else no change needed
+        
+        console.log(`Replacing existing result for word: ${currentWord.word}, score adjustment: ${scoreAdjustment}`);
+      } else {
+        // Add new result
+        updatedWordResults = [...session.wordResults, finalWordResult];
+        scoreAdjustment = correct ? 1 : 0;
+        console.log(`Adding new result for word: ${currentWord.word}, score adjustment: ${scoreAdjustment}`);
+      }
+
       setSession({
         ...session,
         answers: {
           ...session.answers,
           [currentWord.id]: correct
         },
-        score: correct ? session.score + 1 : session.score,
-        wordResults: [...session.wordResults, finalWordResult],
+        score: session.score + scoreAdjustment,
+        wordResults: updatedWordResults,
         promotedWords: (transition?.toState === 'ready' && transition?.fromState === 'started') 
           ? [...session.promotedWords, currentWord.id]
           : session.promotedWords
