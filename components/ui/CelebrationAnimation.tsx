@@ -21,24 +21,25 @@ export default function CelebrationAnimation({
 
   useEffect(() => {
     if (isVisible) {
+      console.log(`CelebrationAnimation triggered with message: "${message}"`);
       setShowAnimation(true);
       setAnimationPhase(0);
       
-      // Phase 1: Initial burst (300ms)
+      // Phase 1: Initial burst (100ms)
       const phase1Timer = setTimeout(() => {
         setAnimationPhase(1);
-      }, 300);
+      }, 100);
       
-      // Phase 2: Celebration message (800ms)
+      // Phase 2: Celebration message (200ms)
       const phase2Timer = setTimeout(() => {
         setAnimationPhase(2);
-      }, 1100);
+      }, 200);
       
-      // Phase 3: Complete animation (1500ms total)
+      // Phase 3: Complete animation (1000ms total)
       const completeTimer = setTimeout(() => {
         setShowAnimation(false);
         onComplete?.();
-      }, 1500);
+      }, 1000);
 
       return () => {
         clearTimeout(phase1Timer);

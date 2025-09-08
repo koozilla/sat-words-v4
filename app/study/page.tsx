@@ -58,19 +58,21 @@ export default function StudySession() {
   const [currentAnswers, setCurrentAnswers] = useState<string[]>([]);
   const [showCelebration, setShowCelebration] = useState(false);
   const [streak, setStreak] = useState(0);
+  const [celebrationMessage, setCelebrationMessage] = useState('');
+  const [celebrationTriggered, setCelebrationTriggered] = useState(false);
   const [wordStateManager] = useState(() => new WordStateManager());
   const router = useRouter();
   const supabase = createClientComponentClient();
 
   const getCelebrationMessage = (streak: number): string => {
     if (streak === 1) return 'Good!';
-    if (streak === 2) return 'Good!';
-    if (streak === 3) return 'Great!';
-    if (streak === 4) return 'Great!';
-    if (streak === 5) return 'Awesome!';
-    if (streak === 6) return 'Awesome!';
+    if (streak === 2) return 'Great!';
+    if (streak === 3) return 'Awesome!';
+    if (streak === 4) return 'Excellent!';
+    if (streak === 5) return 'Fantastic!';
+    if (streak === 6) return 'Incredible!';
     if (streak === 7) return 'On Fire!';
-    if (streak === 8) return 'On Fire!';
+    if (streak === 8) return 'Unstoppable!';
     if (streak >= 9) return 'CRAZY~';
     return 'Correct!';
   };
@@ -88,12 +90,20 @@ export default function StudySession() {
 
   // Generate answers when current word changes
   useEffect(() => {
-    if (session && session.words.length > 0) {
-      const currentWord = session.words[session.currentIndex];
-      const distractors = generateDistractors(currentWord, session.words);
-      const shuffledAnswers = [currentWord.word, ...distractors].sort(() => Math.random() - 0.5);
-      setCurrentAnswers(shuffledAnswers);
-    }
+    const generateAnswers = async () => {
+      if (session && session.words.length > 0) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const currentWord = session.words[session.currentIndex];
+          const distractors = await generateDistractors(currentWord, user.id);
+          const shuffledAnswers = [currentWord.word, ...distractors].sort(() => Math.random() - 0.5);
+          console.log(`Final answers for "${currentWord.word}":`, shuffledAnswers);
+          setCurrentAnswers(shuffledAnswers);
+        }
+      }
+    };
+    
+    generateAnswers();
   }, [session?.currentIndex, session?.words]);
 
   const initializeStudySession = async () => {
@@ -115,7 +125,7 @@ export default function StudySession() {
           .from('words')
           .select('*')
           .eq('tier', 'top_25')
-          .limit(5);
+          .limit(15);
 
         if (testError || !testWords || testWords.length === 0) {
           router.push('/words');
@@ -135,6 +145,8 @@ export default function StudySession() {
           example_sentence: w.example_sentence
         }));
 
+        console.log(`Loaded ${studyWords.length} test words:`, studyWords.map(w => w.word));
+
         setSession({
           words: studyWords,
           currentIndex: 0,
@@ -148,8 +160,9 @@ export default function StudySession() {
         return;
       }
 
-      // Select only 5 words from the active pool for the quiz
-      const selectedWords = activePoolWords.slice(0, 5);
+      // Select words from the active pool for the quiz
+      console.log(`Found ${activePoolWords.length} words in active pool:`, activePoolWords.map(p => p.words.word));
+      const selectedWords = activePoolWords.slice(0, 15); // Use more words to ensure enough distractors
       
       const studyWords: Word[] = selectedWords.map(p => ({
         id: p.words.id,
@@ -181,13 +194,34 @@ export default function StudySession() {
     }
   };
 
-  const generateDistractors = (currentWord: Word, allWords: Word[]): string[] => {
-    const distractors = allWords
-      .filter(w => w.id !== currentWord.id && w.tier === currentWord.tier)
+  const generateDistractors = async (currentWord: Word, userId: string): Promise<string[]> => {
+    console.log(`Generating distractors for "${currentWord.word}" (tier: ${currentWord.tier})`);
+    
+    // Get all words from the same tier from database
+    const { data: tierWords, error } = await supabase
+      .from('words')
+      .select('word')
+      .eq('tier', currentWord.tier)
+      .limit(50); // Get up to 50 words from the same tier
+    
+    if (error || !tierWords) {
+      console.error('Error fetching tier words:', error);
+      return ['Option A', 'Option B', 'Option C']; // Fallback
+    }
+    
+    // Filter out the current word and get word strings
+    const availableWords = tierWords
       .map(w => w.word)
+      .filter(word => word !== currentWord.word);
+    
+    console.log(`Found ${availableWords.length} words in tier ${currentWord.tier}:`, availableWords);
+    
+    // Randomly select 3 distractors
+    const distractors = availableWords
       .sort(() => Math.random() - 0.5)
       .slice(0, 3);
     
+    console.log(`Selected ${distractors.length} distractors:`, distractors);
     return distractors;
   };
 
@@ -201,11 +235,17 @@ export default function StudySession() {
     setShowAnswer(true);
 
     // Update streak and set auto-advance for wrong answers
-    if (correct) {
-      setStreak(prev => prev + 1);
+    if (correct && !celebrationTriggered) {
+      const newStreak = streak + 1;
+      const message = getCelebrationMessage(newStreak);
+      console.log(`Setting celebration: streak=${newStreak}, message="${message}"`);
+      setStreak(newStreak);
+      setCelebrationMessage(message);
       setShowCelebration(true);
-    } else {
+      setCelebrationTriggered(true);
+    } else if (!correct) {
       setStreak(0);
+      setCelebrationTriggered(false);
       // Don't auto-advance wrong answers - let user see the result and manually advance
     }
 
@@ -294,14 +334,12 @@ export default function StudySession() {
       });
     }
 
-    // Show celebration animation for correct answers and auto-advance
-    if (correct) {
-      setShowCelebration(true);
-    }
+    // Celebration animation is already triggered in handleAnswerSelect above
   };
 
   const handleCelebrationComplete = () => {
     setShowCelebration(false);
+    setCelebrationTriggered(false);
     // Auto-advance to next question after celebration for correct answers
     if (session && session.currentIndex < session.words.length - 1) {
       nextQuestion(false); // false = not skipped (this was a correct answer)
@@ -468,7 +506,7 @@ export default function StudySession() {
       setShowAnswer(false);
       setSelectedAnswer(null);
       setIsCorrect(null);
-      setCurrentAnswers([]); // Reset answers to trigger regeneration
+      // Answers will be regenerated by useEffect when currentIndex changes
     } else {
       finishSession();
     }
@@ -634,7 +672,7 @@ export default function StudySession() {
         isVisible={showCelebration}
         onComplete={handleCelebrationComplete}
         type="duolingo"
-        message={getCelebrationMessage(streak)}
+        message={celebrationMessage}
       />
     </div>
   );
