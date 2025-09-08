@@ -95,7 +95,10 @@ export default function ReviewSession() {
           return;
         }
 
-        const reviewWordsData: Word[] = reviewWords.map(p => ({
+        // Select 10 words from the review words for the quiz
+        const selectedReviewWords = reviewWords.slice(0, 10);
+
+        const reviewWordsData: Word[] = selectedReviewWords.map(p => ({
           id: p.words.id,
           word: p.words.word,
           definition: p.words.definition,
@@ -129,8 +132,8 @@ export default function ReviewSession() {
         return;
       }
 
-      // Select only 2 words from the review words for the quiz
-      const selectedReviewWords = reviewWords.slice(0, 2);
+      // Select 10 words from the review words for the quiz
+      const selectedReviewWords = reviewWords.slice(0, 10);
       
       const reviewWordsData: Word[] = selectedReviewWords.map(p => ({
         id: p.words.id,
