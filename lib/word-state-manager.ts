@@ -347,6 +347,152 @@ export class WordStateManager {
   }
 
   /**
+   * Get review words (ready state) - limited to target pool size
+   */
+  async getReviewWords(userId: string): Promise<any[]> {
+    try {
+      const { data, error } = await this.supabase
+        .from('user_progress')
+        .select(`
+          *,
+          words (
+            id,
+            word,
+            definition,
+            part_of_speech,
+            tier,
+            difficulty,
+            image_urls,
+            synonyms,
+            antonyms,
+            example_sentence
+          )
+        `)
+        .eq('user_id', userId)
+        .eq('state', 'ready')
+        .order('next_review_date', { ascending: true })
+        .limit(15); // Limit to target pool size
+
+      if (error) {
+        console.error('Error fetching review words:', error);
+        return [];
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Error getting review words:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Ensure total of active words (started) and review words (ready) equals 15
+   * Returns object with balance result and current tier to avoid duplicate calls
+   */
+  async maintainPoolBalance(userId: string): Promise<{ success: boolean; currentTier?: string }> {
+    try {
+      // Get both counts in a single query to reduce database calls
+      const { data: progressData, error } = await this.supabase
+        .from('user_progress')
+        .select('state')
+        .eq('user_id', userId)
+        .in('state', ['started', 'ready']);
+
+      if (error) {
+        console.error('Error getting progress data:', error);
+        return { success: false };
+      }
+
+      const activeCount = progressData?.filter(p => p.state === 'started').length || 0;
+      const reviewCount = progressData?.filter(p => p.state === 'ready').length || 0;
+      const totalCount = activeCount + reviewCount;
+      const targetTotal = 15;
+
+      console.log(`Pool balance: ${activeCount} active + ${reviewCount} review = ${totalCount} total (target: ${targetTotal})`);
+
+      if (totalCount === targetTotal) {
+        // Get current tier to return with success
+        const currentTier = await this.getCurrentTier(userId);
+        return { success: true, currentTier }; // Already balanced
+      }
+
+      if (totalCount < targetTotal) {
+        // Need to add more words to reach 15 total
+        const neededCount = targetTotal - totalCount;
+        console.log(`Need to add ${neededCount} words to reach target of ${targetTotal}`);
+        
+        const availableWords = await this.getAvailableWordsForPool(userId, neededCount);
+        console.log(`Found ${availableWords.length} available words`);
+
+        if (availableWords.length === 0) {
+          console.log('No available words to maintain pool balance');
+          const currentTier = await this.getCurrentTier(userId);
+          return { success: true, currentTier }; // No words available, but not an error
+        }
+
+        // Add words to active pool (started state)
+        const progressEntries = availableWords.map(word => ({
+          user_id: userId,
+          word_id: word.id,
+          state: 'started',
+          study_streak: 0,
+          review_streak: 0,
+          last_studied: new Date().toISOString()
+        }));
+
+        const { error: insertError } = await this.supabase
+          .from('user_progress')
+          .upsert(progressEntries, { 
+            onConflict: 'user_id,word_id',
+            ignoreDuplicates: false 
+          });
+
+        if (insertError) {
+          console.error('Error maintaining pool balance:', insertError);
+          return { success: false };
+        }
+
+        console.log(`Added ${progressEntries.length} words to maintain pool balance`);
+        const currentTier = await this.getCurrentTier(userId);
+        return { success: true, currentTier };
+      }
+
+      // If totalCount > targetTotal, we need to reduce
+      // This shouldn't happen in normal flow, but we'll handle it
+      console.log(`Pool has ${totalCount} words, exceeding target of ${targetTotal}`);
+      const currentTier = await this.getCurrentTier(userId);
+      return { success: true, currentTier }; // Let the system naturally balance through usage
+
+    } catch (error) {
+      console.error('Error maintaining pool balance:', error);
+      return { success: false };
+    }
+  }
+
+  /**
+   * Get count of review words (ready state)
+   */
+  async getReviewWordsCount(userId: string): Promise<number> {
+    try {
+      const { count, error } = await this.supabase
+        .from('user_progress')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .eq('state', 'ready');
+
+      if (error) {
+        console.error('Error getting review words count:', error);
+        return 0;
+      }
+
+      return count || 0;
+    } catch (error) {
+      console.error('Error getting review words count:', error);
+      return 0;
+    }
+  }
+
+  /**
    * Calculate next review date based on interval
    */
   private calculateNextReviewDate(interval: number): string {
@@ -478,55 +624,61 @@ export class WordStateManager {
   }
 
   /**
-   * Get user's current tier based on mastered words
+   * Get user's current tier based on mastered words - optimized to reduce DB calls
    */
   async getCurrentTier(userId: string): Promise<string> {
     try {
-      // Database now uses consistent 'top_XXX' format with 20 tiers
+      // Get all mastered words for user in one query
+      const { data: masteredProgress, error } = await this.supabase
+        .from('user_progress')
+        .select(`
+          word_id,
+          words!inner(tier)
+        `)
+        .eq('user_id', userId)
+        .eq('state', 'mastered');
+
+      if (error) {
+        console.error('Error getting mastered words:', error);
+        return 'Top 25';
+      }
+
+      // Count mastered words per tier
+      const tierCounts: { [key: string]: number } = {};
+      masteredProgress?.forEach((item: any) => {
+        const tier = item.words.tier;
+        tierCounts[tier] = (tierCounts[tier] || 0) + 1;
+      });
+
+      // Check tiers in order to find current tier
       const tierMappings = [
-        { display: 'Top 25', db: ['top_25'] },
-        { display: 'Top 50', db: ['top_50'] },
-        { display: 'Top 75', db: ['top_75'] },
-        { display: 'Top 100', db: ['top_100'] },
-        { display: 'Top 125', db: ['top_125'] },
-        { display: 'Top 150', db: ['top_150'] },
-        { display: 'Top 175', db: ['top_175'] },
-        { display: 'Top 200', db: ['top_200'] },
-        { display: 'Top 225', db: ['top_225'] },
-        { display: 'Top 250', db: ['top_250'] },
-        { display: 'Top 275', db: ['top_275'] },
-        { display: 'Top 300', db: ['top_300'] },
-        { display: 'Top 325', db: ['top_325'] },
-        { display: 'Top 350', db: ['top_350'] },
-        { display: 'Top 375', db: ['top_375'] },
-        { display: 'Top 400', db: ['top_400'] },
-        { display: 'Top 425', db: ['top_425'] },
-        { display: 'Top 450', db: ['top_450'] },
-        { display: 'Top 475', db: ['top_475'] },
-        { display: 'Top 500', db: ['top_500'] }
+        { display: 'Top 25', db: 'top_25', expectedCount: 25 },
+        { display: 'Top 50', db: 'top_50', expectedCount: 25 },
+        { display: 'Top 75', db: 'top_75', expectedCount: 25 },
+        { display: 'Top 100', db: 'top_100', expectedCount: 25 },
+        { display: 'Top 125', db: 'top_125', expectedCount: 25 },
+        { display: 'Top 150', db: 'top_150', expectedCount: 25 },
+        { display: 'Top 175', db: 'top_175', expectedCount: 25 },
+        { display: 'Top 200', db: 'top_200', expectedCount: 25 },
+        { display: 'Top 225', db: 'top_225', expectedCount: 25 },
+        { display: 'Top 250', db: 'top_250', expectedCount: 25 },
+        { display: 'Top 275', db: 'top_275', expectedCount: 25 },
+        { display: 'Top 300', db: 'top_300', expectedCount: 25 },
+        { display: 'Top 325', db: 'top_325', expectedCount: 25 },
+        { display: 'Top 350', db: 'top_350', expectedCount: 25 },
+        { display: 'Top 375', db: 'top_375', expectedCount: 25 },
+        { display: 'Top 400', db: 'top_400', expectedCount: 25 },
+        { display: 'Top 425', db: 'top_425', expectedCount: 25 },
+        { display: 'Top 450', db: 'top_450', expectedCount: 25 },
+        { display: 'Top 475', db: 'top_475', expectedCount: 25 },
+        { display: 'Top 500', db: 'top_500', expectedCount: 25 }
       ];
       
       for (const tierMapping of tierMappings) {
-        // Check if all words in this tier are mastered
-        const { data: tierWords } = await this.supabase
-          .from('words')
-          .select('id')
-          .in('tier', tierMapping.db);
-
-        if (!tierWords || tierWords.length === 0) continue;
-
-        const { data: masteredWords } = await this.supabase
-          .from('user_progress')
-          .select('word_id')
-          .eq('user_id', userId)
-          .eq('state', 'mastered')
-          .in('word_id', tierWords.map((w: any) => w.id));
-
-        const masteredCount = masteredWords?.length || 0;
-        const totalCount = tierWords.length;
-
+        const masteredCount = tierCounts[tierMapping.db] || 0;
+        
         // If not all words in this tier are mastered, this is the current tier
-        if (masteredCount < totalCount) {
+        if (masteredCount < tierMapping.expectedCount) {
           return tierMapping.display;
         }
       }

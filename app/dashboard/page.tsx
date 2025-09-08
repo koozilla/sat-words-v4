@@ -103,18 +103,6 @@ export default function Dashboard() {
 
   const loadDashboardData = async (userId: string) => {
     try {
-      // Check if user needs initialization (no active pool words)
-      const activePoolCount = await wordStateManager.getActivePoolCount(userId);
-      console.log(`Current active pool count: ${activePoolCount}`);
-      
-      if (activePoolCount === 0) {
-        console.log('Initializing new user with active pool...');
-        await wordStateManager.initializeNewUser(userId);
-      } else if (activePoolCount < 15) {
-        console.log(`Refilling active pool: ${activePoolCount}/15 words`);
-        const refillResult = await wordStateManager.refillActivePool(userId);
-        console.log(`Refill result: ${refillResult}`);
-      }
 
       // Load user progress
       const { data: progress } = await supabase
@@ -148,6 +136,7 @@ export default function Dashboard() {
       const currentActivePoolCount = await wordStateManager.getActivePoolCount(userId);
       const reviewsDue = progress?.filter(p => p.state === 'ready').length || 0;
       const mastered = progress?.filter(p => p.state === 'mastered').length || 0;
+      
       
       // Calculate active words difficulty breakdown
       const activeWords = progress?.filter(p => p.state === 'started') || [];
@@ -335,7 +324,7 @@ export default function Dashboard() {
                 <div className="min-w-0">
                   <h3 className="text-base sm:text-lg font-semibold mb-1">Active Words</h3>
                   <p className="text-blue-100 text-sm sm:text-base mb-2">
-                    Easy {stats.activeWordsBreakdown.easy} Medium {stats.activeWordsBreakdown.medium} Hard {stats.activeWordsBreakdown.hard}
+                    {stats.activePoolCount} words in active study pool
                   </p>
                 </div>
               </div>

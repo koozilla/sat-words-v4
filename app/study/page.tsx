@@ -75,6 +75,13 @@ export default function StudySession() {
     return 'Correct!';
   };
 
+  const truncateDefinition = (definition: string, maxWords: number = 20): string => {
+    const words = definition.split(' ');
+    if (words.length <= maxWords) return definition;
+    return words.slice(0, maxWords).join(' ') + '...';
+  };
+
+
   useEffect(() => {
     initializeStudySession();
   }, []);
@@ -532,20 +539,6 @@ export default function StudySession() {
       </header>
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
-        {/* Progress Bar */}
-        <div className="mb-4 sm:mb-8">
-          <div className="flex justify-between text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-            <span>Progress</span>
-            <span>{Math.round(progress)}%</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-1 sm:h-2">
-            <div
-              className="bg-blue-600 h-1 sm:h-2 rounded-full transition-all duration-300"
-              style={{ width: `${progress}%` }}
-            ></div>
-          </div>
-        </div>
-
         {/* Question Card */}
         <div className="bg-white rounded-xl shadow-lg p-4 sm:p-8 mb-4 sm:mb-8">
           {/* Word Image */}
@@ -567,7 +560,9 @@ export default function StudySession() {
               Match the definition:
             </h2>
             <div className="bg-blue-50 rounded-lg p-3 sm:p-6">
-              <p className="text-base sm:text-lg text-gray-800 mb-1 sm:mb-2">{currentWord.definition}</p>
+              <p className="text-base sm:text-lg text-gray-800 mb-1 sm:mb-2">
+                {truncateDefinition(currentWord.definition)}
+              </p>
               <p className="text-xs sm:text-sm text-gray-600 italic">{currentWord.part_of_speech}</p>
             </div>
           </div>
@@ -612,29 +607,9 @@ export default function StudySession() {
 
 
           {/* Navigation */}
-          <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-0">
-            <button
-              onClick={previousQuestion}
-              disabled={session.currentIndex === 0}
-              className="flex items-center justify-center px-3 py-2 sm:px-4 sm:py-2 text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
-            >
-              <ArrowLeft className="h-4 w-4 mr-1 sm:mr-2" />
-              Previous
-            </button>
-
+          <div className="flex justify-end">
             <div className="flex gap-2">
-              {!showAnswer && (
-                <button
-                  onClick={() => nextQuestion(true)} // true = skipped (counts as wrong in challenge mode)
-                  className="flex items-center justify-center px-4 py-2 sm:px-6 sm:py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 text-sm sm:text-base w-full sm:w-auto"
-                  title="Skip this question (counts as wrong answer and resets progress)"
-                >
-                  Skip
-                  <ArrowRight className="h-4 w-4 ml-1 sm:ml-2" />
-                </button>
-              )}
-              
-              {showAnswer && (
+              {showAnswer && !isCorrect && (
                 <button
                   onClick={() => nextQuestion(false)} // false = not skipped, answer was submitted
                   className="flex items-center justify-center px-4 py-2 sm:px-6 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm sm:text-base w-full sm:w-auto"
@@ -644,16 +619,6 @@ export default function StudySession() {
                 </button>
               )}
             </div>
-          </div>
-        </div>
-
-        {/* Score Display */}
-        <div className="text-center">
-          <div className="inline-flex items-center bg-white rounded-lg px-4 py-2 sm:px-6 sm:py-3 shadow-sm">
-            <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 mr-2" />
-            <span className="text-xs sm:text-sm font-medium text-gray-700">
-              Question: {session.currentIndex + 1}/{session.words.length} | Score: {session.score}
-            </span>
           </div>
         </div>
       </main>
