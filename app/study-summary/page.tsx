@@ -87,16 +87,23 @@ export default function StudySummary() {
       console.log('Processing word results:', sessionInfo.wordResults);
       
       // Deduplicate word results to handle any double-counting issues
+      // Use word as the primary key (not word + correct) since each word should only appear once per session
       const uniqueWordResults = new Map();
-      sessionInfo.wordResults.forEach((result: any) => {
-        const wordId = result.wordId || result.word; // Use wordId if available, fallback to word
-        if (!uniqueWordResults.has(wordId)) {
-          uniqueWordResults.set(wordId, result);
+      sessionInfo.wordResults.forEach((result: any, index: number) => {
+        const wordKey = result.wordId || result.word;
+        console.log(`Processing result ${index}:`, { word: result.word, correct: result.correct, wordId: result.wordId, key: wordKey });
+        
+        if (!uniqueWordResults.has(wordKey)) {
+          uniqueWordResults.set(wordKey, result);
         } else {
-          // If we have duplicate, prefer the one with more complete data (has fromState/toState)
-          const existing = uniqueWordResults.get(wordId);
-          if (result.fromState && result.toState && (!existing.fromState || !existing.toState)) {
-            uniqueWordResults.set(wordId, result);
+          console.log(`Duplicate found for ${wordKey}, keeping entry with most complete data`);
+          // If we have duplicate, prefer the one with better data
+          const existing = uniqueWordResults.get(wordKey);
+          // Prefer results with transition data, then prefer correct answers over incorrect ones
+          if ((result.fromState && result.toState && (!existing.fromState || !existing.toState)) ||
+              (result.correct && !existing.correct)) {
+            console.log(`Replacing existing entry for ${wordKey} with better data`);
+            uniqueWordResults.set(wordKey, result);
           }
         }
       });

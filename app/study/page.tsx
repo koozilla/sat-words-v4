@@ -212,7 +212,29 @@ export default function StudySession() {
       correctAnswer: currentWord.word
     };
 
-    // Update session state
+    // Handle word state transition first
+    const { data: { user } } = await supabase.auth.getUser();
+    let transition = null;
+    if (user) {
+      transition = await wordStateManager.handleStudyAnswer(
+        user.id,
+        currentWord.id,
+        correct
+      );
+
+      if (transition) {
+        console.log('Word state transition:', transition);
+      }
+    }
+
+    // Update word result with transition data if available
+    const finalWordResult = {
+      ...wordResult,
+      fromState: transition?.fromState,
+      toState: transition?.toState
+    };
+
+    // Single session update with all data
     if (session) {
       setSession({
         ...session,
@@ -221,54 +243,11 @@ export default function StudySession() {
           [currentWord.id]: correct
         },
         score: correct ? session.score + 1 : session.score,
-        wordResults: [...session.wordResults, wordResult]
+        wordResults: [...session.wordResults, finalWordResult],
+        promotedWords: (transition?.toState === 'ready' && transition?.fromState === 'started') 
+          ? [...session.promotedWords, currentWord.id]
+          : session.promotedWords
       });
-    }
-
-    // Handle word state transition
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const transition = await wordStateManager.handleStudyAnswer(
-        user.id,
-        currentWord.id,
-        correct
-      );
-
-      if (transition) {
-        console.log('Word state transition:', transition);
-        
-        // Track promoted words
-        if (transition.toState === 'ready' && transition.fromState === 'started') {
-          console.log(`🎉 "${currentWord.word}" is now ready for review!`);
-          
-          // Add to promoted words list
-          setSession(prevSession => {
-            if (!prevSession) return prevSession;
-            return {
-              ...prevSession,
-              promotedWords: [...prevSession.promotedWords, currentWord.id],
-              wordResults: prevSession.wordResults.map(result => 
-                result.wordId === currentWord.id 
-                  ? { ...result, fromState: transition.fromState, toState: transition.toState }
-                  : result
-              )
-            };
-          });
-        } else {
-          // Update wordResults with transition data even if not promoted
-          setSession(prevSession => {
-            if (!prevSession) return prevSession;
-            return {
-              ...prevSession,
-              wordResults: prevSession.wordResults.map(result => 
-                result.wordId === currentWord.id 
-                  ? { ...result, fromState: transition.fromState, toState: transition.toState }
-                  : result
-              )
-            };
-          });
-        }
-      }
     }
 
     // Show celebration animation for correct answers and auto-advance
@@ -304,6 +283,13 @@ export default function StudySession() {
     }
     
     // Session complete - pass session data to summary
+    console.log('Session being finished:', {
+      totalQuestions: session.totalQuestions,
+      score: session.score,
+      wordResultsCount: session.wordResults.length,
+      wordResults: session.wordResults.map(r => ({ word: r.word, correct: r.correct, wordId: r.wordId }))
+    });
+
     const sessionData = {
       session_type: 'study',
       words_studied: session.totalQuestions,
@@ -320,10 +306,12 @@ export default function StudySession() {
         correctAnswer: result.correctAnswer,
         tier: result.tier,
         fromState: result.fromState,
-        toState: result.toState
+        toState: result.toState,
+        wordId: result.wordId
       }))
     };
     
+    console.log('Session data being passed to summary:', sessionData);
     const encodedData = encodeURIComponent(JSON.stringify(sessionData));
     router.push(`/study-summary?data=${encodedData}`);
   };
