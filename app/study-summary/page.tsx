@@ -87,33 +87,9 @@ export default function StudySummary() {
       console.log('Processing word results:', sessionInfo.wordResults.length, 'entries');
       console.log('Raw sessionInfo.wordResults:', sessionInfo.wordResults);
       
-      // Deduplicate word results to handle any double-counting issues
-      // Use word as the primary key (not word + correct) since each word should only appear once per session
-      const uniqueWordResults = new Map();
-      sessionInfo.wordResults.forEach((result: any, index: number) => {
-        const wordKey = result.wordId || result.word;
-        console.log(`Processing result ${index}:`, { word: result.word, correct: result.correct, wordId: result.wordId, key: wordKey });
-        
-        if (!uniqueWordResults.has(wordKey)) {
-          uniqueWordResults.set(wordKey, result);
-        } else {
-          console.log(`Duplicate found for ${wordKey}, keeping entry with most complete data`);
-          // If we have duplicate, prefer the one with better data
-          const existing = uniqueWordResults.get(wordKey);
-          // Prefer results with transition data, then prefer correct answers over incorrect ones
-          if ((result.fromState && result.toState && (!existing.fromState || !existing.toState)) ||
-              (result.correct && !existing.correct)) {
-            console.log(`Replacing existing entry for ${wordKey} with better data`);
-            uniqueWordResults.set(wordKey, result);
-          }
-        }
-      });
-      
-      const deduplicatedResults = Array.from(uniqueWordResults.values());
-      console.log('Deduplicated word results:', deduplicatedResults);
-      
+      // Data should already be clean from the session, but we'll process it directly
       // First pass: categorize correct vs incorrect answers
-      deduplicatedResults.forEach((result: any) => {
+      sessionInfo.wordResults.forEach((result: any) => {
         const wordData = {
           word: result.word,
           definition: result.definition,
@@ -128,7 +104,7 @@ export default function StudySummary() {
       });
 
       // Second pass: handle state transitions (promotions only for study)
-      deduplicatedResults.forEach((result: any) => {
+      sessionInfo.wordResults.forEach((result: any) => {
         if (result.fromState && result.toState && result.fromState !== result.toState) {
           // Determine if this is a promotion
           const stateHierarchy = ['not_started', 'started', 'ready', 'mastered'];
