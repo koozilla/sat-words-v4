@@ -24,7 +24,7 @@ export default function CelebrationAnimation({
       const timer = setTimeout(() => {
         setShowAnimation(false);
         onComplete?.();
-      }, 2000); // Animation duration
+      }, 1000); // Animation duration
 
       return () => clearTimeout(timer);
     }

@@ -564,7 +564,7 @@ export default function StudySession() {
           {/* Definition */}
           <div className="text-center mb-4 sm:mb-8">
             <h2 className="text-lg sm:text-2xl font-bold text-gray-900 mb-2 sm:mb-4">
-              What word matches this definition?
+              Match the definition:
             </h2>
             <div className="bg-blue-50 rounded-lg p-3 sm:p-6">
               <p className="text-base sm:text-lg text-gray-800 mb-1 sm:mb-2">{currentWord.definition}</p>
