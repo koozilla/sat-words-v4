@@ -849,14 +849,14 @@ export default function StudySession() {
                 {/* Definition */}
                 <div>
                   <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Definition</h4>
-                  <p className="text-lg text-gray-800">{currentWord.definition}</p>
+                  <p className="text-lg text-gray-800 break-words hyphens-auto leading-relaxed">{currentWord.definition}</p>
                 </div>
 
                 {/* Example Sentence */}
                 {currentWord.example_sentence && (
                   <div>
                     <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Example</h4>
-                    <p className="text-lg text-gray-800 italic">&ldquo;{currentWord.example_sentence}&rdquo;</p>
+                    <p className="text-lg text-gray-800 italic break-words hyphens-auto leading-relaxed">&ldquo;{currentWord.example_sentence}&rdquo;</p>
                   </div>
                 )}
 
