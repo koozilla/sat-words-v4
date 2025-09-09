@@ -589,18 +589,6 @@ export default function StudySession() {
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
         {/* Question Card */}
         <div className="bg-white rounded-xl shadow-lg p-4 sm:p-8 mb-4 sm:mb-8">
-          {/* Definition */}
-          <div className="text-center mb-4 sm:mb-8">
-            <h2 className="text-lg sm:text-2xl font-bold text-gray-900 mb-2 sm:mb-4">
-              Match the definition:
-            </h2>
-            <div className="bg-blue-50 rounded-lg p-3 sm:p-6">
-              <p className="text-base sm:text-lg text-gray-800">
-                {truncateDefinition(currentWord.definition)}
-              </p>
-            </div>
-          </div>
-
           {/* Word Image */}
           {currentWord.image_url && (
             <div className="mb-4 sm:mb-6 text-center">
@@ -623,6 +611,18 @@ export default function StudySession() {
               </div>
             </div>
           )}
+
+          {/* Definition */}
+          <div className="text-center mb-4 sm:mb-8">
+            <h2 className="text-lg sm:text-2xl font-bold text-gray-900 mb-2 sm:mb-4">
+              Match the definition:
+            </h2>
+            <div className="bg-blue-50 rounded-lg p-3 sm:p-6">
+              <p className="text-base sm:text-lg text-gray-800">
+                {truncateDefinition(currentWord.definition)}
+              </p>
+            </div>
+          </div>
 
           {/* Answer Options */}
           <div className="grid grid-cols-1 gap-3 sm:gap-4 mb-4 sm:mb-8">
