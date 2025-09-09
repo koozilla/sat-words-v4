@@ -631,7 +631,7 @@ export default function StudySession() {
                     <img 
                       src={currentWord.image_url} 
                       alt={`Visual representation of ${currentWord.word}. Click to see definition.`}
-                      className="h-96 w-96 sm:h-[32rem] sm:w-[32rem] object-cover rounded-lg mx-auto hover:opacity-90 transition-opacity duration-200"
+                      className="h-80 w-[28rem] sm:h-96 sm:w-[40rem] object-cover rounded-lg mx-auto hover:opacity-90 transition-opacity duration-200"
                       onError={(e) => {
                         console.error('Image failed to load:', currentWord.image_url);
                         e.currentTarget.style.display = 'none';
@@ -645,7 +645,7 @@ export default function StudySession() {
                     />
                   ) : (
                     /* Definition View */
-                    <div className="h-96 w-96 sm:h-[32rem] sm:w-[32rem] bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg mx-auto flex flex-col justify-center items-center text-white p-4 sm:p-6 hover:opacity-90 transition-opacity duration-200">
+                    <div className="h-80 w-[28rem] sm:h-96 sm:w-[40rem] bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg mx-auto flex flex-col justify-center items-center text-white p-4 sm:p-6 hover:opacity-90 transition-opacity duration-200">
                       <div className="text-center space-y-3">
                         <div className="text-sm sm:text-base opacity-90">
                           <p className="font-semibold">{currentWord.part_of_speech}</p>
@@ -769,7 +769,7 @@ export default function StudySession() {
                   <img 
                     src={currentWord.image_url} 
                     alt={`Visual representation of ${currentWord.word}`}
-                    className="h-64 w-64 object-cover rounded-lg mx-auto"
+                    className="h-48 w-[20rem] sm:h-56 sm:w-[24rem] object-cover rounded-lg mx-auto"
                   />
                 </div>
               )}
