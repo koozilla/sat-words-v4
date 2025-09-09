@@ -65,6 +65,7 @@ interface DashboardStats {
   tierCountBreakdown: {
     started: { [tier: string]: number };
     mastered: { [tier: string]: number };
+    total: { [tier: string]: number };
   };
   recentBadges: Badge[];
 }
@@ -150,7 +151,8 @@ export default function Dashboard() {
       // Calculate tier count breakdown
       const tierCountBreakdown = {
         started: {} as { [tier: string]: number },
-        mastered: {} as { [tier: string]: number }
+        mastered: {} as { [tier: string]: number },
+        total: {} as { [tier: string]: number }
       };
       
       // Map display tier to database tier
@@ -201,6 +203,8 @@ export default function Dashboard() {
           const word = words?.find(w => w.id === p.word_id);
           return cumulativeDbTiers.includes(word?.tier) && p.state === 'mastered';
         }).length || 0;
+        
+        tierCountBreakdown.total[tier] = words?.filter(w => cumulativeDbTiers.includes(w.tier)).length || 0;
       });
       
       // Calculate active words difficulty breakdown
@@ -283,7 +287,8 @@ export default function Dashboard() {
       highestActiveTier: 'Top 25',
       tierCountBreakdown: {
         started: {},
-        mastered: {}
+        mastered: {},
+        total: {}
       },
       recentBadges: []
     });
@@ -425,7 +430,11 @@ export default function Dashboard() {
                   {stats.activeTiers && stats.activeTiers.length > 0 && (
                     <div className="text-green-100 text-xs sm:text-sm">
                       <p>{stats.activeTiers
-                        .filter(tier => (stats.tierCountBreakdown.mastered[tier] || 0) > 0)
+                        .filter(tier => {
+                          const mastered = stats.tierCountBreakdown.mastered[tier] || 0;
+                          const total = stats.tierCountBreakdown.total[tier] || 0;
+                          return mastered > 0 && mastered < total; // Only show if not all words are mastered
+                        })
                         .map(tier => `${tier}: ${stats.tierCountBreakdown.mastered[tier] || 0}`)
                         .join(', ')}</p>
                     </div>
