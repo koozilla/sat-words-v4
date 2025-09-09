@@ -590,7 +590,18 @@ export default function StudySession() {
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-center items-center h-12 sm:h-16">
+          <div className="flex justify-between items-center h-12 sm:h-16">
+            {/* Back to Dashboard Button */}
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="px-3 sm:px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-semibold text-xs sm:text-sm flex items-center gap-1 sm:gap-2"
+            >
+              <ArrowLeft className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">Back to Dashboard</span>
+              <span className="sm:hidden">Back</span>
+            </button>
+            
+            {/* Progress Counter */}
             <div className="text-xs sm:text-sm text-gray-500">
               {session.currentIndex + 1}/{session.totalQuestions}
             </div>
@@ -645,22 +656,22 @@ export default function StudySession() {
                     />
                   ) : (
                     /* Definition View */
-                    <div className="h-80 w-[28rem] sm:h-96 sm:w-[40rem] bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg mx-auto flex flex-col justify-center items-center text-white p-4 sm:p-6 hover:opacity-90 transition-opacity duration-200">
-                      <div className="text-center space-y-3">
-                        <div className="text-sm sm:text-base opacity-90">
+                    <div className="h-80 w-full max-w-sm sm:h-96 sm:w-[40rem] bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg mx-auto flex flex-col justify-center items-center text-white p-6 sm:p-8 hover:opacity-90 transition-opacity duration-200">
+                      <div className="text-center space-y-4 w-full">
+                        <div className="text-base sm:text-lg opacity-90">
                           <p className="font-semibold">{currentWord.part_of_speech}</p>
                         </div>
-                        <div className="text-sm sm:text-base">
-                          <p>{currentWord.definition}</p>
+                        <div className="text-base sm:text-lg leading-relaxed">
+                          <p className="break-words">{currentWord.definition}</p>
                         </div>
                         {currentWord.example_sentence && (
-                          <div className="text-sm sm:text-base italic mt-2">
-                            <p>&ldquo;{currentWord.example_sentence.replace(new RegExp(`\\b${currentWord.word}\\b`, 'gi'), '***')}&rdquo;</p>
+                          <div className="text-sm sm:text-base italic mt-3 leading-relaxed">
+                            <p className="break-words">&ldquo;{currentWord.example_sentence.replace(new RegExp(`\\b${currentWord.word}\\b`, 'gi'), '***')}&rdquo;</p>
                           </div>
                         )}
                       </div>
-                      <div className="mt-4 text-xs sm:text-sm opacity-75">
-                        Click to see image
+                      <div className="mt-6 text-sm sm:text-base opacity-75">
+                        Tap to see image
                       </div>
                     </div>
                   )}
@@ -716,20 +727,6 @@ export default function StudySession() {
           {/* Navigation - No manual navigation needed, auto-advance handles both correct and wrong answers */}
         </div>
 
-        {/* Bottom Navigation */}
-        <div className="flex justify-center mt-6 sm:mt-8">
-          <button
-            onClick={() => {
-              if (confirm('Are you sure you want to leave the study session? Your progress will be saved.')) {
-                router.push('/dashboard');
-              }
-            }}
-            className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-semibold text-sm sm:text-base flex items-center justify-center gap-2"
-          >
-            <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
-            Back to Dashboard
-          </button>
-        </div>
       </main>
 
       {/* Celebration Animation */}
