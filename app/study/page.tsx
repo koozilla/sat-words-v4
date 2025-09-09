@@ -118,7 +118,7 @@ export default function StudySession() {
     };
     
     generateAnswers();
-  }, [session?.currentIndex, session?.words]);
+  }, [session?.currentIndex]);
 
   const initializeStudySession = async () => {
     try {
@@ -174,9 +174,9 @@ export default function StudySession() {
         return;
       }
 
-      // Select up to 25 words from the active pool for the quiz
+      // Select up to 10 words from the active pool for the quiz
       console.log(`Found ${activePoolWords.length} words in active pool:`, activePoolWords.map(p => p.words.word));
-      const selectedWords = activePoolWords.slice(0, 25); // Select up to 25 words for study session
+      const selectedWords = activePoolWords.slice(0, 10); // Select up to 10 words for study session
       
       const studyWords: Word[] = selectedWords.map(p => ({
         id: p.words.id,
