@@ -793,7 +793,7 @@ export class WordStateManager {
         return true; // Default to true to be safe
       }
 
-      const tierWordIds = tierWords.map(w => w.id);
+      const tierWordIds = tierWords.map((w: any) => w.id);
 
       // Check if any of these words are in started state
       const { data, error } = await this.supabase
