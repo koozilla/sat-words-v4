@@ -127,7 +127,7 @@ export default function StudySession() {
           .from('words')
           .select('*')
           .eq('tier', 'top_25')
-          .limit(5);
+          .limit(25);
 
         if (testError || !testWords || testWords.length === 0) {
           router.push('/words');
@@ -162,9 +162,9 @@ export default function StudySession() {
         return;
       }
 
-      // Select 5 words from the active pool for the quiz
+      // Select up to 25 words from the active pool for the quiz
       console.log(`Found ${activePoolWords.length} words in active pool:`, activePoolWords.map(p => p.words.word));
-      const selectedWords = activePoolWords.slice(0, 5); // Select 5 words for study session
+      const selectedWords = activePoolWords.slice(0, 25); // Select up to 25 words for study session
       
       const studyWords: Word[] = selectedWords.map(p => ({
         id: p.words.id,
@@ -589,19 +589,6 @@ export default function StudySession() {
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
         {/* Question Card */}
         <div className="bg-white rounded-xl shadow-lg p-4 sm:p-8 mb-4 sm:mb-8">
-          {/* Word Image */}
-          {currentWord.image_url && (
-            <div className="mb-4 sm:mb-6 text-center">
-              <div className="inline-block bg-gray-100 rounded-lg p-2 sm:p-4">
-                <img 
-                  src={currentWord.image_url} 
-                  alt={`Visual representation of ${currentWord.word}`}
-                  className="h-24 w-24 sm:h-32 sm:w-32 object-cover rounded-lg mx-auto"
-                />
-              </div>
-            </div>
-          )}
-
           {/* Definition */}
           <div className="text-center mb-4 sm:mb-8">
             <h2 className="text-lg sm:text-2xl font-bold text-gray-900 mb-2 sm:mb-4">
@@ -613,6 +600,19 @@ export default function StudySession() {
               </p>
             </div>
           </div>
+
+          {/* Word Image */}
+          {currentWord.image_url && (
+            <div className="mb-4 sm:mb-6 text-center">
+              <div className="inline-block bg-gray-100 rounded-lg p-2 sm:p-4">
+                <img 
+                  src={currentWord.image_url} 
+                  alt={`Visual representation of ${currentWord.word}`}
+                  className="h-48 w-48 sm:h-64 sm:w-64 object-cover rounded-lg mx-auto"
+                />
+              </div>
+            </div>
+          )}
 
           {/* Answer Options */}
           <div className="grid grid-cols-1 gap-3 sm:gap-4 mb-4 sm:mb-8">
