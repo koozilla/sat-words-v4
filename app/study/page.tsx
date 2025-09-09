@@ -655,7 +655,7 @@ export default function StudySession() {
                         </div>
                         {currentWord.example_sentence && (
                           <div className="text-sm sm:text-base italic mt-2">
-                            <p>"{currentWord.example_sentence.replace(new RegExp(`\\b${currentWord.word}\\b`, 'gi'), '***')}"</p>
+                            <p>&ldquo;{currentWord.example_sentence.replace(new RegExp(`\\b${currentWord.word}\\b`, 'gi'), '***')}&rdquo;</p>
                           </div>
                         )}
                       </div>
@@ -792,7 +792,7 @@ export default function StudySession() {
                 {currentWord.example_sentence && (
                   <div>
                     <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Example</h4>
-                    <p className="text-lg text-gray-800 italic">"{currentWord.example_sentence}"</p>
+                    <p className="text-lg text-gray-800 italic">&ldquo;{currentWord.example_sentence}&rdquo;</p>
                   </div>
                 )}
 
