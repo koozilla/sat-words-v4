@@ -46,7 +46,10 @@ def generate_image():
                 if len(image_data) > 0:  # Skip empty parts
                     image_bytes = image_data if isinstance(image_data, bytes) else image_data.encode()
                     image = Image.open(BytesIO(image_bytes))
-                    image.save('${outputPath.replace(/\\/g, '/')}')
+                    # Convert to RGB and save as PNG for better mobile compatibility
+                    if image.mode != 'RGB':
+                        image = image.convert('RGB')
+                    image.save('${outputPath.replace(/\\/g, '/')}', 'PNG')
                     print(f"SUCCESS: Image saved to ${outputPath}")
                     return
     
@@ -118,26 +121,10 @@ if __name__ == "__main__":
   }
 
   private createPlaceholderImage(prompt: string): Buffer {
-    const svgContent = `
-      <svg width="1024" height="576" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:#4285F4;stop-opacity:1" />
-            <stop offset="50%" style="stop-color:#34A853;stop-opacity:1" />
-            <stop offset="100%" style="stop-color:#FBBC04;stop-opacity:1" />
-          </linearGradient>
-        </defs>
-        <rect width="1024" height="576" fill="url(#grad1)"/>
-        
-        <text x="512" y="150" font-family="Arial, sans-serif" font-size="36" font-weight="bold" text-anchor="middle" fill="white">Gemini 2.5 Flash</text>
-        <text x="512" y="220" font-family="Arial, sans-serif" font-size="28" font-weight="bold" text-anchor="middle" fill="white">SAT Vocabulary Image</text>
-        <text x="512" y="280" font-family="Arial, sans-serif" font-size="16" text-anchor="middle" fill="white" opacity="0.9">
-          ${this.truncatePrompt(prompt, 100)}
-        </text>
-        <text x="512" y="340" font-family="Arial, sans-serif" font-size="20" text-anchor="middle" fill="white">Generated via Python</text>
-      </svg>
-    `;
-    return Buffer.from(svgContent, 'utf-8');
+    // Create a simple PNG placeholder using a base64 encoded PNG
+    // This is a 1x1 transparent PNG that we'll use as a placeholder
+    const base64PNG = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+    return Buffer.from(base64PNG, 'base64');
   }
 
   private truncatePrompt(prompt: string, maxLength: number): string {

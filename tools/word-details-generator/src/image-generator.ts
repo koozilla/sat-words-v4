@@ -62,27 +62,42 @@ Create a memorable, educational cartoon-style image for the SAT vocabulary word 
 
 Word Definition: "${wordData.definition}"
 Part of Speech: ${wordData.part_of_speech}
+Example Sentence: "${wordData.example_sentence}"
 Synonyms: ${wordData.synonyms.join(', ')}
-Example: "${wordData.example_sentence}"
 Difficulty: ${wordData.difficulty} | Tier: ${wordData.tier}
 
 Image Requirements:
-- Cartoon/animated style (not photorealistic)
+- Cartoon/animated style (k-pop style animation - vibrant, energetic, colorful)
+- Create a scene that illustrates the EXAMPLE SENTENCE
+- Show the word in action through the example context
 - Clear visual connection to the word's meaning
-- Memorable and distinctive
+- Memorable and distinctive characters/setting
 - Appropriate for high school students
 - Educational value for vocabulary learning
 - High contrast and clear details
 - 16:9 aspect ratio, high resolution
+- DO NOT include the actual word "${wordData.word}" anywhere in the image
 
 Visual Style Guidelines:
-- Use bright, contrasting colors
+- Use bright, vibrant colors with strong contrast
+- Create engaging characters that students can relate to
 - Include symbolic elements that reinforce meaning
-- Avoid text in the image
+- Avoid text in the image (especially the word itself)
 - Make it instantly recognizable and memorable
-- Use visual metaphors that help remember the word
+- Use visual storytelling through the example sentence
+- Focus on the ACTION or SITUATION described in the example
+- K-pop style animation: vibrant, energetic, colorful, dynamic
 
-Generate an image that will help students remember "${wordData.word}" means "${wordData.definition}".
+Scene Creation Instructions:
+1. Read the example sentence carefully
+2. Create a cartoon scene that shows the example situation
+3. Make the characters expressive and relatable
+4. Use visual metaphors that help remember the word
+5. Ensure the scene clearly demonstrates the word's meaning
+6. IMPORTANT: Do not include the word "${wordData.word}" in the image
+
+Generate an image that tells the story of the example sentence: "${wordData.example_sentence}"
+This will help students remember "${wordData.word}" means "${wordData.definition}".
 `;
   }
 

@@ -58,7 +58,12 @@ export class ImageStorage {
     await fs.writeFile(filePath, imageBuffer);
     
     console.log(`💾 Image saved locally to: ${filePath}`);
-    return filePath;
+    
+    // Return HTTP URL instead of local file path for mobile compatibility
+    const httpUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/images/${fileName}`;
+    console.log(`🌐 Image accessible via HTTP: ${httpUrl}`);
+    
+    return httpUrl;
   }
 
   private generateTimestamp(): string {

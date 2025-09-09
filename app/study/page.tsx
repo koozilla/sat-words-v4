@@ -608,7 +608,17 @@ export default function StudySession() {
                 <img 
                   src={currentWord.image_url} 
                   alt={`Visual representation of ${currentWord.word}`}
-                  className="h-48 w-48 sm:h-64 sm:w-64 object-cover rounded-lg mx-auto"
+                  className="h-96 w-96 sm:h-[32rem] sm:w-[32rem] object-cover rounded-lg mx-auto"
+                  onError={(e) => {
+                    console.error('Image failed to load:', currentWord.image_url);
+                    // Hide the image container if image fails to load
+                    e.currentTarget.style.display = 'none';
+                  }}
+                  onLoad={() => {
+                    console.log('Image loaded successfully:', currentWord.image_url);
+                  }}
+                  loading="lazy"
+                  decoding="async"
                 />
               </div>
             </div>

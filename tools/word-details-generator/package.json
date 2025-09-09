@@ -14,6 +14,9 @@
     "test-image-generation": "ts-node src/test-image-generation.ts",
     "test-gemini-image": "ts-node src/test-imagen4.ts",
     "generate-benevolent": "ts-node src/generate-benevolent.ts",
+    "generate-words26-50-images": "ts-node src/generate-words26-50-images.ts",
+    "regenerate-top25": "ts-node src/regenerate-top25-images.ts",
+    "clear-top25": "ts-node src/clear-top25-images.ts",
     "list-models": "ts-node src/list-models.ts",
     "debug-api": "ts-node src/debug-api.ts"
   },
