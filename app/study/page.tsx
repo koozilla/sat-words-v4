@@ -66,6 +66,7 @@ export default function StudySession() {
   const [showWordModal, setShowWordModal] = useState(false);
   const [showImageContent, setShowImageContent] = useState(true); // true = show image, false = show definition
   const [tierUnlocked, setTierUnlocked] = useState<{ newTier: string; previousTier: string } | null>(null);
+  const [isProcessingAnswer, setIsProcessingAnswer] = useState(false);
   const [wordStateManager] = useState(() => new WordStateManager());
   const router = useRouter();
   const supabase = createClientComponentClient();
@@ -240,8 +241,9 @@ export default function StudySession() {
   };
 
   const handleAnswerSelect = async (answer: string) => {
-    if (showAnswer || !session) return;
+    if (showAnswer || !session || isProcessingAnswer) return;
     
+    setIsProcessingAnswer(true);
     setSelectedAnswer(answer);
     const currentWord = session.words[session.currentIndex];
     const correct = answer === currentWord.word;
@@ -355,6 +357,8 @@ export default function StudySession() {
       });
     }
 
+    // Reset processing flag
+    setIsProcessingAnswer(false);
     // Celebration animation is already triggered in handleAnswerSelect above
   };
 
@@ -538,6 +542,7 @@ export default function StudySession() {
       setShowAnswer(false);
       setSelectedAnswer(null);
       setIsCorrect(null);
+      setIsProcessingAnswer(false);
       setShowImageContent(true); // Reset to show image for new question
       setCurrentAnswers([]); // Force regeneration of answers
       // Force a small delay to ensure DOM updates
@@ -558,6 +563,7 @@ export default function StudySession() {
       setShowAnswer(false);
       setSelectedAnswer(null);
       setIsCorrect(null);
+      setIsProcessingAnswer(false);
       setShowImageContent(true); // Reset to show image for previous question
       setCurrentAnswers([]); // Reset answers to trigger regeneration
     }
@@ -702,7 +708,7 @@ export default function StudySession() {
                   key={`${session.currentIndex}-${index}-${answer}`}
                   onClick={() => handleAnswerSelect(answer)}
                   className={buttonClass}
-                  disabled={showAnswer}
+                  disabled={showAnswer || isProcessingAnswer}
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-medium text-sm sm:text-base">{answer}</span>
