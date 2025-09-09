@@ -177,17 +177,29 @@ export default function Dashboard() {
         'Top 500': ['top_500']
       };
       
+      // Define tier order for cumulative counting
+      const tierOrder = [
+        'Top 25', 'Top 50', 'Top 75', 'Top 100', 'Top 125', 'Top 150', 'Top 175', 'Top 200',
+        'Top 225', 'Top 250', 'Top 275', 'Top 300', 'Top 325', 'Top 350', 'Top 375', 'Top 400',
+        'Top 425', 'Top 450', 'Top 475', 'Top 500'
+      ];
+      
       activeTiers.forEach(tier => {
-        const dbTiers = tierMappingObject[tier] || [];
+        const tierIndex = tierOrder.indexOf(tier);
+        if (tierIndex === -1) return;
+        
+        // Get all tiers up to and including the current tier (cumulative)
+        const cumulativeTiers = tierOrder.slice(0, tierIndex + 1);
+        const cumulativeDbTiers = cumulativeTiers.flatMap(t => tierMappingObject[t] || []);
         
         tierCountBreakdown.started[tier] = progress?.filter(p => {
           const word = words?.find(w => w.id === p.word_id);
-          return dbTiers.includes(word?.tier) && p.state === 'started';
+          return cumulativeDbTiers.includes(word?.tier) && p.state === 'started';
         }).length || 0;
         
         tierCountBreakdown.mastered[tier] = progress?.filter(p => {
           const word = words?.find(w => w.id === p.word_id);
-          return dbTiers.includes(word?.tier) && p.state === 'mastered';
+          return cumulativeDbTiers.includes(word?.tier) && p.state === 'mastered';
         }).length || 0;
       });
       
