@@ -632,21 +632,27 @@ export default function StudySession() {
                 >
                   {showImageContent ? (
                     /* Image View */
-                    <img 
-                      src={currentWord.image_url} 
-                      alt={`Visual representation of ${currentWord.word}. Click to see definition.`}
-                      className="w-full aspect-[4/3] sm:h-96 sm:w-[40rem] sm:aspect-auto object-cover rounded-lg mx-auto hover:opacity-90 transition-opacity duration-200"
-                      onError={(e) => {
-                        console.error('Image failed to load:', currentWord.image_url);
-                        e.currentTarget.style.display = 'none';
-                      }}
-                      onLoad={() => {
-                        console.log('Image loaded successfully:', currentWord.image_url);
-                      }}
-                      loading="lazy"
-                      decoding="async"
-                      draggable={false}
-                    />
+                    <div className="relative">
+                      <img 
+                        src={currentWord.image_url} 
+                        alt={`Visual representation of ${currentWord.word}. Click to see definition.`}
+                        className="w-full aspect-[4/3] sm:h-96 sm:w-[40rem] sm:aspect-auto object-cover rounded-lg mx-auto hover:opacity-90 transition-opacity duration-200"
+                        onError={(e) => {
+                          console.error('Image failed to load:', currentWord.image_url);
+                          e.currentTarget.style.display = 'none';
+                        }}
+                        onLoad={() => {
+                          console.log('Image loaded successfully:', currentWord.image_url);
+                        }}
+                        loading="lazy"
+                        decoding="async"
+                        draggable={false}
+                      />
+                      {/* Hint Indicator */}
+                      <div className="absolute bottom-2 right-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
+                        Tap for hint
+                      </div>
+                    </div>
                   ) : (
                     /* Definition View */
                     <div className="w-full aspect-[4/3] sm:h-96 sm:w-[40rem] sm:aspect-auto bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg mx-auto flex flex-col justify-center text-white p-4 sm:p-6 hover:opacity-90 transition-opacity duration-200">

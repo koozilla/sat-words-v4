@@ -364,7 +364,7 @@ export default function Dashboard() {
                   className="bg-white text-green-600 px-4 py-2 sm:px-6 sm:py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center justify-center w-full sm:w-auto"
                 >
                   <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-                  See All
+                  View All
                 </button>
               </div>
             </div>

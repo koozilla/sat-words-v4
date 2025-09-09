@@ -196,6 +196,28 @@ export default function WordsPage() {
     }
   };
 
+  const markAsMastered = async (wordId: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.log('No user found, redirecting to login');
+        router.push('/auth/login');
+        return;
+      }
+
+      const success = await wordStateManager.markWordAsMastered(user.id, wordId);
+      if (success) {
+        // Reload current words to reflect the change
+        await loadCurrentWordsForUser(user.id);
+        console.log('Word marked as mastered successfully');
+      } else {
+        console.error('Failed to mark word as mastered');
+      }
+    } catch (error) {
+      console.error('Error marking word as mastered:', error);
+    }
+  };
+
   const removeWordFromCurrent = async (userId: string, wordId: string) => {
     try {
       // Remove the word from user_progress (delete the progress record)
@@ -432,6 +454,17 @@ export default function WordsPage() {
                       <p className="text-sm text-gray-600">{word.antonyms.join(', ')}</p>
                     </div>
                   )}
+                </div>
+
+                {/* Mark as Mastered Button */}
+                <div className="pt-4 border-t border-gray-100">
+                  <button
+                    onClick={() => markAsMastered(word.id)}
+                    className="w-full flex items-center justify-center px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
+                  >
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Mark as Mastered
+                  </button>
                 </div>
               </div>
             );
