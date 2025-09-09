@@ -612,12 +612,6 @@ export default function StudySession() {
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
         {/* Question Card */}
         <div className="bg-white rounded-xl shadow-lg p-4 sm:p-8 mb-4 sm:mb-8">
-          {/* Question Title */}
-          <div className="text-center mb-4 sm:mb-6">
-            <h2 className="text-lg sm:text-2xl font-bold text-gray-900">
-              Match the definition:
-            </h2>
-          </div>
 
           {/* Word Image/Definition Toggle */}
           {currentWord.image_url && (
@@ -642,7 +636,7 @@ export default function StudySession() {
                     <img 
                       src={currentWord.image_url} 
                       alt={`Visual representation of ${currentWord.word}. Click to see definition.`}
-                      className="h-80 w-[28rem] sm:h-96 sm:w-[40rem] object-cover rounded-lg mx-auto hover:opacity-90 transition-opacity duration-200"
+                      className="w-full aspect-[4/3] sm:h-96 sm:w-[40rem] sm:aspect-auto object-cover rounded-lg mx-auto hover:opacity-90 transition-opacity duration-200"
                       onError={(e) => {
                         console.error('Image failed to load:', currentWord.image_url);
                         e.currentTarget.style.display = 'none';
@@ -656,21 +650,13 @@ export default function StudySession() {
                     />
                   ) : (
                     /* Definition View */
-                    <div className="h-80 w-full max-w-sm sm:h-96 sm:w-[40rem] bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg mx-auto flex flex-col justify-center items-center text-white p-6 sm:p-8 hover:opacity-90 transition-opacity duration-200">
-                      <div className="text-center space-y-4 w-full">
-                        <div className="text-base sm:text-lg opacity-90">
-                          <p className="font-semibold">{currentWord.part_of_speech}</p>
-                        </div>
+                    <div className="w-full aspect-[4/3] sm:h-96 sm:w-[40rem] sm:aspect-auto bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg mx-auto flex flex-col justify-center text-white p-4 sm:p-6 hover:opacity-90 transition-opacity duration-200">
+                      <div className="text-center w-full">
                         <div className="text-base sm:text-lg leading-relaxed">
                           <p className="break-words">{currentWord.definition}</p>
                         </div>
-                        {currentWord.example_sentence && (
-                          <div className="text-sm sm:text-base italic mt-3 leading-relaxed">
-                            <p className="break-words">&ldquo;{currentWord.example_sentence.replace(new RegExp(`\\b${currentWord.word}\\b`, 'gi'), '***')}&rdquo;</p>
-                          </div>
-                        )}
                       </div>
-                      <div className="mt-6 text-sm sm:text-base opacity-75">
+                      <div className="mt-4 text-xs sm:text-sm opacity-75 text-center">
                         Tap to see image
                       </div>
                     </div>
