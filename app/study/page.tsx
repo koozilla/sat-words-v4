@@ -708,7 +708,7 @@ export default function StudySession() {
                     </div>
                   ) : (
                     /* Definition View */
-                    <div className="w-full aspect-[4/3] sm:h-96 sm:w-[40rem] sm:aspect-auto bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg mx-auto flex flex-col justify-center text-white p-4 sm:p-6 hover:opacity-90 transition-opacity duration-200 overflow-hidden">
+                    <div className="w-full aspect-[4/3] sm:h-96 sm:w-[703px] sm:aspect-auto bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg mx-auto flex flex-col justify-center text-white p-4 sm:p-6 hover:opacity-90 transition-opacity duration-200 overflow-hidden">
                       <div className="text-center w-full flex-1 flex flex-col justify-center min-h-0 overflow-hidden">
                         <div className="text-sm sm:text-base leading-relaxed max-h-full overflow-y-auto w-full overflow-x-hidden">
                           <p className="break-words hyphens-auto text-center px-2 w-full max-w-full overflow-wrap-anywhere">{currentWord.definition}</p>
