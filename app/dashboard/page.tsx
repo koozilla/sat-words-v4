@@ -62,6 +62,10 @@ interface DashboardStats {
   }[];
   activeTiers: string[];
   highestActiveTier: string;
+  tierCountBreakdown: {
+    started: { [tier: string]: number };
+    mastered: { [tier: string]: number };
+  };
   recentBadges: Badge[];
 }
 
@@ -143,6 +147,49 @@ export default function Dashboard() {
       // Get active tiers information
       const { activeTiers, highestActiveTier } = await wordStateManager.getActiveTiers(userId);
       
+      // Calculate tier count breakdown
+      const tierCountBreakdown = {
+        started: {} as { [tier: string]: number },
+        mastered: {} as { [tier: string]: number }
+      };
+      
+      // Map display tier to database tier
+      const tierMappings: { [key: string]: string[] } = {
+        'Top 25': ['top_25'],
+        'Top 50': ['top_50'],
+        'Top 75': ['top_75'],
+        'Top 100': ['top_100'],
+        'Top 125': ['top_125'],
+        'Top 150': ['top_150'],
+        'Top 175': ['top_175'],
+        'Top 200': ['top_200'],
+        'Top 225': ['top_225'],
+        'Top 250': ['top_250'],
+        'Top 275': ['top_275'],
+        'Top 300': ['top_300'],
+        'Top 325': ['top_325'],
+        'Top 350': ['top_350'],
+        'Top 375': ['top_375'],
+        'Top 400': ['top_400'],
+        'Top 425': ['top_425'],
+        'Top 450': ['top_450'],
+        'Top 475': ['top_475'],
+        'Top 500': ['top_500']
+      };
+      
+      activeTiers.forEach(tier => {
+        const dbTiers = tierMappings[tier] || [];
+        
+        tierCountBreakdown.started[tier] = progress?.filter(p => {
+          const word = words?.find(w => w.id === p.word_id);
+          return dbTiers.includes(word?.tier) && p.state === 'started';
+        }).length || 0;
+        
+        tierCountBreakdown.mastered[tier] = progress?.filter(p => {
+          const word = words?.find(w => w.id === p.word_id);
+          return dbTiers.includes(word?.tier) && p.state === 'mastered';
+        }).length || 0;
+      });
       
       // Calculate active words difficulty breakdown
       const activeWords = progress?.filter(p => p.state === 'started') || [];
@@ -208,6 +255,7 @@ export default function Dashboard() {
         tierProgress,
         activeTiers,
         highestActiveTier,
+        tierCountBreakdown,
         recentBadges: (userBadges?.map(ub => ub.badges).flat() || []) as Badge[]
       };
       
@@ -236,6 +284,10 @@ export default function Dashboard() {
       ],
       activeTiers: [],
       highestActiveTier: 'Top 25',
+      tierCountBreakdown: {
+        started: {},
+        mastered: {}
+      },
       recentBadges: []
     });
   };
@@ -341,13 +393,7 @@ export default function Dashboard() {
                   </p>
                   {stats.activeTiers && stats.activeTiers.length > 0 && (
                     <div className="text-blue-100 text-xs sm:text-sm">
-                      <p>{stats.activeTiers.map(tier => {
-                        const tierCount = progress?.filter(p => {
-                          const word = words?.find(w => w.id === p.word_id);
-                          return word?.tier === tier && p.state === 'started';
-                        }).length || 0;
-                        return `${tier}: ${tierCount}`;
-                      }).join(', ')}</p>
+                      <p>{stats.activeTiers.map(tier => `${tier}: ${stats.tierCountBreakdown.started[tier] || 0}`).join(', ')}</p>
                     </div>
                   )}
                 </div>
@@ -378,13 +424,7 @@ export default function Dashboard() {
                   </p>
                   {stats.activeTiers && stats.activeTiers.length > 0 && (
                     <div className="text-green-100 text-xs sm:text-sm">
-                      <p>{stats.activeTiers.map(tier => {
-                        const tierCount = progress?.filter(p => {
-                          const word = words?.find(w => w.id === p.word_id);
-                          return word?.tier === tier && p.state === 'mastered';
-                        }).length || 0;
-                        return `${tier}: ${tierCount}`;
-                      }).join(', ')}</p>
+                      <p>{stats.activeTiers.map(tier => `${tier}: ${stats.tierCountBreakdown.mastered[tier] || 0}`).join(', ')}</p>
                     </div>
                   )}
                 </div>
