@@ -62,6 +62,8 @@ export default function StudySession() {
   const [streak, setStreak] = useState(0);
   const [celebrationMessage, setCelebrationMessage] = useState('');
   const [celebrationTriggered, setCelebrationTriggered] = useState(false);
+  const [showWordModal, setShowWordModal] = useState(false);
+  const [showImageContent, setShowImageContent] = useState(true); // true = show image, false = show definition
   const [wordStateManager] = useState(() => new WordStateManager());
   const router = useRouter();
   const supabase = createClientComponentClient();
@@ -83,6 +85,14 @@ export default function StudySession() {
     const words = definition.split(' ');
     if (words.length <= maxWords) return definition;
     return words.slice(0, maxWords).join(' ') + '...';
+  };
+
+  const handleImageClick = () => {
+    setShowImageContent(!showImageContent);
+  };
+
+  const closeWordModal = () => {
+    setShowWordModal(false);
   };
 
 
@@ -520,6 +530,7 @@ export default function StudySession() {
       setShowAnswer(false);
       setSelectedAnswer(null);
       setIsCorrect(null);
+      setShowImageContent(true); // Reset to show image for new question
       setCurrentAnswers([]); // Force regeneration of answers
       // Force a small delay to ensure DOM updates
       setTimeout(() => {
@@ -539,6 +550,7 @@ export default function StudySession() {
       setShowAnswer(false);
       setSelectedAnswer(null);
       setIsCorrect(null);
+      setShowImageContent(true); // Reset to show image for previous question
       setCurrentAnswers([]); // Reset answers to trigger regeneration
     }
   };
@@ -596,37 +608,68 @@ export default function StudySession() {
             </h2>
           </div>
 
-          {/* Word Image */}
+          {/* Word Image/Definition Toggle */}
           {currentWord.image_url && (
             <div className="mb-4 sm:mb-6 text-center">
-              <div className="inline-block bg-gray-100 rounded-lg p-2 sm:p-4">
-                <img 
-                  src={currentWord.image_url} 
-                  alt={`Visual representation of ${currentWord.word}`}
-                  className="h-96 w-96 sm:h-[32rem] sm:w-[32rem] object-cover rounded-lg mx-auto"
-                  onError={(e) => {
-                    console.error('Image failed to load:', currentWord.image_url);
-                    // Hide the image container if image fails to load
-                    e.currentTarget.style.display = 'none';
+              <div className="relative overflow-hidden rounded-lg">
+                {/* Clickable Container */}
+                <div 
+                  className="inline-block bg-gray-100 rounded-lg p-2 sm:p-4 cursor-pointer hover:bg-gray-200 transition-colors duration-200 select-none"
+                  onClick={handleImageClick}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleImageClick();
+                    }
                   }}
-                  onLoad={() => {
-                    console.log('Image loaded successfully:', currentWord.image_url);
-                  }}
-                  loading="lazy"
-                  decoding="async"
-                />
+                  aria-label={`Click to ${showImageContent ? 'see definition for' : 'see image for'} ${currentWord.word}`}
+                >
+                  {showImageContent ? (
+                    /* Image View */
+                    <img 
+                      src={currentWord.image_url} 
+                      alt={`Visual representation of ${currentWord.word}. Click to see definition.`}
+                      className="h-96 w-96 sm:h-[32rem] sm:w-[32rem] object-cover rounded-lg mx-auto hover:opacity-90 transition-opacity duration-200"
+                      onError={(e) => {
+                        console.error('Image failed to load:', currentWord.image_url);
+                        e.currentTarget.style.display = 'none';
+                      }}
+                      onLoad={() => {
+                        console.log('Image loaded successfully:', currentWord.image_url);
+                      }}
+                      loading="lazy"
+                      decoding="async"
+                      draggable={false}
+                    />
+                  ) : (
+                    /* Definition View */
+                    <div className="h-96 w-96 sm:h-[32rem] sm:w-[32rem] bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg mx-auto flex flex-col justify-center items-center text-white p-4 sm:p-6 hover:opacity-90 transition-opacity duration-200">
+                      <div className="text-center space-y-3">
+                        <h3 className="text-xl sm:text-2xl font-bold">{currentWord.word}</h3>
+                        <div className="text-sm sm:text-base opacity-90">
+                          <p className="font-semibold">{currentWord.part_of_speech}</p>
+                        </div>
+                        <div className="text-sm sm:text-base">
+                          <p>{currentWord.definition}</p>
+                        </div>
+                        {currentWord.example_sentence && (
+                          <div className="text-sm sm:text-base italic mt-2">
+                            <p>"{currentWord.example_sentence}"</p>
+                          </div>
+                        )}
+                      </div>
+                      <div className="mt-4 text-xs sm:text-sm opacity-75">
+                        Click to see image
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}
 
-          {/* Definition */}
-          <div className="text-center mb-4 sm:mb-8">
-            <div className="bg-blue-50 rounded-lg p-3 sm:p-6">
-              <p className="text-base sm:text-lg text-gray-800">
-                {truncateDefinition(currentWord.definition)}
-              </p>
-            </div>
-          </div>
 
           {/* Answer Options */}
           <div className="grid grid-cols-1 gap-3 sm:gap-4 mb-4 sm:mb-8">
@@ -703,6 +746,87 @@ export default function StudySession() {
         onComplete={handleWrongAnimationComplete}
         type="wrong"
       />
+
+      {/* Word Details Modal */}
+      {showWordModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              {/* Modal Header */}
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-2xl font-bold text-gray-900">{currentWord.word}</h3>
+                <button
+                  onClick={closeWordModal}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  aria-label="Close modal"
+                >
+                  <XCircle className="h-8 w-8" />
+                </button>
+              </div>
+
+              {/* Word Image */}
+              {currentWord.image_url && (
+                <div className="mb-6 text-center">
+                  <img 
+                    src={currentWord.image_url} 
+                    alt={`Visual representation of ${currentWord.word}`}
+                    className="h-64 w-64 object-cover rounded-lg mx-auto"
+                  />
+                </div>
+              )}
+
+              {/* Word Details */}
+              <div className="space-y-4">
+                {/* Part of Speech */}
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Part of Speech</h4>
+                  <p className="text-lg text-gray-800">{currentWord.part_of_speech}</p>
+                </div>
+
+                {/* Definition */}
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Definition</h4>
+                  <p className="text-lg text-gray-800">{currentWord.definition}</p>
+                </div>
+
+                {/* Example Sentence */}
+                {currentWord.example_sentence && (
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Example</h4>
+                    <p className="text-lg text-gray-800 italic">"{currentWord.example_sentence}"</p>
+                  </div>
+                )}
+
+                {/* Synonyms */}
+                {currentWord.synonyms && currentWord.synonyms.length > 0 && (
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Synonyms</h4>
+                    <p className="text-lg text-gray-800">{currentWord.synonyms.join(', ')}</p>
+                  </div>
+                )}
+
+                {/* Antonyms */}
+                {currentWord.antonyms && currentWord.antonyms.length > 0 && (
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Antonyms</h4>
+                    <p className="text-lg text-gray-800">{currentWord.antonyms.join(', ')}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Modal Footer */}
+              <div className="mt-8 flex justify-end">
+                <button
+                  onClick={closeWordModal}
+                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
