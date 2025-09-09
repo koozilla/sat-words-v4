@@ -268,7 +268,7 @@ export default function SessionSummary() {
           words_studied: summary.totalQuestions,
           correct_answers: summary.score,
           words_promoted: summary.wordsPromoted.length,
-          words_mastered: summary.sessionType === 'review' ? summary.wordsPromoted.length : 0,
+          words_mastered: summary.wordsPromoted.filter(w => w.toState === 'mastered').length,
           started_at: sessionInfo.started_at || new Date(Date.now() - summary.timeSpent * 1000).toISOString(),
           completed_at: new Date().toISOString(),
           is_guest: false

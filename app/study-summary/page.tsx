@@ -73,6 +73,9 @@ export default function StudySummary() {
         const summary = await generateStudySessionSummary(sessionData);
         console.log('Generated summary:', summary);
         setSummaryData(summary);
+        
+        // Save session to database
+        await saveSessionToDatabase(summary, sessionData);
       } catch (error) {
         console.error('Error loading summary data:', error);
         router.push('/dashboard');
@@ -185,6 +188,35 @@ export default function StudySummary() {
       wordsPromoted,
       newBadges: [] // TODO: Implement badge system
     };
+  };
+
+  const saveSessionToDatabase = async (summary: StudySessionSummary, sessionData: any) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { error } = await supabase
+        .from('sessions')
+        .insert({
+          user_id: user.id,
+          session_type: 'study',
+          words_studied: summary.totalQuestions,
+          correct_answers: summary.score,
+          words_promoted: summary.wordsPromoted.length,
+          words_mastered: summary.wordsPromoted.filter(w => w.toState === 'mastered').length,
+          started_at: sessionData.started_at || new Date(Date.now() - summary.timeSpent * 1000).toISOString(),
+          completed_at: new Date().toISOString(),
+          is_guest: false
+        });
+
+      if (error) {
+        console.error('Error saving session to database:', error);
+      } else {
+        console.log('Session saved to database successfully');
+      }
+    } catch (error) {
+      console.error('Error saving session:', error);
+    }
   };
 
   const formatTime = (seconds: number): string => {

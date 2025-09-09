@@ -59,13 +59,13 @@ export class WordStateManager {
       if (isCorrect) {
         newStreak = currentStreak + 1;
         
-        // Check if ready to transition to review (1 correct streak) - TEMPORARY
+        // Check if ready to transition to mastered (1 correct streak) - TEMPORARY
         if (currentState === 'started' && newStreak >= 1) {
-          newState = 'ready';
+          newState = 'mastered';
           transition = {
             wordId,
             fromState: 'started',
-            toState: 'ready',
+            toState: 'mastered',
             streak: newStreak,
             isCorrect: true
           };
