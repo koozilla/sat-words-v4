@@ -28,8 +28,8 @@ async function main() {
     console.log('');
     
     // Validate environment
-    if (!process.env.API_KEY) {
-      throw new Error('API_KEY environment variable is required');
+    if (!process.env.GEMINI_API_KEY) {
+      throw new Error('GEMINI_API_KEY environment variable is required');
     }
     
     if (insertToDatabase) {

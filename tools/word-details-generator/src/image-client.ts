@@ -27,9 +27,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 def generate_image():
-    api_key = os.getenv('API_KEY')
+    api_key = os.getenv('GEMINI_API_KEY')
     if not api_key:
-        raise Exception('API_KEY not found')
+        raise Exception('GEMINI_API_KEY not found')
     
     genai.configure(api_key=api_key)
     model = genai.GenerativeModel('gemini-2.5-flash-image-preview')

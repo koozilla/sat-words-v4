@@ -7,7 +7,7 @@ async function debugAPI() {
   console.log('🔍 Debugging Gemini API for text generation...');
   
   // Check API key
-  const apiKey = process.env.API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
   console.log('API Key present:', !!apiKey);
   console.log('API Key length:', apiKey ? apiKey.length : 0);
   console.log('API Key starts with:', apiKey ? apiKey.substring(0, 10) + '...' : 'N/A');
