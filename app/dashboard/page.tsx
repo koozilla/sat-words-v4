@@ -154,7 +154,7 @@ export default function Dashboard() {
       };
       
       // Map display tier to database tier
-      const tierMappings: { [key: string]: string[] } = {
+      const tierMappingObject: { [key: string]: string[] } = {
         'Top 25': ['top_25'],
         'Top 50': ['top_50'],
         'Top 75': ['top_75'],
@@ -178,7 +178,7 @@ export default function Dashboard() {
       };
       
       activeTiers.forEach(tier => {
-        const dbTiers = tierMappings[tier] || [];
+        const dbTiers = tierMappingObject[tier] || [];
         
         tierCountBreakdown.started[tier] = progress?.filter(p => {
           const word = words?.find(w => w.id === p.word_id);
