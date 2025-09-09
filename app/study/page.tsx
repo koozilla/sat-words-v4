@@ -647,7 +647,6 @@ export default function StudySession() {
                     /* Definition View */
                     <div className="h-96 w-96 sm:h-[32rem] sm:w-[32rem] bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg mx-auto flex flex-col justify-center items-center text-white p-4 sm:p-6 hover:opacity-90 transition-opacity duration-200">
                       <div className="text-center space-y-3">
-                        <h3 className="text-xl sm:text-2xl font-bold">{currentWord.word}</h3>
                         <div className="text-sm sm:text-base opacity-90">
                           <p className="font-semibold">{currentWord.part_of_speech}</p>
                         </div>
@@ -656,7 +655,7 @@ export default function StudySession() {
                         </div>
                         {currentWord.example_sentence && (
                           <div className="text-sm sm:text-base italic mt-2">
-                            <p>"{currentWord.example_sentence}"</p>
+                            <p>"{currentWord.example_sentence.replace(new RegExp(`\\b${currentWord.word}\\b`, 'gi'), '***')}"</p>
                           </div>
                         )}
                       </div>
