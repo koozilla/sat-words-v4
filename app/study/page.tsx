@@ -709,12 +709,12 @@ export default function StudySession() {
                   ) : (
                     /* Definition View */
                     <div className="w-full aspect-[4/3] sm:h-96 sm:w-[40rem] sm:aspect-auto bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg mx-auto flex flex-col justify-center text-white p-4 sm:p-6 hover:opacity-90 transition-opacity duration-200">
-                      <div className="text-center w-full">
-                        <div className="text-base sm:text-lg leading-relaxed">
-                          <p className="break-words">{currentWord.definition}</p>
+                      <div className="text-center w-full flex-1 flex flex-col justify-center">
+                        <div className="text-sm sm:text-base leading-relaxed max-h-full overflow-y-auto">
+                          <p className="break-words hyphens-auto text-center px-2">{currentWord.definition}</p>
                         </div>
                       </div>
-                      <div className="mt-4 text-xs sm:text-sm opacity-75 text-center">
+                      <div className="mt-2 sm:mt-4 text-xs sm:text-sm opacity-75 text-center flex-shrink-0">
                         Tap to see image
                       </div>
                     </div>
