@@ -293,48 +293,7 @@ export default function WordsPage() {
                 View and manage your active study pool. See words you&apos;re studying and words ready for review.
               </p>
             </div>
-            <button
-              onClick={() => setShowAvailableWords(!showAvailableWords)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              {showAvailableWords ? 'Hide Available Words' : 'Add More Words'}
-            </button>
           </div>
-          
-          {/* Available Words Section */}
-          {showAvailableWords && (
-            <div className="bg-blue-50 rounded-xl p-6 mb-6">
-              <h2 className="text-xl font-semibold text-blue-900 mb-2">Available Words</h2>
-              <p className="text-blue-700 mb-4">
-                Add words from your current tier to your active study pool. You can have up to 15 words in your active pool.
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {availableWords?.slice(0, 6).map((word) => (
-                  <div key={word.id} className="bg-white rounded-lg p-4 shadow-sm">
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="font-semibold text-gray-900">{word.word}</h3>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTierColor(word.tier)}`}>
-                        {word.tier}
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-600 mb-3">{word.definition}</p>
-                    <button
-                      onClick={() => addToActivePool(word.id)}
-                      className="w-full px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
-                    >
-                      Add to Study Pool
-                    </button>
-                  </div>
-                ))}
-              </div>
-              {availableWords && availableWords.length > 6 && (
-                <p className="text-blue-600 text-sm mt-4">
-                  And {availableWords.length - 6} more words available...
-                </p>
-              )}
-            </div>
-          )}
         </div>
 
         {/* Search and Filters */}
@@ -473,17 +432,6 @@ export default function WordsPage() {
                       <p className="text-sm text-gray-600">{word.antonyms.join(', ')}</p>
                     </div>
                   )}
-                </div>
-
-                {/* Remove Button */}
-                <div className="pt-4 border-t border-gray-100">
-                  <button
-                    onClick={() => removeFromCurrent(word.id)}
-                    className="w-full flex items-center justify-center px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Remove from Study
-                  </button>
                 </div>
               </div>
             );

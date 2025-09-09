@@ -275,11 +275,39 @@ export class WordStateManager {
    */
   async getWordsDueForReview(userId: string): Promise<any[]> {
     try {
+      const currentTier = await this.getCurrentTier(userId);
+      
+      // Map display tier to database tier
+      const tierMappings: { [key: string]: string[] } = {
+        'Top 25': ['top_25'],
+        'Top 50': ['top_50'],
+        'Top 75': ['top_75'],
+        'Top 100': ['top_100'],
+        'Top 125': ['top_125'],
+        'Top 150': ['top_150'],
+        'Top 175': ['top_175'],
+        'Top 200': ['top_200'],
+        'Top 225': ['top_225'],
+        'Top 250': ['top_250'],
+        'Top 275': ['top_275'],
+        'Top 300': ['top_300'],
+        'Top 325': ['top_325'],
+        'Top 350': ['top_350'],
+        'Top 375': ['top_375'],
+        'Top 400': ['top_400'],
+        'Top 425': ['top_425'],
+        'Top 450': ['top_450'],
+        'Top 475': ['top_475'],
+        'Top 500': ['top_500']
+      };
+      
+      const dbTiers = tierMappings[currentTier] || ['top_25'];
+
       const { data, error } = await this.supabase
         .from('user_progress')
         .select(`
           *,
-          words (
+          words!inner (
             id,
             word,
             definition,
@@ -294,6 +322,7 @@ export class WordStateManager {
         `)
         .eq('user_id', userId)
         .eq('state', 'ready')
+        .in('words.tier', dbTiers)
         .order('next_review_date', { ascending: true });
 
       if (error) {
@@ -309,15 +338,43 @@ export class WordStateManager {
   }
 
   /**
-   * Get active pool words (started state) - limited to target pool size
+   * Get active pool words (started state) - limited to target pool size and current tier
    */
   async getActivePoolWords(userId: string): Promise<any[]> {
     try {
+      const currentTier = await this.getCurrentTier(userId);
+      
+      // Map display tier to database tier
+      const tierMappings: { [key: string]: string[] } = {
+        'Top 25': ['top_25'],
+        'Top 50': ['top_50'],
+        'Top 75': ['top_75'],
+        'Top 100': ['top_100'],
+        'Top 125': ['top_125'],
+        'Top 150': ['top_150'],
+        'Top 175': ['top_175'],
+        'Top 200': ['top_200'],
+        'Top 225': ['top_225'],
+        'Top 250': ['top_250'],
+        'Top 275': ['top_275'],
+        'Top 300': ['top_300'],
+        'Top 325': ['top_325'],
+        'Top 350': ['top_350'],
+        'Top 375': ['top_375'],
+        'Top 400': ['top_400'],
+        'Top 425': ['top_425'],
+        'Top 450': ['top_450'],
+        'Top 475': ['top_475'],
+        'Top 500': ['top_500']
+      };
+      
+      const dbTiers = tierMappings[currentTier] || ['top_25'];
+
       const { data, error } = await this.supabase
         .from('user_progress')
         .select(`
           *,
-          words (
+          words!inner (
             id,
             word,
             definition,
@@ -332,6 +389,7 @@ export class WordStateManager {
         `)
         .eq('user_id', userId)
         .eq('state', 'started')
+        .in('words.tier', dbTiers)
         .order('last_studied', { ascending: true })
         .limit(15); // Limit to target pool size
 
@@ -688,6 +746,73 @@ export class WordStateManager {
     } catch (error) {
       console.error('Error getting current tier:', error);
       return 'Top 25';
+    }
+  }
+
+  /**
+   * Check if there are any words in started state for the current tier
+   */
+  async hasStartedWordsInCurrentTier(userId: string): Promise<boolean> {
+    try {
+      const currentTier = await this.getCurrentTier(userId);
+      
+      // Map display tier to database tier
+      const tierMappings: { [key: string]: string[] } = {
+        'Top 25': ['top_25'],
+        'Top 50': ['top_50'],
+        'Top 75': ['top_75'],
+        'Top 100': ['top_100'],
+        'Top 125': ['top_125'],
+        'Top 150': ['top_150'],
+        'Top 175': ['top_175'],
+        'Top 200': ['top_200'],
+        'Top 225': ['top_225'],
+        'Top 250': ['top_250'],
+        'Top 275': ['top_275'],
+        'Top 300': ['top_300'],
+        'Top 325': ['top_325'],
+        'Top 350': ['top_350'],
+        'Top 375': ['top_375'],
+        'Top 400': ['top_400'],
+        'Top 425': ['top_425'],
+        'Top 450': ['top_450'],
+        'Top 475': ['top_475'],
+        'Top 500': ['top_500']
+      };
+      
+      const dbTiers = tierMappings[currentTier] || ['top_25'];
+
+      // Get words in current tier
+      const { data: tierWords, error: tierError } = await this.supabase
+        .from('words')
+        .select('id')
+        .in('tier', dbTiers);
+
+      if (tierError || !tierWords) {
+        console.error('Error getting tier words:', tierError);
+        return true; // Default to true to be safe
+      }
+
+      const tierWordIds = tierWords.map(w => w.id);
+
+      // Check if any of these words are in started state
+      const { data, error } = await this.supabase
+        .from('user_progress')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('state', 'started')
+        .in('word_id', tierWordIds)
+        .limit(1);
+
+      if (error) {
+        console.error('Error checking started words in current tier:', error);
+        return true; // Default to true to be safe
+      }
+
+      return (data && data.length > 0);
+    } catch (error) {
+      console.error('Error checking started words in current tier:', error);
+      return true; // Default to true to be safe
     }
   }
 

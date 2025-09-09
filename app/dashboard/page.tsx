@@ -134,7 +134,8 @@ export default function Dashboard() {
 
       // Calculate stats using WordStateManager
       const currentActivePoolCount = await wordStateManager.getActivePoolCount(userId);
-      const reviewsDue = progress?.filter(p => p.state === 'ready').length || 0;
+      const hasStartedWords = await wordStateManager.hasStartedWordsInCurrentTier(userId);
+      const reviewsDue = hasStartedWords ? 0 : (progress?.filter(p => p.state === 'ready').length || 0);
       const mastered = progress?.filter(p => p.state === 'mastered').length || 0;
       
       
@@ -377,9 +378,9 @@ export default function Dashboard() {
               <div className="flex items-center">
                 <Plus className="h-6 w-6 sm:h-8 sm:w-8 mr-3 sm:mr-4 flex-shrink-0" />
                 <div className="min-w-0">
-                  <h3 className="text-base sm:text-lg font-semibold mb-1">Modify Active Words</h3>
+                  <h3 className="text-base sm:text-lg font-semibold mb-1">View Active Words</h3>
                   <p className="text-purple-100 text-sm sm:text-base mb-2">
-                    Manage your active study pool
+                    View your active study pool
                   </p>
                 </div>
               </div>
@@ -389,7 +390,7 @@ export default function Dashboard() {
                   className="bg-white text-purple-600 px-4 py-2 sm:px-6 sm:py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center justify-center w-full sm:w-auto"
                 >
                   <Plus className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-                  Modify
+                  View All
                 </button>
               </div>
             </div>

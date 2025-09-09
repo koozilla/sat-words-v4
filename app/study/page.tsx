@@ -589,20 +589,19 @@ export default function StudySession() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-12 sm:h-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
             {/* Back to Dashboard Button */}
             <button
               onClick={() => router.push('/dashboard')}
-              className="px-3 sm:px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-semibold text-xs sm:text-sm flex items-center gap-1 sm:gap-2"
+              className="flex items-center text-gray-600 hover:text-gray-900"
             >
-              <ArrowLeft className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="hidden sm:inline">Back to Dashboard</span>
-              <span className="sm:hidden">Back</span>
+              <ArrowLeft className="h-5 w-5 mr-2" />
+              Back to Dashboard
             </button>
             
             {/* Progress Counter */}
-            <div className="text-xs sm:text-sm text-gray-500">
+            <div className="text-sm font-medium text-gray-700">
               {session.currentIndex + 1}/{session.totalQuestions}
             </div>
           </div>
