@@ -216,46 +216,37 @@ export default function Dashboard() {
         hard: activeWordsWithDetails.filter(w => w?.difficulty === 'Hard').length
       };
       
-      // Get current tier and calculate progress for only that tier
-      const currentTierDisplay = await wordStateManager.getCurrentTier(userId);
-      
-      // Map display name to database format - Updated for 20-tier system
-      const tierMappings = [
-        { display: 'Top 25', db: ['top_25'] },
-        { display: 'Top 50', db: ['top_50'] },
-        { display: 'Top 75', db: ['top_75'] },
-        { display: 'Top 100', db: ['top_100'] },
-        { display: 'Top 125', db: ['top_125'] },
-        { display: 'Top 150', db: ['top_150'] },
-        { display: 'Top 175', db: ['top_175'] },
-        { display: 'Top 200', db: ['top_200'] },
-        { display: 'Top 225', db: ['top_225'] },
-        { display: 'Top 250', db: ['top_250'] },
-        { display: 'Top 275', db: ['top_275'] },
-        { display: 'Top 300', db: ['top_300'] },
-        { display: 'Top 325', db: ['top_325'] },
-        { display: 'Top 350', db: ['top_350'] },
-        { display: 'Top 375', db: ['top_375'] },
-        { display: 'Top 400', db: ['top_400'] },
-        { display: 'Top 425', db: ['top_425'] },
-        { display: 'Top 450', db: ['top_450'] },
-        { display: 'Top 475', db: ['top_475'] },
-        { display: 'Top 500', db: ['top_500'] }
+      // Calculate progress for all active tiers with cumulative counts
+      const tierOrder = [
+        'Top 25', 'Top 50', 'Top 75', 'Top 100', 'Top 125', 'Top 150', 'Top 175', 'Top 200',
+        'Top 225', 'Top 250', 'Top 275', 'Top 300', 'Top 325', 'Top 350', 'Top 375', 'Top 400',
+        'Top 425', 'Top 450', 'Top 475', 'Top 500'
       ];
       
-      const currentTierMapping = tierMappings.find(t => t.display === currentTierDisplay);
-      const tierWords = currentTierMapping ? words?.filter(w => currentTierMapping.db.includes(w.tier)) || [] : [];
-      const tierMastered = progress?.filter(p => 
-        p.state === 'mastered' && 
-        tierWords.some(w => w.id === p.word_id)
-      ).length || 0;
-      
-      const tierProgress = [{
-        tier: currentTierDisplay,
-        total: tierWords.length,
-        mastered: tierMastered,
-        percentage: tierWords.length > 0 ? Math.round((tierMastered / tierWords.length) * 100) : 0
-      }];
+      const tierProgress = activeTiers.map(tier => {
+        const tierIndex = tierOrder.indexOf(tier);
+        if (tierIndex === -1) return null;
+        
+        // Get all tiers up to and including the current tier (cumulative)
+        const cumulativeTiers = tierOrder.slice(0, tierIndex + 1);
+        const cumulativeDbTiers = cumulativeTiers.flatMap(t => tierMappingObject[t] || []);
+        
+        // Get all words in cumulative tiers
+        const cumulativeWords = words?.filter(w => cumulativeDbTiers.includes(w.tier)) || [];
+        
+        // Get mastered words in cumulative tiers
+        const cumulativeMastered = progress?.filter(p => 
+          p.state === 'mastered' && 
+          cumulativeWords.some(w => w.id === p.word_id)
+        ).length || 0;
+        
+        return {
+          tier: tier,
+          total: cumulativeWords.length,
+          mastered: cumulativeMastered,
+          percentage: cumulativeWords.length > 0 ? Math.round((cumulativeMastered / cumulativeWords.length) * 100) : 0
+        };
+      }).filter(Boolean);
 
       const finalStats = {
         activePoolCount: currentActivePoolCount,
