@@ -797,7 +797,7 @@ export default function StudySession() {
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">New Tier Unlocked!</h2>
               <p className="text-gray-600">
-                Congratulations! You've mastered all words in <span className="font-semibold">{tierUnlocked.previousTier}</span> and unlocked <span className="font-semibold text-blue-600">{tierUnlocked.newTier}</span>!
+                Congratulations! You&apos;ve mastered all words in <span className="font-semibold">{tierUnlocked.previousTier}</span> and unlocked <span className="font-semibold text-blue-600">{tierUnlocked.newTier}</span>!
               </p>
             </div>
             <button
