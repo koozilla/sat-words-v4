@@ -297,9 +297,22 @@ export default function WordsPage() {
             </button>
             <div className="flex items-center">
               <Target className="h-6 w-6 text-blue-600 mr-2" />
-              <span className="text-sm font-medium text-gray-700">
-                Active Words: {currentWords.length}
-              </span>
+              <div className="text-sm font-medium text-gray-700">
+                <div>Active Words: {currentWords.length}</div>
+                {currentWords.length > 0 && (
+                  <div className="text-xs text-gray-500">
+                    {(() => {
+                      const tierCounts = currentWords.reduce((acc, word) => {
+                        acc[word.tier] = (acc[word.tier] || 0) + 1;
+                        return acc;
+                      }, {} as Record<string, number>);
+                      return Object.entries(tierCounts)
+                        .map(([tier, count]) => `${tier}: ${count}`)
+                        .join(', ');
+                    })()}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -312,7 +325,7 @@ export default function WordsPage() {
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">Active Words</h1>
               <p className="text-gray-600">
-                View and manage your active study pool. See words you&apos;re studying and words ready for review.
+                View and manage your active study pool. See words you&apos;re studying and words ready for review, organized by tier.
               </p>
             </div>
           </div>

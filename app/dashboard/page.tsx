@@ -330,6 +330,11 @@ export default function Dashboard() {
                   <p className="text-blue-100 text-sm sm:text-base mb-2">
                     {stats.activePoolCount} words in active study pool
                   </p>
+                  {stats.tierProgress && stats.tierProgress.length > 0 && (
+                    <p className="text-blue-100 text-xs sm:text-sm">
+                      {stats.tierProgress[0].tier}: {stats.tierProgress[0].total - stats.tierProgress[0].mastered} words remaining
+                    </p>
+                  )}
                 </div>
               </div>
               <div className="flex gap-1">
@@ -356,6 +361,11 @@ export default function Dashboard() {
                   <p className="text-green-100 text-sm sm:text-base mb-2">
                     {stats.masteredWords} words mastered
                   </p>
+                  {stats.tierProgress && stats.tierProgress.length > 0 && (
+                    <p className="text-green-100 text-xs sm:text-sm">
+                      {stats.tierProgress[0].tier}: {stats.tierProgress[0].mastered}/{stats.tierProgress[0].total} completed
+                    </p>
+                  )}
                 </div>
               </div>
               <div className="flex gap-1">
