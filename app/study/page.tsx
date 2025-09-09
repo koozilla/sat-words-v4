@@ -202,6 +202,7 @@ export default function StudySession() {
         startTime: new Date(),
         wordResults: []
       });
+      console.log('Study session initialized with', studyWords.length, 'words');
     } catch (error) {
       console.error('Error initializing study session:', error);
     } finally {
@@ -363,12 +364,15 @@ export default function StudySession() {
   };
 
   const handleCelebrationComplete = () => {
+    console.log('Celebration complete - current index:', session?.currentIndex, 'total questions:', session?.words.length);
     setShowCelebration(false);
     setCelebrationTriggered(false);
     // Auto-advance to next question after celebration for correct answers
     if (session && session.currentIndex < session.words.length - 1) {
+      console.log('Advancing to next question from index', session.currentIndex);
       nextQuestion(false); // false = not skipped (this was a correct answer)
     } else {
+      console.log('Finishing session - last question');
       // If it's the last question, finish the session
       finishSession();
     }
@@ -486,6 +490,7 @@ export default function StudySession() {
   };
 
   const nextQuestion = async (isSkipped = true) => {
+    console.log('nextQuestion called - current index:', session?.currentIndex, 'isSkipped:', isSkipped);
     if (session && session.currentIndex < session.words.length - 1) {
       const currentWord = session.words[session.currentIndex];
       
@@ -531,8 +536,10 @@ export default function StudySession() {
           ...updatedSession,
           currentIndex: session.currentIndex + 1
         });
+        console.log('Session updated - new index:', session.currentIndex + 1);
       } else {
         // Just advance to next question (answer was already processed by handleAnswerSelect)
+        console.log('Advancing to next question - old index:', session.currentIndex, 'new index:', session.currentIndex + 1);
         setSession({
           ...session,
           currentIndex: session.currentIndex + 1
