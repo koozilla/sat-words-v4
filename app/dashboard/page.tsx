@@ -217,12 +217,6 @@ export default function Dashboard() {
       };
       
       // Calculate progress for all active tiers with cumulative counts
-      const tierOrder = [
-        'Top 25', 'Top 50', 'Top 75', 'Top 100', 'Top 125', 'Top 150', 'Top 175', 'Top 200',
-        'Top 225', 'Top 250', 'Top 275', 'Top 300', 'Top 325', 'Top 350', 'Top 375', 'Top 400',
-        'Top 425', 'Top 450', 'Top 475', 'Top 500'
-      ];
-      
       const tierProgress = activeTiers.map(tier => {
         const tierIndex = tierOrder.indexOf(tier);
         if (tierIndex === -1) return null;
@@ -396,7 +390,10 @@ export default function Dashboard() {
                   </p>
                   {stats.activeTiers && stats.activeTiers.length > 0 && (
                     <div className="text-blue-100 text-xs sm:text-sm">
-                      <p>{stats.activeTiers.map(tier => `${tier}: ${stats.tierCountBreakdown.started[tier] || 0}`).join(', ')}</p>
+                      <p>{stats.activeTiers
+                        .filter(tier => (stats.tierCountBreakdown.started[tier] || 0) > 0)
+                        .map(tier => `${tier}: ${stats.tierCountBreakdown.started[tier] || 0}`)
+                        .join(', ')}</p>
                     </div>
                   )}
                 </div>
@@ -427,7 +424,10 @@ export default function Dashboard() {
                   </p>
                   {stats.activeTiers && stats.activeTiers.length > 0 && (
                     <div className="text-green-100 text-xs sm:text-sm">
-                      <p>{stats.activeTiers.map(tier => `${tier}: ${stats.tierCountBreakdown.mastered[tier] || 0}`).join(', ')}</p>
+                      <p>{stats.activeTiers
+                        .filter(tier => (stats.tierCountBreakdown.mastered[tier] || 0) > 0)
+                        .map(tier => `${tier}: ${stats.tierCountBreakdown.mastered[tier] || 0}`)
+                        .join(', ')}</p>
                     </div>
                   )}
                 </div>
