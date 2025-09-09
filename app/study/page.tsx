@@ -290,6 +290,7 @@ export default function StudySession() {
         
         // Check for tier unlock
         if (transition.tierUnlocked) {
+          console.log('Tier unlocked!', transition.tierUnlocked);
           setTierUnlocked(transition.tierUnlocked);
         }
       }

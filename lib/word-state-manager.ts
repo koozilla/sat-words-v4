@@ -101,8 +101,10 @@ export class WordStateManager {
 
       // If word was promoted to mastered, check for tier progression
       if (transition && transition.toState === 'mastered') {
+        console.log('Word promoted to mastered, checking for tier progression...');
         const masteryResult = await this.handleWordMastery(userId);
         if (masteryResult.tierUnlocked) {
+          console.log('Tier unlock detected in handleStudyAnswer:', masteryResult.tierUnlocked);
           return { ...transition, tierUnlocked: masteryResult.tierUnlocked };
         }
       }
@@ -1142,7 +1144,7 @@ export class WordStateManager {
   }
 
   /**
-   * Add ALL words from a tier to active pool (set to 'started' state)
+   * Add up to 25 words from a tier to active pool (set to 'started' state)
    */
   async addAllTierWordsToActivePool(userId: string, tier: string): Promise<boolean> {
     try {
@@ -1172,11 +1174,12 @@ export class WordStateManager {
       
       const dbTiers = tierMappings[tier] || [tier];
       
-      // Get all words in the tier
+      // Get words in the tier (limit to 25 for active pool)
       const { data: words, error: wordsError } = await this.supabase
         .from('words')
         .select('id')
-        .in('tier', dbTiers);
+        .in('tier', dbTiers)
+        .limit(25);
 
       if (wordsError) {
         console.error('Error fetching words for tier:', wordsError);
@@ -1276,8 +1279,10 @@ export class WordStateManager {
         
         // If all words in current tier are mastered, progress to next tier
         if (masteredCount >= totalWords && currentTier !== 'Top 500') {
+          console.log(`All ${totalWords} words in ${currentTier} are mastered! Progressing to next tier...`);
           const progressionResult = await this.progressToNextTier(userId);
           if (progressionResult.success) {
+            console.log('Tier progression successful:', progressionResult);
             return { tierUnlocked: { newTier: progressionResult.newTier!, previousTier: progressionResult.previousTier! } };
           }
         } else {
