@@ -341,8 +341,13 @@ export default function Dashboard() {
                   </p>
                   {stats.activeTiers && stats.activeTiers.length > 0 && (
                     <div className="text-blue-100 text-xs sm:text-sm">
-                      <p className="mb-1">Active tiers: {stats.activeTiers.join(', ')}</p>
-                      <p>Highest: {stats.highestActiveTier}</p>
+                      <p>{stats.activeTiers.map(tier => {
+                        const tierCount = progress?.filter(p => {
+                          const word = words?.find(w => w.id === p.word_id);
+                          return word?.tier === tier && p.state === 'started';
+                        }).length || 0;
+                        return `${tier}: ${tierCount}`;
+                      }).join(', ')}</p>
                     </div>
                   )}
                 </div>
@@ -373,8 +378,13 @@ export default function Dashboard() {
                   </p>
                   {stats.activeTiers && stats.activeTiers.length > 0 && (
                     <div className="text-green-100 text-xs sm:text-sm">
-                      <p className="mb-1">Active tiers: {stats.activeTiers.join(', ')}</p>
-                      <p>Highest: {stats.highestActiveTier}</p>
+                      <p>{stats.activeTiers.map(tier => {
+                        const tierCount = progress?.filter(p => {
+                          const word = words?.find(w => w.id === p.word_id);
+                          return word?.tier === tier && p.state === 'mastered';
+                        }).length || 0;
+                        return `${tier}: ${tierCount}`;
+                      }).join(', ')}</p>
                     </div>
                   )}
                 </div>

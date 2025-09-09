@@ -308,8 +308,10 @@ export default function WordsPage() {
                 <div>Active Words: {currentWords.length}</div>
                 {activeTiers.length > 0 && (
                   <div className="text-xs text-gray-500">
-                    <div>Active tiers: {activeTiers.join(', ')}</div>
-                    <div>Highest: {highestActiveTier}</div>
+                    <div>{activeTiers.map(tier => {
+                      const tierCount = currentWords.filter(word => word.tier === tier).length;
+                      return `${tier}: ${tierCount}`;
+                    }).join(', ')}</div>
                   </div>
                 )}
               </div>
