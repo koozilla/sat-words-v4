@@ -12,7 +12,8 @@ import {
   XCircle,
   BookOpen,
   Image as ImageIcon,
-  Target
+  Target,
+  Trophy
 } from 'lucide-react';
 import CelebrationAnimation from '@/components/ui/CelebrationAnimation';
 
@@ -64,6 +65,7 @@ export default function StudySession() {
   const [celebrationTriggered, setCelebrationTriggered] = useState(false);
   const [showWordModal, setShowWordModal] = useState(false);
   const [showImageContent, setShowImageContent] = useState(true); // true = show image, false = show definition
+  const [tierUnlocked, setTierUnlocked] = useState<{ newTier: string; previousTier: string } | null>(null);
   const [wordStateManager] = useState(() => new WordStateManager());
   const router = useRouter();
   const supabase = createClientComponentClient();
@@ -285,6 +287,11 @@ export default function StudySession() {
 
       if (transition) {
         console.log('Word state transition:', transition);
+        
+        // Check for tier unlock
+        if (transition.tierUnlocked) {
+          setTierUnlocked(transition.tierUnlocked);
+        }
       }
     }
 
@@ -733,6 +740,29 @@ export default function StudySession() {
         onComplete={handleWrongAnimationComplete}
         type="wrong"
       />
+
+      {/* Tier Unlocked Modal */}
+      {tierUnlocked && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-8 max-w-md mx-4 text-center">
+            <div className="mb-6">
+              <div className="w-16 h-16 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Trophy className="h-8 w-8 text-white" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">New Tier Unlocked!</h2>
+              <p className="text-gray-600">
+                Congratulations! You've mastered all words in <span className="font-semibold">{tierUnlocked.previousTier}</span> and unlocked <span className="font-semibold text-blue-600">{tierUnlocked.newTier}</span>!
+              </p>
+            </div>
+            <button
+              onClick={() => setTierUnlocked(null)}
+              className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+            >
+              Continue Studying
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Word Details Modal */}
       {showWordModal && (

@@ -34,7 +34,7 @@ export class WordStateManager {
     userId: string,
     wordId: string,
     isCorrect: boolean
-  ): Promise<WordStateTransition | null> {
+  ): Promise<WordStateTransition & { tierUnlocked?: { newTier: string; previousTier: string } } | null> {
     try {
       // Get current progress
       const { data: progress, error } = await this.supabase
@@ -97,6 +97,14 @@ export class WordStateManager {
       if (updateError) {
         console.error('Error updating word progress:', updateError);
         return null;
+      }
+
+      // If word was promoted to mastered, check for tier progression
+      if (transition && transition.toState === 'mastered') {
+        const masteryResult = await this.handleWordMastery(userId);
+        if (masteryResult.tierUnlocked) {
+          return { ...transition, tierUnlocked: masteryResult.tierUnlocked };
+        }
       }
 
       return transition;
@@ -1218,7 +1226,7 @@ export class WordStateManager {
   /**
    * Handle word mastery - check for tier progression and refill pool
    */
-  async handleWordMastery(userId: string): Promise<void> {
+  async handleWordMastery(userId: string): Promise<{ tierUnlocked?: { newTier: string; previousTier: string } }> {
     try {
       const currentTier = await this.getCurrentTier(userId);
       
@@ -1268,7 +1276,10 @@ export class WordStateManager {
         
         // If all words in current tier are mastered, progress to next tier
         if (masteredCount >= totalWords && currentTier !== 'Top 500') {
-          await this.progressToNextTier(userId);
+          const progressionResult = await this.progressToNextTier(userId);
+          if (progressionResult.success) {
+            return { tierUnlocked: { newTier: progressionResult.newTier!, previousTier: progressionResult.previousTier! } };
+          }
         } else {
           // Otherwise, just refill the pool with available words
           const currentCount = await this.getActivePoolCount(userId);
@@ -1277,8 +1288,10 @@ export class WordStateManager {
           }
         }
       }
+      return {};
     } catch (error) {
       console.error('Error handling word mastery:', error);
+      return {};
     }
   }
 
@@ -1311,7 +1324,7 @@ export class WordStateManager {
       return false;
     }
   }
-  async progressToNextTier(userId: string): Promise<boolean> {
+  async progressToNextTier(userId: string): Promise<{ success: boolean; newTier?: string; previousTier?: string }> {
     try {
       const currentTier = await this.getCurrentTier(userId);
       
@@ -1324,7 +1337,7 @@ export class WordStateManager {
       const currentIndex = tierOrder.indexOf(currentTier);
       if (currentIndex === -1 || currentIndex >= tierOrder.length - 1) {
         console.log('User is already at the highest tier');
-        return false;
+        return { success: false };
       }
       
       const nextTier = tierOrder[currentIndex + 1];
@@ -1337,7 +1350,7 @@ export class WordStateManager {
       
       if (updateError) {
         console.error('Error updating user tier:', updateError);
-        return false;
+        return { success: false };
       }
       
       // Initialize progress for next tier
@@ -1350,10 +1363,10 @@ export class WordStateManager {
         console.log(`User progressed from ${currentTier} to ${nextTier}`);
       }
       
-      return success;
+      return { success, newTier: nextTier, previousTier: currentTier };
     } catch (error) {
       console.error('Error progressing to next tier:', error);
-      return false;
+      return { success: false };
     }
   }
 }
