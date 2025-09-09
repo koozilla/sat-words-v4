@@ -244,7 +244,7 @@ export default function Dashboard() {
           mastered: cumulativeMastered,
           percentage: cumulativeWords.length > 0 ? Math.round((cumulativeMastered / cumulativeWords.length) * 100) : 0
         };
-      }).filter(Boolean);
+      }).filter((item): item is NonNullable<typeof item> => item !== null);
 
       const finalStats = {
         activePoolCount: currentActivePoolCount,
