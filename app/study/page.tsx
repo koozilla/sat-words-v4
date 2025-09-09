@@ -67,6 +67,11 @@ export default function StudySession() {
   const [showImageContent, setShowImageContent] = useState(true); // true = show image, false = show definition
   const [tierUnlocked, setTierUnlocked] = useState<{ newTier: string; previousTier: string } | null>(null);
   const [isProcessingAnswer, setIsProcessingAnswer] = useState(false);
+  const [pendingAnswerData, setPendingAnswerData] = useState<{
+    answer: string;
+    currentWord: Word;
+    correct: boolean;
+  } | null>(null);
   const [wordStateManager] = useState(() => new WordStateManager());
   const router = useRouter();
   const supabase = createClientComponentClient();
@@ -96,6 +101,107 @@ export default function StudySession() {
 
   const closeWordModal = () => {
     setShowWordModal(false);
+  };
+
+  const processAnswerData = async (answerData: { answer: string; currentWord: Word; correct: boolean }) => {
+    const { answer, currentWord, correct } = answerData;
+    
+    console.log('Processing answer data:', { word: currentWord.word, answer, correct });
+    
+    // Create detailed word result
+    const wordResult = {
+      wordId: currentWord.id,
+      word: currentWord.word,
+      definition: currentWord.definition,
+      tier: currentWord.tier,
+      correct: correct,
+      selectedAnswer: answer,
+      correctAnswer: currentWord.word
+    };
+
+    // Handle word state transition
+    const { data: { user } } = await supabase.auth.getUser();
+    let transition = null;
+    if (user) {
+      transition = await wordStateManager.handleStudyAnswer(
+        user.id,
+        currentWord.id,
+        correct
+      );
+
+      if (transition) {
+        console.log('Word state transition:', transition);
+        
+        // Check for tier unlock
+        if (transition.tierUnlocked) {
+          console.log('Tier unlocked!', transition.tierUnlocked);
+          setTierUnlocked(transition.tierUnlocked);
+        }
+      }
+    }
+
+    // Update word result with transition data if available
+    const finalWordResult = {
+      ...wordResult,
+      fromState: transition?.fromState,
+      toState: transition?.toState
+    };
+
+    // Update session with answer data
+    if (session) {
+      // Check if we already have a result for this word
+      const existingResultIndex = session.wordResults.findIndex(result => result.wordId === currentWord.id);
+      let updatedWordResults;
+      let scoreAdjustment = 0;
+      
+      if (existingResultIndex >= 0) {
+        // Replace existing result
+        const existingResult = session.wordResults[existingResultIndex];
+        updatedWordResults = [...session.wordResults];
+        updatedWordResults[existingResultIndex] = finalWordResult;
+        
+        // Adjust score based on the change from existing to new result
+        if (correct && !existingResult.correct) {
+          scoreAdjustment = 1; // Was wrong, now correct
+        } else if (!correct && existingResult.correct) {
+          scoreAdjustment = -1; // Was correct, now wrong
+        } // else no change needed
+        
+      } else {
+        // Add new result
+        updatedWordResults = [...session.wordResults, finalWordResult];
+        scoreAdjustment = correct ? 1 : 0;
+      }
+
+      const newScore = session.score + scoreAdjustment;
+      
+      console.log('Study session - Answer processed:', {
+        word: currentWord.word,
+        correct: correct,
+        selectedAnswer: answer,
+        scoreAdjustment: scoreAdjustment,
+        newScore: newScore,
+        wordResultsLength: updatedWordResults.length,
+        finalWordResult: finalWordResult
+      });
+      
+      setSession({
+        ...session,
+        answers: {
+          ...session.answers,
+          [currentWord.id]: correct
+        },
+        score: newScore,
+        wordResults: updatedWordResults,
+        promotedWords: (transition?.toState === 'ready' && transition?.fromState === 'started') 
+          ? [...session.promotedWords, currentWord.id]
+          : session.promotedWords
+      });
+    }
+
+    // Clear pending data and reset processing flag
+    setPendingAnswerData(null);
+    setIsProcessingAnswer(false);
   };
 
 
@@ -252,6 +358,13 @@ export default function StudySession() {
     setIsCorrect(correct);
     setShowAnswer(true);
 
+    // Store answer data for processing after celebration
+    setPendingAnswerData({
+      answer,
+      currentWord,
+      correct
+    });
+
     // Update streak and set auto-advance for wrong answers
     if (correct && !celebrationTriggered) {
       const newStreak = streak + 1;
@@ -268,106 +381,20 @@ export default function StudySession() {
       // Auto-advance wrong answers after animation
     }
 
-    // Create detailed word result
-    const wordResult = {
-      wordId: currentWord.id,
-      word: currentWord.word,
-      definition: currentWord.definition,
-      tier: currentWord.tier,
-      correct: correct,
-      selectedAnswer: answer,
-      correctAnswer: currentWord.word
-    };
-
-    // Handle word state transition first
-    const { data: { user } } = await supabase.auth.getUser();
-    let transition = null;
-    if (user) {
-      transition = await wordStateManager.handleStudyAnswer(
-        user.id,
-        currentWord.id,
-        correct
-      );
-
-      if (transition) {
-        console.log('Word state transition:', transition);
-        
-        // Check for tier unlock
-        if (transition.tierUnlocked) {
-          console.log('Tier unlocked!', transition.tierUnlocked);
-          setTierUnlocked(transition.tierUnlocked);
-        }
-      }
-    }
-
-    // Update word result with transition data if available
-    const finalWordResult = {
-      ...wordResult,
-      fromState: transition?.fromState,
-      toState: transition?.toState
-    };
-
-    // Single session update with all data - check for existing results to prevent duplicates
-    if (session) {
-      // Check if we already have a result for this word
-      const existingResultIndex = session.wordResults.findIndex(result => result.wordId === currentWord.id);
-      let updatedWordResults;
-      let scoreAdjustment = 0;
-      
-      if (existingResultIndex >= 0) {
-        // Replace existing result
-        const existingResult = session.wordResults[existingResultIndex];
-        updatedWordResults = [...session.wordResults];
-        updatedWordResults[existingResultIndex] = finalWordResult;
-        
-        // Adjust score based on the change from existing to new result
-        if (correct && !existingResult.correct) {
-          scoreAdjustment = 1; // Was wrong, now correct
-        } else if (!correct && existingResult.correct) {
-          scoreAdjustment = -1; // Was correct, now wrong
-        } // else no change needed
-        
-      } else {
-        // Add new result
-        updatedWordResults = [...session.wordResults, finalWordResult];
-        scoreAdjustment = correct ? 1 : 0;
-      }
-
-      const newScore = session.score + scoreAdjustment;
-      
-      console.log('Study session - Answer submitted:', {
-        word: currentWord.word,
-        correct: correct,
-        selectedAnswer: answer,
-        scoreAdjustment: scoreAdjustment,
-        newScore: newScore,
-        wordResultsLength: updatedWordResults.length,
-        finalWordResult: finalWordResult
-      });
-      
-      setSession({
-        ...session,
-        answers: {
-          ...session.answers,
-          [currentWord.id]: correct
-        },
-        score: newScore,
-        wordResults: updatedWordResults,
-        promotedWords: (transition?.toState === 'ready' && transition?.fromState === 'started') 
-          ? [...session.promotedWords, currentWord.id]
-          : session.promotedWords
-      });
-    }
-
-    // Reset processing flag
-    setIsProcessingAnswer(false);
-    // Celebration animation is already triggered in handleAnswerSelect above
+    // Note: All async operations and session updates are now handled in processAnswerData
+    // which is called after celebration completes
   };
 
-  const handleCelebrationComplete = () => {
+  const handleCelebrationComplete = async () => {
     console.log('Celebration complete - current index:', session?.currentIndex, 'total questions:', session?.words.length);
     setShowCelebration(false);
     setCelebrationTriggered(false);
+    
+    // Process pending answer data first
+    if (pendingAnswerData) {
+      await processAnswerData(pendingAnswerData);
+    }
+    
     // Auto-advance to next question after celebration for correct answers
     if (session && session.currentIndex < session.words.length - 1) {
       console.log('Advancing to next question from index', session.currentIndex);
@@ -379,8 +406,14 @@ export default function StudySession() {
     }
   };
 
-  const handleWrongAnimationComplete = () => {
+  const handleWrongAnimationComplete = async () => {
     setShowWrongAnimation(false);
+    
+    // Process pending answer data first
+    if (pendingAnswerData) {
+      await processAnswerData(pendingAnswerData);
+    }
+    
     // Auto-advance to next question after wrong animation
     if (session && session.currentIndex < session.words.length - 1) {
       nextQuestion(false); // false = not skipped (this was a wrong answer)
@@ -550,7 +583,6 @@ export default function StudySession() {
       setShowAnswer(false);
       setSelectedAnswer(null);
       setIsCorrect(null);
-      setIsProcessingAnswer(false);
       setShowImageContent(true); // Reset to show image for new question
       setCurrentAnswers([]); // Force regeneration of answers
       // Force a small delay to ensure DOM updates
@@ -571,7 +603,6 @@ export default function StudySession() {
       setShowAnswer(false);
       setSelectedAnswer(null);
       setIsCorrect(null);
-      setIsProcessingAnswer(false);
       setShowImageContent(true); // Reset to show image for previous question
       setCurrentAnswers([]); // Reset answers to trigger regeneration
     }
