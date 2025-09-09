@@ -391,7 +391,7 @@ export class WordStateManager {
         .eq('state', 'started')
         .in('words.tier', dbTiers)
         .order('last_studied', { ascending: true })
-        .limit(25); // Limit to target pool size
+        .limit(10); // Limit to target pool size
 
       if (error) {
         console.error('Error fetching active pool words:', error);
@@ -430,7 +430,7 @@ export class WordStateManager {
         .eq('user_id', userId)
         .eq('state', 'ready')
         .order('next_review_date', { ascending: true })
-        .limit(25); // Limit to target pool size
+        .limit(10); // Limit to target pool size
 
       if (error) {
         console.error('Error fetching review words:', error);
@@ -445,7 +445,7 @@ export class WordStateManager {
   }
 
   /**
-   * Ensure total of active words (started) and review words (ready) equals 25
+   * Ensure total of active words (started) and review words (ready) equals 10
    * Returns object with balance result and current tier to avoid duplicate calls
    */
   async maintainPoolBalance(userId: string): Promise<{ success: boolean; currentTier?: string }> {
@@ -465,7 +465,7 @@ export class WordStateManager {
       const activeCount = progressData?.filter((p: any) => p.state === 'started').length || 0;
       const reviewCount = progressData?.filter((p: any) => p.state === 'ready').length || 0;
       const totalCount = activeCount + reviewCount;
-      const targetTotal = 25;
+      const targetTotal = 10;
 
       console.log(`Pool balance: ${activeCount} active + ${reviewCount} review = ${totalCount} total (target: ${targetTotal})`);
 
@@ -476,7 +476,7 @@ export class WordStateManager {
       }
 
       if (totalCount < targetTotal) {
-        // Need to add more words to reach 25 total
+        // Need to add more words to reach 10 total
         const neededCount = targetTotal - totalCount;
         console.log(`Need to add ${neededCount} words to reach target of ${targetTotal}`);
         
@@ -850,7 +850,7 @@ export class WordStateManager {
    * Get available words for active pool with progressive tier unlocking
    * Users can access next tier when 3 or fewer words remain in current tier
    */
-  async getAvailableWordsForPool(userId: string, limit: number = 25): Promise<any[]> {
+  async getAvailableWordsForPool(userId: string, limit: number = 10): Promise<any[]> {
     try {
       const currentTier = await this.getCurrentTier(userId);
       
@@ -1087,7 +1087,7 @@ export class WordStateManager {
   async refillActivePool(userId: string): Promise<boolean> {
     try {
       const currentCount = await this.getActivePoolCount(userId);
-      const targetCount = 25;
+      const targetCount = 10;
       
       if (currentCount >= targetCount) {
         return true; // Pool is already full
@@ -1272,7 +1272,7 @@ export class WordStateManager {
         } else {
           // Otherwise, just refill the pool with available words
           const currentCount = await this.getActivePoolCount(userId);
-          if (currentCount < 25) {
+          if (currentCount < 10) {
             await this.refillActivePool(userId);
           }
         }
