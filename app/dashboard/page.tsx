@@ -60,6 +60,8 @@ interface DashboardStats {
     mastered: number;
     percentage: number;
   }[];
+  activeTiers: string[];
+  highestActiveTier: string;
   recentBadges: Badge[];
 }
 
@@ -138,6 +140,9 @@ export default function Dashboard() {
       const reviewsDue = hasStartedWords ? 0 : (progress?.filter(p => p.state === 'ready').length || 0);
       const mastered = progress?.filter(p => p.state === 'mastered').length || 0;
       
+      // Get active tiers information
+      const { activeTiers, highestActiveTier } = await wordStateManager.getActiveTiers(userId);
+      
       
       // Calculate active words difficulty breakdown
       const activeWords = progress?.filter(p => p.state === 'started') || [];
@@ -201,6 +206,8 @@ export default function Dashboard() {
         totalPoints: mastered * 10 + currentActivePoolCount * 5, // TODO: Calculate from sessions
         activeWordsBreakdown,
         tierProgress,
+        activeTiers,
+        highestActiveTier,
         recentBadges: (userBadges?.map(ub => ub.badges).flat() || []) as Badge[]
       };
       
@@ -227,6 +234,8 @@ export default function Dashboard() {
       tierProgress: [
         { tier: 'Top 25', total: 25, mastered: 0, percentage: 0 }
       ],
+      activeTiers: [],
+      highestActiveTier: 'Top 25',
       recentBadges: []
     });
   };
@@ -330,10 +339,11 @@ export default function Dashboard() {
                   <p className="text-blue-100 text-sm sm:text-base mb-2">
                     {stats.activePoolCount} words in active study pool
                   </p>
-                  {stats.tierProgress && stats.tierProgress.length > 0 && (
-                    <p className="text-blue-100 text-xs sm:text-sm">
-                      {stats.tierProgress[0].tier}: {stats.tierProgress[0].total - stats.tierProgress[0].mastered} words remaining
-                    </p>
+                  {stats.activeTiers && stats.activeTiers.length > 0 && (
+                    <div className="text-blue-100 text-xs sm:text-sm">
+                      <p className="mb-1">Active tiers: {stats.activeTiers.join(', ')}</p>
+                      <p>Highest: {stats.highestActiveTier}</p>
+                    </div>
                   )}
                 </div>
               </div>
@@ -361,10 +371,11 @@ export default function Dashboard() {
                   <p className="text-green-100 text-sm sm:text-base mb-2">
                     {stats.masteredWords} words mastered
                   </p>
-                  {stats.tierProgress && stats.tierProgress.length > 0 && (
-                    <p className="text-green-100 text-xs sm:text-sm">
-                      {stats.tierProgress[0].tier}: {stats.tierProgress[0].mastered}/{stats.tierProgress[0].total} completed
-                    </p>
+                  {stats.activeTiers && stats.activeTiers.length > 0 && (
+                    <div className="text-green-100 text-xs sm:text-sm">
+                      <p className="mb-1">Active tiers: {stats.activeTiers.join(', ')}</p>
+                      <p>Highest: {stats.highestActiveTier}</p>
+                    </div>
                   )}
                 </div>
               </div>

@@ -59,6 +59,8 @@ export default function WordsPage() {
   const [selectedTier, setSelectedTier] = useState('All');
   const [selectedDifficulty, setSelectedDifficulty] = useState('All');
   const [showAvailableWords, setShowAvailableWords] = useState(false);
+  const [activeTiers, setActiveTiers] = useState<string[]>([]);
+  const [highestActiveTier, setHighestActiveTier] = useState<string>('Top 25');
   const [wordStateManager] = useState(() => new WordStateManager());
   const router = useRouter();
   const supabase = createClientComponentClient();
@@ -81,6 +83,11 @@ export default function WordsPage() {
 
       await loadCurrentWordsForUser(user.id);
       await loadAvailableWords(user.id);
+      
+      // Load active tiers information
+      const { activeTiers, highestActiveTier } = await wordStateManager.getActiveTiers(user.id);
+      setActiveTiers(activeTiers);
+      setHighestActiveTier(highestActiveTier);
     } catch (error) {
       console.error('Error loading current words:', error);
     } finally {
@@ -299,17 +306,10 @@ export default function WordsPage() {
               <Target className="h-6 w-6 text-blue-600 mr-2" />
               <div className="text-sm font-medium text-gray-700">
                 <div>Active Words: {currentWords.length}</div>
-                {currentWords.length > 0 && (
+                {activeTiers.length > 0 && (
                   <div className="text-xs text-gray-500">
-                    {(() => {
-                      const tierCounts = currentWords.reduce((acc, word) => {
-                        acc[word.tier] = (acc[word.tier] || 0) + 1;
-                        return acc;
-                      }, {} as Record<string, number>);
-                      return Object.entries(tierCounts)
-                        .map(([tier, count]) => `${tier}: ${count}`)
-                        .join(', ');
-                    })()}
+                    <div>Active tiers: {activeTiers.join(', ')}</div>
+                    <div>Highest: {highestActiveTier}</div>
                   </div>
                 )}
               </div>

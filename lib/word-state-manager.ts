@@ -702,6 +702,83 @@ export class WordStateManager {
   }
 
   /**
+   * Get all active tiers (tiers with words in progress) and identify the highest active tier
+   */
+  async getActiveTiers(userId: string): Promise<{ activeTiers: string[]; highestActiveTier: string }> {
+    try {
+      // Get all words in progress (started, ready, mastered)
+      const { data: progressWords, error } = await this.supabase
+        .from('user_progress')
+        .select(`
+          words!inner(tier)
+        `)
+        .eq('user_id', userId)
+        .in('state', ['started', 'ready', 'mastered']);
+
+      if (error) {
+        console.error('Error getting active tiers:', error);
+        return { activeTiers: [], highestActiveTier: 'Top 25' };
+      }
+
+      // Map database tier to display tier
+      const tierMappings: { [key: string]: string } = {
+        'top_25': 'Top 25',
+        'top_50': 'Top 50',
+        'top_75': 'Top 75',
+        'top_100': 'Top 100',
+        'top_125': 'Top 125',
+        'top_150': 'Top 150',
+        'top_175': 'Top 175',
+        'top_200': 'Top 200',
+        'top_225': 'Top 225',
+        'top_250': 'Top 250',
+        'top_275': 'Top 275',
+        'top_300': 'Top 300',
+        'top_325': 'Top 325',
+        'top_350': 'Top 350',
+        'top_375': 'Top 375',
+        'top_400': 'Top 400',
+        'top_425': 'Top 425',
+        'top_450': 'Top 450',
+        'top_475': 'Top 475',
+        'top_500': 'Top 500'
+      };
+
+      // Get unique tiers from progress words
+      const activeTierSet = new Set<string>();
+      progressWords?.forEach((item: any) => {
+        const displayTier = tierMappings[item.words.tier];
+        if (displayTier) {
+          activeTierSet.add(displayTier);
+        }
+      });
+
+      const activeTiers = Array.from(activeTierSet);
+
+      // Define tier order for finding highest
+      const tierOrder = [
+        'Top 25', 'Top 50', 'Top 75', 'Top 100', 'Top 125', 'Top 150', 'Top 175', 'Top 200',
+        'Top 225', 'Top 250', 'Top 275', 'Top 300', 'Top 325', 'Top 350', 'Top 375', 'Top 400',
+        'Top 425', 'Top 450', 'Top 475', 'Top 500'
+      ];
+
+      // Find highest active tier
+      let highestActiveTier = 'Top 25';
+      for (let i = tierOrder.length - 1; i >= 0; i--) {
+        if (activeTiers.includes(tierOrder[i])) {
+          highestActiveTier = tierOrder[i];
+          break;
+        }
+      }
+
+      return { activeTiers, highestActiveTier };
+    } catch (error) {
+      console.error('Error getting active tiers:', error);
+      return { activeTiers: [], highestActiveTier: 'Top 25' };
+    }
+  }
+
+  /**
    * Check if there are any words in started state for the current tier
    */
   async hasStartedWordsInCurrentTier(userId: string): Promise<boolean> {
