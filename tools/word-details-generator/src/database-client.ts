@@ -3,7 +3,8 @@ import * as dotenv from 'dotenv';
 
 dotenv.config();
 
-export interface DatabaseWord {
+export interface DatabaseWordDetails {
+  id: string;
   word: string;
   definition: string;
   part_of_speech: string;
@@ -12,29 +13,83 @@ export interface DatabaseWord {
   antonyms: string[];
   tier: string;
   difficulty: 'Easy' | 'Medium' | 'Hard';
-  image_urls?: string[];
-  image_descriptions?: string[];
+  image_urls: string[];
+  image_descriptions: string[];
 }
 
 export class DatabaseClient {
-  private supabase;
+  private supabase: any;
 
   constructor() {
-    const supabaseUrl = process.env.SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-    if (!supabaseUrl) {
-      throw new Error('Missing SUPABASE_URL environment variable.');
+    if (!supabaseUrl || !supabaseKey) {
+      throw new Error('Supabase URL and key are required');
     }
 
-    if (!supabaseServiceKey && !supabaseAnonKey) {
-      throw new Error('Missing Supabase keys. Please set either SUPABASE_SERVICE_ROLE_KEY or SUPABASE_ANON_KEY environment variable.');
-    }
+    this.supabase = createClient(supabaseUrl, supabaseKey);
+  }
 
-    // Use service role key if available (bypasses RLS), otherwise use anon key
-    const keyToUse = supabaseServiceKey || supabaseAnonKey;
-    this.supabase = createClient(supabaseUrl, keyToUse!);
+  async getWordDetails(word: string): Promise<DatabaseWordDetails | null> {
+    try {
+      const { data, error } = await this.supabase
+        .from('words')
+        .select('*')
+        .eq('word', word)
+        .single();
+
+      if (error) {
+        console.error(`Error fetching word "${word}":`, error);
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+      console.error(`Error fetching word "${word}":`, error);
+      return null;
+    }
+  }
+
+  async getAllWords(): Promise<DatabaseWordDetails[]> {
+    try {
+      const { data, error } = await this.supabase
+        .from('words')
+        .select('*')
+        .order('tier', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching all words:', error);
+        return [];
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching all words:', error);
+      return [];
+    }
+  }
+
+  async updateWordImages(wordId: string, imageUrls: string[], imageDescriptions: string[]): Promise<boolean> {
+    try {
+      const { error } = await this.supabase
+        .from('words')
+        .update({
+          image_urls: imageUrls,
+          image_descriptions: imageDescriptions
+        })
+        .eq('id', wordId);
+
+      if (error) {
+        console.error(`Error updating images for word ID "${wordId}":`, error);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error(`Error updating images for word ID "${wordId}":`, error);
+      return false;
+    }
   }
 
   async testConnection(): Promise<boolean> {
@@ -52,165 +107,8 @@ export class DatabaseClient {
       console.log('✅ Database connection successful');
       return true;
     } catch (error) {
-      console.error('❌ Database connection test failed:', error);
+      console.error('Database connection test failed:', error);
       return false;
-    }
-  }
-
-  async clearExistingWords(): Promise<void> {
-    try {
-      console.log('🗑️ Clearing existing words from database...');
-      
-      const { error } = await this.supabase
-        .from('words')
-        .delete()
-        .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all rows
-
-      if (error) {
-        throw new Error(`Failed to clear existing words: ${error.message}`);
-      }
-
-      console.log('✅ Existing words cleared successfully');
-    } catch (error) {
-      console.error('❌ Failed to clear existing words:', error);
-      throw error;
-    }
-  }
-
-  async insertWord(wordData: DatabaseWord): Promise<string> {
-    try {
-      const { data, error } = await this.supabase
-        .from('words')
-        .insert([{
-          word: wordData.word,
-          definition: wordData.definition,
-          part_of_speech: wordData.part_of_speech,
-          example_sentence: wordData.example_sentence,
-          synonyms: wordData.synonyms,
-          antonyms: wordData.antonyms,
-          tier: wordData.tier,
-          difficulty: wordData.difficulty,
-          image_urls: wordData.image_urls || [],
-          image_descriptions: wordData.image_descriptions || []
-        }])
-        .select('id')
-        .single();
-
-      if (error) {
-        throw new Error(`Failed to insert word "${wordData.word}": ${error.message}`);
-      }
-
-      return data.id;
-    } catch (error) {
-      console.error(`❌ Failed to insert word "${wordData.word}":`, error);
-      throw error;
-    }
-  }
-
-  async insertWordsBatch(wordsData: DatabaseWord[]): Promise<string[]> {
-    try {
-      console.log(`📝 Inserting batch of ${wordsData.length} words...`);
-      
-      const wordsToInsert = wordsData.map(word => ({
-        word: word.word,
-        definition: word.definition,
-        part_of_speech: word.part_of_speech,
-        example_sentence: word.example_sentence,
-        synonyms: word.synonyms,
-        antonyms: word.antonyms,
-        tier: word.tier,
-        difficulty: word.difficulty,
-        image_urls: word.image_urls || [],
-        image_descriptions: word.image_descriptions || []
-      }));
-
-      const { data, error } = await this.supabase
-        .from('words')
-        .insert(wordsToInsert)
-        .select('id');
-
-      if (error) {
-        throw new Error(`Failed to insert batch: ${error.message}`);
-      }
-
-      const insertedIds = data.map(row => row.id);
-      console.log(`✅ Successfully inserted ${insertedIds.length} words`);
-      
-      return insertedIds;
-    } catch (error) {
-      console.error('❌ Failed to insert batch:', error);
-      throw error;
-    }
-  }
-
-  async getWordCount(): Promise<number> {
-    try {
-      const { count, error } = await this.supabase
-        .from('words')
-        .select('*', { count: 'exact', head: true });
-
-      if (error) {
-        throw new Error(`Failed to get word count: ${error.message}`);
-      }
-
-      return count || 0;
-    } catch (error) {
-      console.error('❌ Failed to get word count:', error);
-      throw error;
-    }
-  }
-
-  async getWordsByTier(tier: string): Promise<DatabaseWord[]> {
-    try {
-      const { data, error } = await this.supabase
-        .from('words')
-        .select('*')
-        .eq('tier', tier);
-
-      if (error) {
-        throw new Error(`Failed to get words for tier "${tier}": ${error.message}`);
-      }
-
-      return data || [];
-    } catch (error) {
-      console.error(`❌ Failed to get words for tier "${tier}":`, error);
-      throw error;
-    }
-  }
-
-  async getExistingWords(): Promise<string[]> {
-    try {
-      const { data, error } = await this.supabase
-        .from('words')
-        .select('word');
-
-      if (error) {
-        throw new Error(`Failed to get existing words: ${error.message}`);
-      }
-
-      return data?.map((word: any) => word.word.toLowerCase()) || [];
-    } catch (error) {
-      console.error(`❌ Failed to get existing words:`, error);
-      throw error;
-    }
-  }
-
-  async wordExists(word: string): Promise<boolean> {
-    try {
-      const { data, error } = await this.supabase
-        .from('words')
-        .select('id')
-        .eq('word', word)
-        .single();
-
-      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
-        throw new Error(`Failed to check if word exists: ${error.message}`);
-      }
-
-      return !!data;
-    } catch (error) {
-      console.error(`❌ Failed to check if word exists:`, error);
-      throw error;
     }
   }
 }

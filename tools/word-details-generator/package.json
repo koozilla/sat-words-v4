@@ -7,14 +7,23 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "ts-node src/index.ts",
-    "generate": "npm run build && npm run start"
+    "generate": "npm run build && npm run start",
+    "test-image": "ts-node src/single-word-test.ts",
+    "test-vercel": "ts-node src/test-vercel-storage.ts",
+    "upload-benevolent": "ts-node src/upload-benevolent.ts",
+    "test-image-generation": "ts-node src/test-image-generation.ts",
+    "test-gemini-image": "ts-node src/test-imagen4.ts",
+    "generate-benevolent": "ts-node src/generate-benevolent.ts",
+    "list-models": "ts-node src/list-models.ts",
+    "debug-api": "ts-node src/debug-api.ts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.2.1",
     "@supabase/supabase-js": "^2.38.0",
     "dotenv": "^16.3.1",
     "fs-extra": "^11.1.1",
-    "csv-writer": "^1.6.0"
+    "csv-writer": "^1.6.0",
+    "@vercel/blob": "^0.19.0"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
