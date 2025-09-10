@@ -338,8 +338,8 @@ export default function WordsPage() {
                   <div className="text-xs text-gray-500">
                     <div>{activeTiers.map(tier => {
                       const tierCount = currentWords.filter(word => getDisplayTier(word.tier) === tier).length;
-                      return `${tier}: ${tierCount}`;
-                    }).join(', ')}</div>
+                      return tierCount > 0 ? `${tier}: ${tierCount}` : null;
+                    }).filter(Boolean).join(', ')}</div>
                   </div>
                 )}
               </div>
