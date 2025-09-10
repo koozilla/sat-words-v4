@@ -680,11 +680,11 @@ export default function StudySession() {
               Back to Dashboard
             </button>
             
-            {/* Progress Counter and Tier */}
+            {/* Progress Counter, Tier, and Difficulty */}
             <div className="text-sm font-medium text-gray-700">
               <div>{session.currentIndex + 1}/{session.totalQuestions}</div>
               <div className="text-xs text-gray-500 mt-1">
-                {getDisplayTier(currentWord.tier)}
+                {getDisplayTier(currentWord.tier)} • {currentWord.difficulty}
               </div>
             </div>
           </div>
