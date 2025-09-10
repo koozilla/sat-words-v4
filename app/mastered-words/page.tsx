@@ -38,7 +38,6 @@ export default function MasteredWords() {
   const [masteredWords, setMasteredWords] = useState<Word[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedTier, setSelectedTier] = useState('all');
   const [isGuest, setIsGuest] = useState(false);
   const [wordStateManager] = useState(() => new WordStateManager());
   const router = useRouter();
@@ -168,11 +167,9 @@ export default function MasteredWords() {
                          word.difficulty.toLowerCase().includes(searchLower) ||
                          word.part_of_speech.toLowerCase().includes(searchLower);
     
-    const matchesTier = selectedTier === 'all' || wordDisplayTier === selectedTier;
-    return matchesSearch && matchesTier;
+    return matchesSearch;
   });
 
-  const tiers = ['all', 'Top 25', 'Top 50', 'Top 75', 'Top 100', 'Top 125', 'Top 150', 'Top 175', 'Top 200', 'Top 225', 'Top 250', 'Top 275', 'Top 300', 'Top 325', 'Top 350', 'Top 375', 'Top 400', 'Top 425', 'Top 450', 'Top 475', 'Top 500'];
 
   const getDifficultyColor = (difficulty: string): string => {
     switch (difficulty) {
@@ -264,33 +261,17 @@ export default function MasteredWords() {
           </div>
         </div>
 
-        {/* Search and Filters */}
+        {/* Search */}
         <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search words, definitions, tiers, difficulty, or part of speech..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-
-            {/* Tier Filter */}
-            <select
-              value={selectedTier}
-              onChange={(e) => setSelectedTier(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              {tiers.map(tier => (
-                <option key={tier} value={tier}>
-                  {tier === 'all' ? 'All Tiers' : tier}
-                </option>
-              ))}
-            </select>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search words, definitions, tiers, difficulty, or part of speech..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
           </div>
         </div>
 
@@ -299,13 +280,12 @@ export default function MasteredWords() {
           <div className="bg-white rounded-xl shadow-sm p-12 text-center">
             <CheckCircle className="h-16 w-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              {searchTerm || selectedTier !== 'all' ? 'No words found' : 'No mastered words yet'}
+              {searchTerm ? 'No words found' : 'No mastered words yet'}
             </h3>
             <p className="text-gray-600 mb-6">
-              {searchTerm || selectedTier !== 'all' 
-                ? 'Try adjusting your search or filter criteria.'
-                : 'Start studying to master your first words!'
-              }
+              {searchTerm 
+                ? 'Try adjusting your search criteria.'
+                : 'Start studying to master your first words!'}
             </p>
             <button
               onClick={() => router.push('/dashboard')}
