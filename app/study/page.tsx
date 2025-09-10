@@ -73,6 +73,8 @@ export default function StudySession() {
     correct: boolean;
   } | null>(null);
   const [isGeneratingAnswers, setIsGeneratingAnswers] = useState(false);
+  const [preloadedDistractors, setPreloadedDistractors] = useState<{ [wordId: string]: string[] }>({});
+  const [cachedUser, setCachedUser] = useState<any>(null);
   const [wordStateManager] = useState(() => new WordStateManager());
   const router = useRouter();
   const supabase = createClientComponentClient();
@@ -121,11 +123,10 @@ export default function StudySession() {
     };
 
     // Handle word state transition
-    const { data: { user } } = await supabase.auth.getUser();
     let transition = null;
-    if (user) {
+    if (cachedUser) {
       transition = await wordStateManager.handleStudyAnswer(
-        user.id,
+        cachedUser.id,
         currentWord.id,
         correct
       );
@@ -139,6 +140,8 @@ export default function StudySession() {
           setTierUnlocked(transition.tierUnlocked);
         }
       }
+    } else {
+      console.warn('No cached user available for word state transition');
     }
 
     // Update word result with transition data if available
@@ -223,12 +226,11 @@ export default function StudySession() {
         
         setIsGeneratingAnswers(true);
         
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
+        if (cachedUser) {
           const currentWord = session.words[session.currentIndex];
           if (currentWord) {
             try {
-              const distractors = await generateDistractors(currentWord, user.id);
+              const distractors = await generateDistractors(currentWord, cachedUser.id);
               const shuffledAnswers = [currentWord.word, ...distractors].sort(() => Math.random() - 0.5);
               console.log(`Final answers for "${currentWord.word}":`, shuffledAnswers);
               setCurrentAnswers(shuffledAnswers);
@@ -238,6 +240,8 @@ export default function StudySession() {
               setCurrentAnswers([currentWord.word, 'Option A', 'Option B', 'Option C']);
             }
           }
+        } else {
+          console.warn('No cached user available for answer generation');
         }
         
         setIsGeneratingAnswers(false);
@@ -254,6 +258,9 @@ export default function StudySession() {
         router.push('/auth/login');
         return;
       }
+
+      // Cache the user to avoid repeated auth calls
+      setCachedUser(user);
 
       // Get active pool words using word state manager
       const activePoolWords = await wordStateManager.getActivePoolWords(user.id);
@@ -286,7 +293,10 @@ export default function StudySession() {
           example_sentence: w.example_sentence
         }));
 
-        console.log(`Loaded ${studyWords.length} test words:`, studyWords.map(w => w.word));
+        // Pre-load distractors for all words
+        console.log('Pre-loading distractors...');
+        const distractorsMap = await preloadDistractors(studyWords);
+        setPreloadedDistractors(distractorsMap);
 
         setSession({
           words: studyWords,
@@ -298,6 +308,7 @@ export default function StudySession() {
           startTime: new Date(),
           wordResults: []
         });
+        console.log('Study session initialized with', studyWords.length, 'words');
         return;
       }
 
@@ -312,11 +323,16 @@ export default function StudySession() {
         part_of_speech: p.words.part_of_speech,
         tier: p.words.tier,
         difficulty: p.words.difficulty,
-          image_url: p.words.image_urls?.[0] || null,
+        image_url: p.words.image_urls?.[0] || null,
         synonyms: p.words.synonyms || [],
         antonyms: p.words.antonyms || [],
         example_sentence: p.words.example_sentence
       }));
+
+      // Pre-load distractors for all words
+      console.log('Pre-loading distractors...');
+      const distractorsMap = await preloadDistractors(studyWords);
+      setPreloadedDistractors(distractorsMap);
 
       setSession({
         words: studyWords,
@@ -336,7 +352,56 @@ export default function StudySession() {
     }
   };
 
+  const preloadDistractors = async (words: Word[]): Promise<{ [wordId: string]: string[] }> => {
+    console.log('Pre-loading distractors for all words...');
+    const distractorsMap: { [wordId: string]: string[] } = {};
+    
+    // Get all unique tiers from the words
+    const uniqueTiers = [...new Set(words.map(w => w.tier))];
+    console.log('Unique tiers found:', uniqueTiers);
+    
+    // Pre-load words for each tier
+    for (const tier of uniqueTiers) {
+      const { data: tierWords, error } = await supabase
+        .from('words')
+        .select('word')
+        .eq('tier', tier)
+        .limit(50);
+      
+      if (error || !tierWords) {
+        console.error(`Error fetching words for tier ${tier}:`, error);
+        continue;
+      }
+      
+      const availableWords = tierWords.map(w => w.word);
+      console.log(`Pre-loaded ${availableWords.length} words for tier ${tier}`);
+      
+      // Generate distractors for each word in this tier
+      const tierWordsInSession = words.filter(w => w.tier === tier);
+      for (const word of tierWordsInSession) {
+        const filteredWords = availableWords.filter(w => w !== word.word);
+        const distractors = filteredWords
+          .sort(() => Math.random() - 0.5)
+          .slice(0, 3);
+        
+        distractorsMap[word.id] = distractors;
+      }
+    }
+    
+    console.log('Pre-loaded distractors for', Object.keys(distractorsMap).length, 'words');
+    return distractorsMap;
+  };
+
   const generateDistractors = async (currentWord: Word, userId: string): Promise<string[]> => {
+    console.log(`Getting pre-loaded distractors for "${currentWord.word}"`);
+    
+    // Use pre-loaded distractors if available
+    if (preloadedDistractors[currentWord.id]) {
+      console.log(`Using pre-loaded distractors for "${currentWord.word}":`, preloadedDistractors[currentWord.id]);
+      return preloadedDistractors[currentWord.id];
+    }
+    
+    // Fallback to old method if not pre-loaded
     console.log(`Generating distractors for "${currentWord.word}" (tier: ${currentWord.tier})`);
     
     // Get all words from the same tier from database
