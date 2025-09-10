@@ -143,15 +143,13 @@ export default function StudySession() {
         const progress = guestData.wordProgress[currentWord.id];
         
         if (correct) {
-          progress.study_streak += 1;
-          if (progress.study_streak >= 3) {
-            progress.state = 'ready';
-            progress.study_streak = 0;
-            transition = {
-              fromState: 'started',
-              toState: 'ready'
-            };
-          }
+          // Single correct answer moves word to mastered (same as logged-in users)
+          progress.state = 'mastered';
+          progress.study_streak = 0;
+          transition = {
+            fromState: 'started',
+            toState: 'mastered'
+          };
         } else {
           progress.study_streak = 0;
         }
@@ -920,7 +918,7 @@ export default function StudySession() {
         words_studied: actualTotalQuestions,
         correct_answers: actualScore,
         words_promoted: actualScore,
-        words_mastered: 0,
+        words_mastered: deduplicatedResults.filter(r => r.correct).length,
         started_at: session.startTime?.toISOString() || new Date().toISOString(),
         completed_at: new Date().toISOString(),
         wordResults: deduplicatedResults.map(result => ({
