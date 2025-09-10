@@ -334,14 +334,6 @@ export default function WordsPage() {
               <Target className="h-6 w-6 text-blue-600 mr-2" />
               <div className="text-sm font-medium text-gray-700">
                 <div>Active Words: {currentWords.length}</div>
-                {activeTiers.length > 0 && (
-                  <div className="text-xs text-gray-500">
-                    <div>{activeTiers.map(tier => {
-                      const tierCount = currentWords.filter(word => getDisplayTier(word.tier) === tier).length;
-                      return tierCount > 0 ? `${tier}: ${tierCount}` : null;
-                    }).filter(Boolean).join(', ')}</div>
-                  </div>
-                )}
               </div>
             </div>
           </div>
