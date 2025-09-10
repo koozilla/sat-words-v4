@@ -248,7 +248,7 @@ export default function ReviewSession() {
         part_of_speech: w.part_of_speech,
         tier: w.tier,
         difficulty: w.difficulty,
-        image_url: w.image_urls?.[0] || null,
+        image_url: w.image_urls?.[0] || undefined,
         synonyms: w.synonyms || [],
         antonyms: w.antonyms || [],
         example_sentence: w.example_sentence
