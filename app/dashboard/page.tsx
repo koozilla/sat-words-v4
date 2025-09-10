@@ -196,9 +196,11 @@ export default function Dashboard() {
         const cumulativeTiers = tierOrder.slice(0, tierIndex + 1);
         const cumulativeDbTiers = cumulativeTiers.flatMap(t => tierMappingObject[t] || []);
         
+        // For started words, show only words from the specific tier (not cumulative)
+        const specificDbTiers = tierMappingObject[tier] || [];
         tierCountBreakdown.started[tier] = progress?.filter(p => {
           const word = words?.find(w => w.id === p.word_id);
-          return cumulativeDbTiers.includes(word?.tier) && p.state === 'started';
+          return specificDbTiers.includes(word?.tier) && p.state === 'started';
         }).length || 0;
         
         tierCountBreakdown.mastered[tier] = progress?.filter(p => {
@@ -404,20 +406,8 @@ export default function Dashboard() {
                   {stats.activeTiers && stats.activeTiers.length > 0 && (
                     <div className="text-blue-100 text-xs sm:text-sm">
                       <p>{stats.activeTiers
-                        .filter(tier => {
-                          const started = stats.tierCountBreakdown.started[tier] || 0;
-                          const ready = stats.tierCountBreakdown.ready[tier] || 0;
-                          const mastered = stats.tierCountBreakdown.mastered[tier] || 0;
-                          const total = started + ready + mastered;
-                          return total > 0;
-                        })
-                        .map(tier => {
-                          const started = stats.tierCountBreakdown.started[tier] || 0;
-                          const ready = stats.tierCountBreakdown.ready[tier] || 0;
-                          const mastered = stats.tierCountBreakdown.mastered[tier] || 0;
-                          const total = started + ready + mastered;
-                          return `${tier}: ${total}`;
-                        })
+                        .filter(tier => (stats.tierCountBreakdown.started[tier] || 0) > 0)
+                        .map(tier => `${tier}: ${stats.tierCountBreakdown.started[tier] || 0}`)
                         .join(', ')}</p>
                     </div>
                   )}
