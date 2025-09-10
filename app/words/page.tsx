@@ -267,7 +267,7 @@ export default function WordsPage() {
               last_studied: null,
               state: progress.state as 'started' | 'ready',
               next_review_date: null,
-              review_interval: null
+              review_interval: undefined
             };
           });
           
