@@ -336,6 +336,14 @@ export default function WordsPage() {
                 <div>Active Words: {currentWords.length}</div>
               </div>
             </div>
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => supabase.auth.signOut()}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                Sign Out
+              </button>
+            </div>
           </div>
         </div>
       </header>
