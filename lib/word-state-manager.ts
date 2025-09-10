@@ -703,25 +703,68 @@ export class WordStateManager {
 
   /**
    * Get all active tiers (tiers with words in progress) and identify the highest active tier
+   * Only includes tiers up to and including the current tier to enforce strict progression
    */
   async getActiveTiers(userId: string): Promise<{ activeTiers: string[]; highestActiveTier: string }> {
     try {
-      // Get all words in progress (started, ready, mastered)
+      // First, get the current tier to enforce strict progression
+      const currentTier = await this.getCurrentTier(userId);
+      
+      // Define tier order
+      const tierOrder = [
+        'Top 25', 'Top 50', 'Top 75', 'Top 100', 'Top 125', 'Top 150', 'Top 175', 'Top 200',
+        'Top 225', 'Top 250', 'Top 275', 'Top 300', 'Top 325', 'Top 350', 'Top 375', 'Top 400',
+        'Top 425', 'Top 450', 'Top 475', 'Top 500'
+      ];
+      
+      // Get all tiers up to and including the current tier
+      const currentTierIndex = tierOrder.indexOf(currentTier);
+      const allowedTiers = tierOrder.slice(0, currentTierIndex + 1);
+      
+      // Map display tier to database tier
+      const displayToDbMappings: { [key: string]: string } = {
+        'Top 25': 'top_25',
+        'Top 50': 'top_50',
+        'Top 75': 'top_75',
+        'Top 100': 'top_100',
+        'Top 125': 'top_125',
+        'Top 150': 'top_150',
+        'Top 175': 'top_175',
+        'Top 200': 'top_200',
+        'Top 225': 'top_225',
+        'Top 250': 'top_250',
+        'Top 275': 'top_275',
+        'Top 300': 'top_300',
+        'Top 325': 'top_325',
+        'Top 350': 'top_350',
+        'Top 375': 'top_375',
+        'Top 400': 'top_400',
+        'Top 425': 'top_425',
+        'Top 450': 'top_450',
+        'Top 475': 'top_475',
+        'Top 500': 'top_500'
+      };
+      
+      // Get database tiers for allowed tiers
+      const allowedDbTiers = allowedTiers.map(tier => displayToDbMappings[tier]).filter(Boolean);
+      
+      // Get words in progress only from allowed tiers
       const { data: progressWords, error } = await this.supabase
         .from('user_progress')
         .select(`
           words!inner(tier)
         `)
         .eq('user_id', userId)
-        .in('state', ['started', 'ready', 'mastered']);
+        .in('state', ['started', 'ready', 'mastered'])
+        .in('words.tier', allowedDbTiers);
 
       if (error) {
         console.error('Error getting active tiers:', error);
         return { activeTiers: [], highestActiveTier: 'Top 25' };
       }
 
-      // Map database tier to display tier
-      const tierMappings: { [key: string]: string } = {
+      // Map database tier to display tier (reverse mapping)
+      const dbToDisplayMappings: { [key: string]: string } = {
         'top_25': 'Top 25',
         'top_50': 'Top 50',
         'top_75': 'Top 75',
@@ -744,32 +787,21 @@ export class WordStateManager {
         'top_500': 'Top 500'
       };
 
-      // Get unique tiers from progress words
+      // Get unique tiers from progress words (only from allowed tiers)
       const activeTierSet = new Set<string>();
       progressWords?.forEach((item: any) => {
-        const displayTier = tierMappings[item.words.tier];
-        if (displayTier) {
+        const dbTier = item.words.tier;
+        const displayTier = dbToDisplayMappings[dbTier];
+        if (displayTier && allowedTiers.includes(displayTier)) {
           activeTierSet.add(displayTier);
         }
       });
 
-      const activeTiers = Array.from(activeTierSet);
+      const activeTiers = Array.from(activeTierSet).sort((a, b) => {
+        return tierOrder.indexOf(a) - tierOrder.indexOf(b);
+      });
 
-      // Define tier order for finding highest
-      const tierOrder = [
-        'Top 25', 'Top 50', 'Top 75', 'Top 100', 'Top 125', 'Top 150', 'Top 175', 'Top 200',
-        'Top 225', 'Top 250', 'Top 275', 'Top 300', 'Top 325', 'Top 350', 'Top 375', 'Top 400',
-        'Top 425', 'Top 450', 'Top 475', 'Top 500'
-      ];
-
-      // Find highest active tier
-      let highestActiveTier = 'Top 25';
-      for (let i = tierOrder.length - 1; i >= 0; i--) {
-        if (activeTiers.includes(tierOrder[i])) {
-          highestActiveTier = tierOrder[i];
-          break;
-        }
-      }
+      const highestActiveTier = activeTiers[activeTiers.length - 1] || currentTier;
 
       return { activeTiers, highestActiveTier };
     } catch (error) {
