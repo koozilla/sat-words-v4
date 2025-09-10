@@ -323,6 +323,44 @@ export class WordStateManager {
    */
   async getActivePoolWords(userId: string): Promise<any[]> {
     try {
+      // Get current tier to filter words properly
+      const currentTier = await this.getCurrentTier(userId);
+      console.log(`Getting active pool words for current tier: ${currentTier}`);
+      
+      // Define tier order and mapping
+      const tierOrder = [
+        'Top 25', 'Top 50', 'Top 75', 'Top 100', 'Top 125', 'Top 150', 'Top 175', 'Top 200',
+        'Top 225', 'Top 250', 'Top 275', 'Top 300', 'Top 325', 'Top 350', 'Top 375', 'Top 400',
+        'Top 425', 'Top 450', 'Top 475', 'Top 500'
+      ];
+      
+      const tierMappingObject: { [key: string]: string[] } = {
+        'Top 25': ['top_25'],
+        'Top 50': ['top_25', 'top_50'],
+        'Top 75': ['top_25', 'top_50', 'top_75'],
+        'Top 100': ['top_25', 'top_50', 'top_75', 'top_100'],
+        'Top 125': ['top_25', 'top_50', 'top_75', 'top_100', 'top_125'],
+        'Top 150': ['top_25', 'top_50', 'top_75', 'top_100', 'top_125', 'top_150'],
+        'Top 175': ['top_25', 'top_50', 'top_75', 'top_100', 'top_125', 'top_150', 'top_175'],
+        'Top 200': ['top_25', 'top_50', 'top_75', 'top_100', 'top_125', 'top_150', 'top_175', 'top_200'],
+        'Top 225': ['top_25', 'top_50', 'top_75', 'top_100', 'top_125', 'top_150', 'top_175', 'top_200', 'top_225'],
+        'Top 250': ['top_25', 'top_50', 'top_75', 'top_100', 'top_125', 'top_150', 'top_175', 'top_200', 'top_225', 'top_250'],
+        'Top 275': ['top_25', 'top_50', 'top_75', 'top_100', 'top_125', 'top_150', 'top_175', 'top_200', 'top_225', 'top_250', 'top_275'],
+        'Top 300': ['top_25', 'top_50', 'top_75', 'top_100', 'top_125', 'top_150', 'top_175', 'top_200', 'top_225', 'top_250', 'top_275', 'top_300'],
+        'Top 325': ['top_25', 'top_50', 'top_75', 'top_100', 'top_125', 'top_150', 'top_175', 'top_200', 'top_225', 'top_250', 'top_275', 'top_300', 'top_325'],
+        'Top 350': ['top_25', 'top_50', 'top_75', 'top_100', 'top_125', 'top_150', 'top_175', 'top_200', 'top_225', 'top_250', 'top_275', 'top_300', 'top_325', 'top_350'],
+        'Top 375': ['top_25', 'top_50', 'top_75', 'top_100', 'top_125', 'top_150', 'top_175', 'top_200', 'top_225', 'top_250', 'top_275', 'top_300', 'top_325', 'top_350', 'top_375'],
+        'Top 400': ['top_25', 'top_50', 'top_75', 'top_100', 'top_125', 'top_150', 'top_175', 'top_200', 'top_225', 'top_250', 'top_275', 'top_300', 'top_325', 'top_350', 'top_375', 'top_400'],
+        'Top 425': ['top_25', 'top_50', 'top_75', 'top_100', 'top_125', 'top_150', 'top_175', 'top_200', 'top_225', 'top_250', 'top_275', 'top_300', 'top_325', 'top_350', 'top_375', 'top_400', 'top_425'],
+        'Top 450': ['top_25', 'top_50', 'top_75', 'top_100', 'top_125', 'top_150', 'top_175', 'top_200', 'top_225', 'top_250', 'top_275', 'top_300', 'top_325', 'top_350', 'top_375', 'top_400', 'top_425', 'top_450'],
+        'Top 475': ['top_25', 'top_50', 'top_75', 'top_100', 'top_125', 'top_150', 'top_175', 'top_200', 'top_225', 'top_250', 'top_275', 'top_300', 'top_325', 'top_350', 'top_375', 'top_400', 'top_425', 'top_450', 'top_475'],
+        'Top 500': ['top_25', 'top_50', 'top_75', 'top_100', 'top_125', 'top_150', 'top_175', 'top_200', 'top_225', 'top_250', 'top_275', 'top_300', 'top_325', 'top_350', 'top_375', 'top_400', 'top_425', 'top_450', 'top_475', 'top_500']
+      };
+      
+      // Get allowed database tiers for current tier
+      const allowedDbTiers = tierMappingObject[currentTier] || [];
+      console.log(`Allowed database tiers for ${currentTier}:`, allowedDbTiers);
+
       const { data, error } = await this.supabase
         .from('user_progress')
         .select(`
@@ -342,13 +380,15 @@ export class WordStateManager {
         `)
         .eq('user_id', userId)
         .eq('state', 'started')
-        .order('last_studied', { ascending: true }); // Return all available words
+        .in('words.tier', allowedDbTiers) // Filter by allowed tiers only
+        .order('last_studied', { ascending: true });
 
       if (error) {
         console.error('Error fetching active pool words:', error);
         return [];
       }
 
+      console.log(`Found ${data?.length || 0} active pool words from allowed tiers`);
       return data || [];
     } catch (error) {
       console.error('Error getting active pool words:', error);
@@ -361,11 +401,49 @@ export class WordStateManager {
    */
   async getReviewWords(userId: string): Promise<any[]> {
     try {
+      // Get current tier to filter words properly
+      const currentTier = await this.getCurrentTier(userId);
+      console.log(`Getting review words for current tier: ${currentTier}`);
+      
+      // Define tier order and mapping
+      const tierOrder = [
+        'Top 25', 'Top 50', 'Top 75', 'Top 100', 'Top 125', 'Top 150', 'Top 175', 'Top 200',
+        'Top 225', 'Top 250', 'Top 275', 'Top 300', 'Top 325', 'Top 350', 'Top 375', 'Top 400',
+        'Top 425', 'Top 450', 'Top 475', 'Top 500'
+      ];
+      
+      const tierMappingObject: { [key: string]: string[] } = {
+        'Top 25': ['top_25'],
+        'Top 50': ['top_25', 'top_50'],
+        'Top 75': ['top_25', 'top_50', 'top_75'],
+        'Top 100': ['top_25', 'top_50', 'top_75', 'top_100'],
+        'Top 125': ['top_25', 'top_50', 'top_75', 'top_100', 'top_125'],
+        'Top 150': ['top_25', 'top_50', 'top_75', 'top_100', 'top_125', 'top_150'],
+        'Top 175': ['top_25', 'top_50', 'top_75', 'top_100', 'top_125', 'top_150', 'top_175'],
+        'Top 200': ['top_25', 'top_50', 'top_75', 'top_100', 'top_125', 'top_150', 'top_175', 'top_200'],
+        'Top 225': ['top_25', 'top_50', 'top_75', 'top_100', 'top_125', 'top_150', 'top_175', 'top_200', 'top_225'],
+        'Top 250': ['top_25', 'top_50', 'top_75', 'top_100', 'top_125', 'top_150', 'top_175', 'top_200', 'top_225', 'top_250'],
+        'Top 275': ['top_25', 'top_50', 'top_75', 'top_100', 'top_125', 'top_150', 'top_175', 'top_200', 'top_225', 'top_250', 'top_275'],
+        'Top 300': ['top_25', 'top_50', 'top_75', 'top_100', 'top_125', 'top_150', 'top_175', 'top_200', 'top_225', 'top_250', 'top_275', 'top_300'],
+        'Top 325': ['top_25', 'top_50', 'top_75', 'top_100', 'top_125', 'top_150', 'top_175', 'top_200', 'top_225', 'top_250', 'top_275', 'top_300', 'top_325'],
+        'Top 350': ['top_25', 'top_50', 'top_75', 'top_100', 'top_125', 'top_150', 'top_175', 'top_200', 'top_225', 'top_250', 'top_275', 'top_300', 'top_325', 'top_350'],
+        'Top 375': ['top_25', 'top_50', 'top_75', 'top_100', 'top_125', 'top_150', 'top_175', 'top_200', 'top_225', 'top_250', 'top_275', 'top_300', 'top_325', 'top_350', 'top_375'],
+        'Top 400': ['top_25', 'top_50', 'top_75', 'top_100', 'top_125', 'top_150', 'top_175', 'top_200', 'top_225', 'top_250', 'top_275', 'top_300', 'top_325', 'top_350', 'top_375', 'top_400'],
+        'Top 425': ['top_25', 'top_50', 'top_75', 'top_100', 'top_125', 'top_150', 'top_175', 'top_200', 'top_225', 'top_250', 'top_275', 'top_300', 'top_325', 'top_350', 'top_375', 'top_400', 'top_425'],
+        'Top 450': ['top_25', 'top_50', 'top_75', 'top_100', 'top_125', 'top_150', 'top_175', 'top_200', 'top_225', 'top_250', 'top_275', 'top_300', 'top_325', 'top_350', 'top_375', 'top_400', 'top_425', 'top_450'],
+        'Top 475': ['top_25', 'top_50', 'top_75', 'top_100', 'top_125', 'top_150', 'top_175', 'top_200', 'top_225', 'top_250', 'top_275', 'top_300', 'top_325', 'top_350', 'top_375', 'top_400', 'top_425', 'top_450', 'top_475'],
+        'Top 500': ['top_25', 'top_50', 'top_75', 'top_100', 'top_125', 'top_150', 'top_175', 'top_200', 'top_225', 'top_250', 'top_275', 'top_300', 'top_325', 'top_350', 'top_375', 'top_400', 'top_425', 'top_450', 'top_475', 'top_500']
+      };
+      
+      // Get allowed database tiers for current tier
+      const allowedDbTiers = tierMappingObject[currentTier] || [];
+      console.log(`Allowed database tiers for review:`, allowedDbTiers);
+
       const { data, error } = await this.supabase
         .from('user_progress')
         .select(`
           *,
-          words (
+          words!inner (
             id,
             word,
             definition,
@@ -380,6 +458,7 @@ export class WordStateManager {
         `)
         .eq('user_id', userId)
         .eq('state', 'ready')
+        .in('words.tier', allowedDbTiers) // Filter by allowed tiers only
         .order('next_review_date', { ascending: true })
         .limit(10); // Limit to target pool size
 
@@ -388,6 +467,7 @@ export class WordStateManager {
         return [];
       }
 
+      console.log(`Found ${data?.length || 0} review words from allowed tiers`);
       return data || [];
     } catch (error) {
       console.error('Error getting review words:', error);
