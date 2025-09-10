@@ -335,18 +335,21 @@ export default function StudySession() {
       const distractorsMap = await preloadDistractors(studyWords);
       setPreloadedDistractors(distractorsMap);
 
+      // Force limit to exactly 3 words for study session
+      const limitedStudyWords = studyWords.slice(0, 3);
+      
       setSession({
-        words: studyWords,
+        words: limitedStudyWords,
         currentIndex: 0,
         score: 0,
-        totalQuestions: studyWords.length,
+        totalQuestions: limitedStudyWords.length,
         answers: {},
         promotedWords: [],
         startTime: new Date(),
         wordResults: []
       });
-      console.log('Study session initialized with', studyWords.length, 'words (3-question mode)');
-      console.log('Session words:', studyWords.map(w => w.word));
+      console.log('Study session initialized with', limitedStudyWords.length, 'words (3-question mode)');
+      console.log('Session words:', limitedStudyWords.map(w => w.word));
     } catch (error) {
       console.error('Error initializing study session:', error);
     } finally {
@@ -790,7 +793,13 @@ export default function StudySession() {
             
             {/* Progress Counter, Tier, and Difficulty */}
             <div className="text-sm font-medium text-gray-700">
-              <div>{session.currentIndex + 1}/{session.totalQuestions}</div>
+              <div>{session.currentIndex + 1}/{session.totalQuestions} 
+                {session.totalQuestions === 3 && (
+                  <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                    3-Question Mode
+                  </span>
+                )}
+              </div>
               <div className="text-xs text-gray-500 mt-1">
                 {getDisplayTier(currentWord.tier)} • {currentWord.difficulty}
               </div>
