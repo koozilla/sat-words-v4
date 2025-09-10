@@ -213,9 +213,6 @@ export default function MasteredWords() {
               <ArrowLeft className="h-5 w-5 mr-2" />
               Back to Dashboard
             </button>
-            <div className="flex items-center">
-              <BookOpen className="h-8 w-8 text-blue-600" />
-            </div>
             <div className="flex items-center space-x-4">
               {isGuest && (
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-1">
