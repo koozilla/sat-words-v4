@@ -972,13 +972,7 @@ export default function StudySession() {
             
             {/* Progress Counter, Tier, and Difficulty */}
             <div className="text-sm font-medium text-gray-700">
-              <div>{session.currentIndex + 1}/{session.totalQuestions} 
-                {session.totalQuestions === 3 && (
-                  <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                    3-Question Mode
-                  </span>
-                )}
-              </div>
+              <div>{session.currentIndex + 1}/{session.totalQuestions}</div>
               <div className="text-xs text-gray-500 mt-1">
                 {getDisplayTier(currentWord.tier)} • {currentWord.difficulty}
               </div>
@@ -994,6 +988,12 @@ export default function StudySession() {
           {/* Word Image/Definition Toggle */}
           {currentWord.image_url && (
             <div className="mb-2 sm:mb-6 text-center">
+              {/* Instruction */}
+              <div className="mb-3 sm:mb-4">
+                <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
+                  Select the correct word
+                </h2>
+              </div>
               <div className="relative overflow-hidden rounded-lg">
                 {/* Clickable Container */}
                 <div 
