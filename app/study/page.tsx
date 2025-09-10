@@ -216,6 +216,12 @@ export default function StudySession() {
     const generateAnswers = async () => {
       if (session && session.words.length > 0 && session.currentIndex < session.words.length) {
         console.log('useEffect triggered - current index:', session.currentIndex, 'word:', session.words[session.currentIndex]?.word);
+        
+        // Reset answer states when generating new answers
+        setShowAnswer(false);
+        setSelectedAnswer(null);
+        setIsCorrect(null);
+        
         setIsGeneratingAnswers(true);
         
         const { data: { user } } = await supabase.auth.getUser();
@@ -605,11 +611,19 @@ export default function StudySession() {
         });
       }
       
+      // Reset all answer-related states immediately
       setShowAnswer(false);
       setSelectedAnswer(null);
       setIsCorrect(null);
       setShowImageContent(true); // Reset to show image for new question
       setCurrentAnswers([]); // Clear answers - useEffect will regenerate them
+      
+      // Force a brief delay to ensure state updates are processed
+      setTimeout(() => {
+        setShowAnswer(false);
+        setSelectedAnswer(null);
+        setIsCorrect(null);
+      }, 10);
     } else {
       finishSession();
     }
@@ -792,7 +806,8 @@ export default function StudySession() {
               currentAnswers.map((answer, index) => {
               let buttonClass = "w-full p-3 sm:p-4 text-left rounded-lg border-2 transition-all duration-200 btn-mobile-reset ";
               
-              if (showAnswer) {
+              // Only show highlighting if we're showing answers AND have a valid current word
+              if (showAnswer && currentWord && currentWord.word) {
                 if (answer === currentWord.word) {
                   buttonClass += "border-green-500 bg-gradient-to-r from-green-50 to-green-100 text-green-800 shadow-lg";
                 } else if (answer === selectedAnswer) {
@@ -813,12 +828,12 @@ export default function StudySession() {
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-medium text-sm sm:text-base">{answer}</span>
-                    {showAnswer && answer === currentWord.word && (
+                    {showAnswer && currentWord && currentWord.word && answer === currentWord.word && (
                       <div className="flex items-center gap-2">
                         <CheckCircle className="h-8 w-8 sm:h-10 sm:w-10 text-green-600 flex-shrink-0 animate-pulse" />
                       </div>
                     )}
-                    {showAnswer && answer === selectedAnswer && answer !== currentWord.word && (
+                    {showAnswer && currentWord && currentWord.word && answer === selectedAnswer && answer !== currentWord.word && (
                       <div className="flex items-center gap-2">
                         <XCircle className="h-6 w-6 sm:h-7 sm:w-7 text-red-600 flex-shrink-0" />
                       </div>
