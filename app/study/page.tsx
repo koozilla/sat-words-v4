@@ -1150,11 +1150,11 @@ export default function StudySession() {
             </button>
             
             <div className="flex items-center space-x-4">
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg px-2 py-1 sm:px-3">
-                <span className="text-yellow-800 text-xs sm:text-sm font-medium">
-                  {isGuest ? 'Guest' : (cachedUser?.email || 'User')}
-                </span>
-              </div>
+              {isGuest && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg px-2 py-1 sm:px-3">
+                  <span className="text-yellow-800 text-xs sm:text-sm font-medium">Guest</span>
+                </div>
+              )}
               <button
                 onClick={async () => {
                   await supabase.auth.signOut();
