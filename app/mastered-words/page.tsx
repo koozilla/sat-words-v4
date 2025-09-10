@@ -215,7 +215,6 @@ export default function MasteredWords() {
             </button>
             <div className="flex items-center">
               <BookOpen className="h-8 w-8 text-blue-600" />
-              <h1 className="ml-2 text-xl font-bold text-gray-900">Mastered Words</h1>
             </div>
             <div className="flex items-center space-x-4">
               {isGuest && (
