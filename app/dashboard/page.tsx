@@ -253,7 +253,8 @@ export default function Dashboard() {
           mastered: cumulativeMastered,
           percentage: cumulativeWords.length > 0 ? Math.round((cumulativeMastered / cumulativeWords.length) * 100) : 0
         };
-      }).filter((item): item is NonNullable<typeof item> => item !== null);
+      }).filter((item): item is NonNullable<typeof item> => item !== null)
+        .filter(tier => tier.mastered < tier.total); // Only show tiers that are not fully completed
 
       const finalStats = {
         activePoolCount: currentActivePoolCount,
