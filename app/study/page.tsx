@@ -315,6 +315,7 @@ export default function StudySession() {
       // Use only 3 words from the active pool for the quiz
       console.log(`Found ${activePoolWords.length} words in active pool:`, activePoolWords.map(p => p.words.word));
       const selectedWords = activePoolWords.slice(0, 3); // Use only first 3 words for study session
+      console.log(`Selected ${selectedWords.length} words for study session:`, selectedWords.map(p => p.words.word));
       
       const studyWords: Word[] = selectedWords.map(p => ({
         id: p.words.id,
@@ -345,6 +346,7 @@ export default function StudySession() {
         wordResults: []
       });
       console.log('Study session initialized with', studyWords.length, 'words (3-question mode)');
+      console.log('Session words:', studyWords.map(w => w.word));
     } catch (error) {
       console.error('Error initializing study session:', error);
     } finally {
