@@ -21,7 +21,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-          <div className="mx-auto" style={{ maxWidth: '1260px' }}>
+          <div className="mx-auto" style={{ maxWidth: '1008px' }}>
             {children}
           </div>
         </div>
