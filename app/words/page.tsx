@@ -56,8 +56,6 @@ export default function WordsPage() {
   const [availableWords, setAvailableWords] = useState<Word[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedTier, setSelectedTier] = useState('All');
-  const [selectedDifficulty, setSelectedDifficulty] = useState('All');
   const [showAvailableWords, setShowAvailableWords] = useState(false);
   const [activeTiers, setActiveTiers] = useState<string[]>([]);
   const [highestActiveTier, setHighestActiveTier] = useState<string>('Top 25');
@@ -92,8 +90,6 @@ export default function WordsPage() {
     return tierMapping[dbTier] || dbTier;
   };
 
-  const tiers = ['All', 'Top 25', 'Top 50', 'Top 75', 'Top 100', 'Top 125', 'Top 150', 'Top 175', 'Top 200', 'Top 225', 'Top 250', 'Top 275', 'Top 300', 'Top 325', 'Top 350', 'Top 375', 'Top 400', 'Top 425', 'Top 450', 'Top 475', 'Top 500'];
-  const difficulties = ['All', 'Easy', 'Medium', 'Hard'];
 
   useEffect(() => {
     loadCurrentWords();
@@ -276,13 +272,16 @@ export default function WordsPage() {
   };
 
   const filteredWords = currentWords.filter(word => {
-    const matchesSearch = word.word.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         word.definition.toLowerCase().includes(searchTerm.toLowerCase());
+    const searchLower = searchTerm.toLowerCase();
     const wordDisplayTier = getDisplayTier(word.tier);
-    const matchesTier = selectedTier === 'All' || wordDisplayTier === selectedTier;
-    const matchesDifficulty = selectedDifficulty === 'All' || word.difficulty === selectedDifficulty;
     
-    return matchesSearch && matchesTier && matchesDifficulty;
+    const matchesSearch = word.word.toLowerCase().includes(searchLower) ||
+                         word.definition.toLowerCase().includes(searchLower) ||
+                         wordDisplayTier.toLowerCase().includes(searchLower) ||
+                         word.difficulty.toLowerCase().includes(searchLower) ||
+                         word.part_of_speech.toLowerCase().includes(searchLower);
+    
+    return matchesSearch;
   });
 
   const getDifficultyColor = (difficulty: string): string => {
@@ -361,42 +360,17 @@ export default function WordsPage() {
           </div>
         </div>
 
-        {/* Search and Filters */}
+        {/* Search */}
         <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search words or definitions..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-
-            {/* Tier Filter */}
-            <select
-              value={selectedTier}
-              onChange={(e) => setSelectedTier(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              {tiers.map(tier => (
-                <option key={tier} value={tier}>{tier}</option>
-              ))}
-            </select>
-
-            {/* Difficulty Filter */}
-            <select
-              value={selectedDifficulty}
-              onChange={(e) => setSelectedDifficulty(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              {difficulties.map(difficulty => (
-                <option key={difficulty} value={difficulty}>{difficulty}</option>
-              ))}
-            </select>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search words, definitions, tiers, difficulty, or part of speech..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
           </div>
         </div>
 
