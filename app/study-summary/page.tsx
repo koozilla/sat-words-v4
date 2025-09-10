@@ -5,8 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { WordStateManager } from '@/lib/word-state-manager';
 import { 
-  ArrowLeft, 
-  ArrowRight,
+  ArrowLeft,
   Trophy, 
   Target, 
   Clock, 
@@ -438,19 +437,36 @@ export default function StudySummary() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="container mx-auto px-4 py-4 sm:py-8">
-        {/* Header - Mobile Optimized */}
-        <div className="flex items-center justify-between mb-6 sm:mb-8">
-          <button
-            onClick={() => router.push('/dashboard')}
-            className="flex items-center gap-1 sm:gap-2 text-gray-600 hover:text-gray-800 transition-colors text-sm sm:text-base"
-          >
-            <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
-            <span className="hidden sm:inline">Back to Dashboard</span>
-            <span className="sm:hidden">Back</span>
-          </button>
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 text-center">Study Complete!</h1>
-          <div className="w-16 sm:w-24"></div> {/* Spacer for centering */}
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="flex items-center text-gray-600 hover:text-gray-900"
+            >
+              <ArrowLeft className="h-5 w-5 mr-2" />
+              Back to Dashboard
+            </button>
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => supabase.auth.signOut()}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Page Header */}
+        <div className="mb-8">
+          <div className="text-center mb-6">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Study Complete!</h1>
+            <p className="text-gray-600">Great job! Here&apos;s how you did in your study session.</p>
+          </div>
         </div>
 
         {/* Main Stats Card - Mobile Optimized */}
@@ -505,7 +521,7 @@ export default function StudySummary() {
             Back to Dashboard
           </button>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
