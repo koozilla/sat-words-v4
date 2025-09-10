@@ -154,7 +154,7 @@ export default function SignupPage() {
               Save Your Progress!
             </h3>
             <div className="text-sm text-yellow-700 space-y-1">
-              <p>You've made great progress in guest mode:</p>
+              <p>You&apos;ve made great progress in guest mode:</p>
               <ul className="list-disc list-inside ml-2">
                 {guestStats.masteredWords > 0 && (
                   <li>{guestStats.masteredWords} word{guestStats.masteredWords !== 1 ? 's' : ''} mastered</li>

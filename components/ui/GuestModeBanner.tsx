@@ -43,12 +43,12 @@ export default function GuestModeBanner({
             <div className="mt-1 text-sm text-yellow-700">
               {showConversionCTA && masteredWords > 0 ? (
                 <p>
-                  Great work! You've mastered {masteredWords} word{masteredWords !== 1 ? 's' : ''}. 
+                  Great work! You&apos;ve mastered {masteredWords} word{masteredWords !== 1 ? 's' : ''}. 
                   Sign up to save your progress and unlock more tiers.
                 </p>
               ) : (
                 <p>
-                  Your progress won't be saved. Sign up to save your work and unlock all features.
+                  Your progress won&apos;t be saved. Sign up to save your work and unlock all features.
                 </p>
               )}
             </div>
