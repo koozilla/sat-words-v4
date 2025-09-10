@@ -446,7 +446,7 @@ A streamlined development process ensures efficient code delivery and maintenanc
 ```bash
 # Setup
 npm install
-cp .env.example .env.local
+cp .env.example .env
 # Configure environment variables
 
 # Database setup

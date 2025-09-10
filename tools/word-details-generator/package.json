@@ -26,7 +26,9 @@
     "regenerate-top25": "ts-node src/regenerate-top25-images.ts",
     "clear-top25": "ts-node src/clear-top25-images.ts",
     "list-models": "ts-node src/list-models.ts",
-    "debug-api": "ts-node src/debug-api.ts"
+    "debug-api": "ts-node src/debug-api.ts",
+    "generate-missing-top150": "ts-node src/generate-missing-top150-images.ts",
+    "generate-top175": "ts-node src/generate-top175-images.ts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.2.1",

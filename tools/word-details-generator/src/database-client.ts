@@ -70,6 +70,26 @@ export class DatabaseClient {
     }
   }
 
+  async getWordsByTier(tier: string): Promise<DatabaseWordDetails[]> {
+    try {
+      const { data, error } = await this.supabase
+        .from('words')
+        .select('*')
+        .eq('tier', tier)
+        .order('word', { ascending: true });
+
+      if (error) {
+        console.error(`Error fetching words for tier "${tier}":`, error);
+        return [];
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error(`Error fetching words for tier "${tier}":`, error);
+      return [];
+    }
+  }
+
   async updateWordImages(wordId: string, imageUrls: string[], imageDescriptions: string[]): Promise<boolean> {
     try {
       const { error } = await this.supabase
