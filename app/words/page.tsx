@@ -329,12 +329,6 @@ export default function WordsPage() {
               <ArrowLeft className="h-5 w-5 mr-2" />
               Back to Dashboard
             </button>
-            <div className="flex items-center">
-              <Target className="h-6 w-6 text-blue-600 mr-2" />
-              <div className="text-sm font-medium text-gray-700">
-                <div>Active Words: {currentWords.length}</div>
-              </div>
-            </div>
             <div className="flex items-center space-x-4">
               <button
                 onClick={() => supabase.auth.signOut()}
@@ -356,6 +350,12 @@ export default function WordsPage() {
               <p className="text-gray-600">
                 View and manage your active study pool. See words you&apos;re studying and words ready for review, organized by tier.
               </p>
+            </div>
+            <div className="flex items-center">
+              <Target className="h-8 w-8 text-blue-600 mr-2" />
+              <span className="text-sm font-medium text-gray-700">
+                Total: {currentWords.length}
+              </span>
             </div>
           </div>
         </div>

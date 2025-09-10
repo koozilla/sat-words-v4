@@ -216,12 +216,6 @@ export default function MasteredWords() {
               <ArrowLeft className="h-5 w-5 mr-2" />
               Back to Dashboard
             </button>
-            <div className="flex items-center">
-              <CheckCircle className="h-6 w-6 text-green-600 mr-2" />
-              <div className="text-sm font-medium text-gray-700">
-                <div>Mastered Words: {masteredWords.length}</div>
-              </div>
-            </div>
             <div className="flex items-center space-x-4">
               {isGuest && (
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-1">

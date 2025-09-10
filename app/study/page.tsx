@@ -970,12 +970,13 @@ export default function StudySession() {
               Back to Dashboard
             </button>
             
-            {/* Progress Counter, Tier, and Difficulty */}
-            <div className="text-sm font-medium text-gray-700">
-              <div>{session.currentIndex + 1}/{session.totalQuestions}</div>
-              <div className="text-xs text-gray-500 mt-1">
-                {getDisplayTier(currentWord.tier)} • {currentWord.difficulty}
-              </div>
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => supabase.auth.signOut()}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                Sign Out
+              </button>
             </div>
           </div>
         </div>
@@ -985,15 +986,37 @@ export default function StudySession() {
         {/* Question Card */}
         <div className="bg-white rounded-xl shadow-lg p-2 sm:p-8 mb-2 sm:mb-8">
 
+          {/* Progress Section */}
+          <div className="mb-4">
+            {/* Progress Bar */}
+            <div className="mb-2">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm font-medium text-gray-700">
+                  Question {session.currentIndex + 1} of {session.totalQuestions}
+                </span>
+                <span className="text-sm text-gray-500">
+                  {Math.round(((session.currentIndex + 1) / session.totalQuestions) * 100)}%
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300 ease-out"
+                  style={{ width: `${((session.currentIndex + 1) / session.totalQuestions) * 100}%` }}
+                ></div>
+              </div>
+            </div>
+            
+            {/* Word Info Card */}
+            <div className="bg-gray-50 rounded-lg p-2 text-center">
+              <div className="text-sm font-medium text-gray-800">
+                {getDisplayTier(currentWord.tier)} • {currentWord.difficulty}
+              </div>
+            </div>
+          </div>
+
           {/* Word Image/Definition Toggle */}
           {currentWord.image_url && (
             <div className="mb-2 sm:mb-6 text-center">
-              {/* Instruction */}
-              <div className="mb-3 sm:mb-4">
-                <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
-                  Select the correct word
-                </h2>
-              </div>
               <div className="relative overflow-hidden rounded-lg">
                 {/* Clickable Container */}
                 <div 
