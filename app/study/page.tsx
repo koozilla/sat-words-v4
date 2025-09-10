@@ -273,7 +273,7 @@ export default function StudySession() {
           .from('words')
           .select('*')
           .eq('tier', 'top_25')
-          .limit(25);
+          .limit(3);
 
         if (testError || !testWords || testWords.length === 0) {
           router.push('/words');
@@ -308,13 +308,13 @@ export default function StudySession() {
           startTime: new Date(),
           wordResults: []
         });
-        console.log('Study session initialized with', studyWords.length, 'words');
+        console.log('Study session initialized with', studyWords.length, 'words (3-question mode)');
         return;
       }
 
-      // Use all available words from the active pool for the quiz
+      // Use only 3 words from the active pool for the quiz
       console.log(`Found ${activePoolWords.length} words in active pool:`, activePoolWords.map(p => p.words.word));
-      const selectedWords = activePoolWords; // Use all available words for study session
+      const selectedWords = activePoolWords.slice(0, 3); // Use only first 3 words for study session
       
       const studyWords: Word[] = selectedWords.map(p => ({
         id: p.words.id,
@@ -344,7 +344,7 @@ export default function StudySession() {
         startTime: new Date(),
         wordResults: []
       });
-      console.log('Study session initialized with', studyWords.length, 'words');
+      console.log('Study session initialized with', studyWords.length, 'words (3-question mode)');
     } catch (error) {
       console.error('Error initializing study session:', error);
     } finally {
