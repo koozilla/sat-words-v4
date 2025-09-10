@@ -65,6 +65,7 @@ interface DashboardStats {
   tierCountBreakdown: {
     started: { [tier: string]: number };
     mastered: { [tier: string]: number };
+    ready: { [tier: string]: number };
     total: { [tier: string]: number };
   };
   recentBadges: Badge[];
@@ -152,6 +153,7 @@ export default function Dashboard() {
       const tierCountBreakdown = {
         started: {} as { [tier: string]: number },
         mastered: {} as { [tier: string]: number },
+        ready: {} as { [tier: string]: number },
         total: {} as { [tier: string]: number }
       };
       
@@ -202,6 +204,11 @@ export default function Dashboard() {
         tierCountBreakdown.mastered[tier] = progress?.filter(p => {
           const word = words?.find(w => w.id === p.word_id);
           return cumulativeDbTiers.includes(word?.tier) && p.state === 'mastered';
+        }).length || 0;
+        
+        tierCountBreakdown.ready[tier] = progress?.filter(p => {
+          const word = words?.find(w => w.id === p.word_id);
+          return cumulativeDbTiers.includes(word?.tier) && p.state === 'ready';
         }).length || 0;
         
         tierCountBreakdown.total[tier] = words?.filter(w => cumulativeDbTiers.includes(w.tier)).length || 0;
@@ -288,6 +295,7 @@ export default function Dashboard() {
       tierCountBreakdown: {
         started: {},
         mastered: {},
+        ready: {},
         total: {}
       },
       recentBadges: []
@@ -396,8 +404,20 @@ export default function Dashboard() {
                   {stats.activeTiers && stats.activeTiers.length > 0 && (
                     <div className="text-blue-100 text-xs sm:text-sm">
                       <p>{stats.activeTiers
-                        .filter(tier => (stats.tierCountBreakdown.started[tier] || 0) > 0)
-                        .map(tier => `${tier}: ${stats.tierCountBreakdown.started[tier] || 0}`)
+                        .filter(tier => {
+                          const started = stats.tierCountBreakdown.started[tier] || 0;
+                          const ready = stats.tierCountBreakdown.ready[tier] || 0;
+                          const mastered = stats.tierCountBreakdown.mastered[tier] || 0;
+                          const total = started + ready + mastered;
+                          return total > 0;
+                        })
+                        .map(tier => {
+                          const started = stats.tierCountBreakdown.started[tier] || 0;
+                          const ready = stats.tierCountBreakdown.ready[tier] || 0;
+                          const mastered = stats.tierCountBreakdown.mastered[tier] || 0;
+                          const total = started + ready + mastered;
+                          return `${tier}: ${total}`;
+                        })
                         .join(', ')}</p>
                     </div>
                   )}
