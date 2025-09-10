@@ -987,7 +987,7 @@ export default function StudySession() {
         <div className="bg-white rounded-xl shadow-lg p-2 sm:p-8 mb-2 sm:mb-8">
 
           {/* Progress Section */}
-          <div className="mb-4">
+          <div className="mb-2 sm:mb-4">
             {/* Progress Bar */}
             <div className="mb-2">
               <div className="flex justify-between items-center mb-2">
@@ -1007,7 +1007,7 @@ export default function StudySession() {
             </div>
             
             {/* Word Info Card */}
-            <div className="bg-gray-50 rounded-lg p-2 text-center">
+            <div className="bg-gray-50 rounded-lg p-2 text-center mb-1">
               <div className="text-sm font-medium text-gray-800">
                 {getDisplayTier(currentWord.tier)} • {currentWord.difficulty}
               </div>
@@ -1016,7 +1016,7 @@ export default function StudySession() {
 
           {/* Word Image/Definition Toggle */}
           {currentWord.image_url && (
-            <div className="mb-2 sm:mb-6 text-center">
+            <div className="mb-2 sm:mb-4 text-center">
               <div className="relative overflow-hidden rounded-lg">
                 {/* Clickable Container */}
                 <div 
@@ -1075,7 +1075,7 @@ export default function StudySession() {
 
 
           {/* Answer Options */}
-          <div className="grid grid-cols-2 gap-2 sm:gap-4 mb-2 sm:mb-8">
+          <div className="grid grid-cols-2 gap-2 sm:gap-4 mb-2 sm:mb-4">
             {isGeneratingAnswers ? (
               // Loading state for answers
               <>
