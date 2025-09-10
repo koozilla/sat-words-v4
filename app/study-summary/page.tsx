@@ -461,14 +461,6 @@ export default function StudySummary() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Page Header */}
-        <div className="mb-8">
-          <div className="text-center mb-6">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Study Complete!</h1>
-            <p className="text-gray-600">Great job! Here&apos;s how you did in your study session.</p>
-          </div>
-        </div>
-
         {/* Main Stats Card - Mobile Optimized */}
         <div className="bg-white rounded-xl p-4 sm:p-6 shadow-lg mb-6 sm:mb-8">
           <div className="text-center mb-4 sm:mb-6">
