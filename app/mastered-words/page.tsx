@@ -206,13 +206,14 @@ export default function MasteredWords() {
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="flex items-center text-gray-600 hover:text-gray-900"
+            >
+              <ArrowLeft className="h-5 w-5 mr-2" />
+              Back to Dashboard
+            </button>
             <div className="flex items-center">
-              <button
-                onClick={() => router.push('/dashboard')}
-                className="mr-4 p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <ArrowLeft className="h-6 w-6 text-gray-600" />
-              </button>
               <BookOpen className="h-8 w-8 text-blue-600" />
               <h1 className="ml-2 text-xl font-bold text-gray-900">Mastered Words</h1>
             </div>
