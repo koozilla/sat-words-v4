@@ -427,18 +427,6 @@ export default function Dashboard() {
                   <p className="text-green-100 text-sm sm:text-base mb-2">
                     {stats.masteredWords} words mastered
                   </p>
-                  {stats.activeTiers && stats.activeTiers.length > 0 && (
-                    <div className="text-green-100 text-xs sm:text-sm">
-                      <p>{stats.activeTiers
-                        .filter(tier => {
-                          const mastered = stats.tierCountBreakdown.mastered[tier] || 0;
-                          const total = stats.tierCountBreakdown.total[tier] || 0;
-                          return mastered > 0 && mastered < total; // Only show if not all words are mastered
-                        })
-                        .map(tier => `${tier}: ${stats.tierCountBreakdown.mastered[tier] || 0}`)
-                        .join(', ')}</p>
-                    </div>
-                  )}
                 </div>
               </div>
               <div className="flex gap-1">
