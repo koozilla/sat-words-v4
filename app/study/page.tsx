@@ -73,6 +73,7 @@ export default function StudySession() {
     correct: boolean;
   } | null>(null);
   const [isProcessingTransition, setIsProcessingTransition] = useState(false);
+  const [isGeneratingAnswers, setIsGeneratingAnswers] = useState(false);
   const [wordStateManager] = useState(() => new WordStateManager());
   const router = useRouter();
   const supabase = createClientComponentClient();
@@ -213,21 +214,33 @@ export default function StudySession() {
   // Generate answers when current word changes
   useEffect(() => {
     const generateAnswers = async () => {
-      if (session && session.words.length > 0) {
+      if (session && session.words.length > 0 && session.currentIndex < session.words.length) {
         console.log('useEffect triggered - current index:', session.currentIndex, 'word:', session.words[session.currentIndex]?.word);
+        setIsGeneratingAnswers(true);
+        
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           const currentWord = session.words[session.currentIndex];
-          const distractors = await generateDistractors(currentWord, user.id);
-          const shuffledAnswers = [currentWord.word, ...distractors].sort(() => Math.random() - 0.5);
-          console.log(`Final answers for "${currentWord.word}":`, shuffledAnswers);
-          setCurrentAnswers(shuffledAnswers);
+          if (currentWord) {
+            try {
+              const distractors = await generateDistractors(currentWord, user.id);
+              const shuffledAnswers = [currentWord.word, ...distractors].sort(() => Math.random() - 0.5);
+              console.log(`Final answers for "${currentWord.word}":`, shuffledAnswers);
+              setCurrentAnswers(shuffledAnswers);
+            } catch (error) {
+              console.error('Error generating answers:', error);
+              // Fallback answers
+              setCurrentAnswers([currentWord.word, 'Option A', 'Option B', 'Option C']);
+            }
+          }
         }
+        
+        setIsGeneratingAnswers(false);
       }
     };
     
     generateAnswers();
-  }, [session?.currentIndex]);
+  }, [session?.currentIndex, session?.words]);
 
   const initializeStudySession = async () => {
     try {
@@ -596,11 +609,7 @@ export default function StudySession() {
       setSelectedAnswer(null);
       setIsCorrect(null);
       setShowImageContent(true); // Reset to show image for new question
-      setCurrentAnswers([]); // Force regeneration of answers
-      // Force a small delay to ensure DOM updates
-      setTimeout(() => {
-        setCurrentAnswers([]);
-      }, 50);
+      setCurrentAnswers([]); // Clear answers - useEffect will regenerate them
     } else {
       finishSession();
     }
@@ -769,7 +778,18 @@ export default function StudySession() {
 
           {/* Answer Options */}
           <div className="grid grid-cols-1 gap-3 sm:gap-4 mb-4 sm:mb-8">
-            {currentAnswers.map((answer, index) => {
+            {isGeneratingAnswers ? (
+              // Loading state for answers
+              <div className="space-y-3 sm:space-y-4">
+                {[1, 2, 3, 4].map((index) => (
+                  <div key={index} className="w-full p-3 sm:p-4 rounded-lg border-2 border-gray-200 bg-gray-100 animate-pulse">
+                    <div className="h-4 bg-gray-300 rounded w-3/4"></div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              // Actual answer options
+              currentAnswers.map((answer, index) => {
               let buttonClass = "w-full p-3 sm:p-4 text-left rounded-lg border-2 transition-all duration-200 btn-mobile-reset ";
               
               if (showAnswer) {
@@ -806,7 +826,8 @@ export default function StudySession() {
                   </div>
                 </button>
               );
-            })}
+            })
+            )}
           </div>
 
 
