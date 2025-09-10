@@ -342,8 +342,7 @@ export class WordStateManager {
         `)
         .eq('user_id', userId)
         .eq('state', 'started')
-        .order('last_studied', { ascending: true })
-        .limit(10); // Limit to target pool size
+        .order('last_studied', { ascending: true }); // Return all available words
 
       if (error) {
         console.error('Error fetching active pool words:', error);
