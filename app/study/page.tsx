@@ -1223,7 +1223,7 @@ export default function StudySession() {
                       <img 
                         src={currentWord.image_url} 
                         alt={`Visual representation of ${currentWord.word}. Click to see definition.`}
-                        className="w-full h-[50vh] sm:h-[36rem] sm:w-[64rem] sm:aspect-auto object-cover rounded-lg mx-auto hover:opacity-90 transition-opacity duration-200"
+                        className="w-full max-w-md h-auto max-h-80 object-cover rounded-lg mx-auto hover:opacity-90 transition-opacity duration-200"
                         onError={(e) => {
                           console.error('Image failed to load:', currentWord.image_url);
                           e.currentTarget.style.display = 'none';
@@ -1393,7 +1393,7 @@ export default function StudySession() {
                   <img 
                     src={currentWord.image_url} 
                     alt={`Visual representation of ${currentWord.word}`}
-                    className="h-48 w-[20rem] sm:h-56 sm:w-[24rem] object-cover rounded-lg mx-auto"
+                    className="max-w-sm max-h-64 w-full h-auto object-cover rounded-lg mx-auto"
                   />
                 </div>
               )}
