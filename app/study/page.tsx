@@ -638,6 +638,33 @@ export default function StudySession() {
   const currentWord = session.words[session.currentIndex];
   const progress = ((session.currentIndex + 1) / session.totalQuestions) * 100;
 
+  // Convert database tier to display tier
+  const getDisplayTier = (dbTier: string): string => {
+    const tierMapping: { [key: string]: string } = {
+      'top_25': 'Top 25',
+      'top_50': 'Top 50',
+      'top_100': 'Top 100',
+      'top_150': 'Top 150',
+      'top_200': 'Top 200',
+      'top_250': 'Top 250',
+      'top_300': 'Top 300',
+      'top_350': 'Top 350',
+      'top_400': 'Top 400',
+      'top_450': 'Top 450',
+      'top_500': 'Top 500',
+      'top_550': 'Top 550',
+      'top_600': 'Top 600',
+      'top_650': 'Top 650',
+      'top_700': 'Top 700',
+      'top_750': 'Top 750',
+      'top_800': 'Top 800',
+      'top_850': 'Top 850',
+      'top_900': 'Top 900',
+      'top_950': 'Top 950'
+    };
+    return tierMapping[dbTier] || dbTier;
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Header */}
@@ -653,9 +680,12 @@ export default function StudySession() {
               Back to Dashboard
             </button>
             
-            {/* Progress Counter */}
+            {/* Progress Counter and Tier */}
             <div className="text-sm font-medium text-gray-700">
-              {session.currentIndex + 1}/{session.totalQuestions}
+              <div>{session.currentIndex + 1}/{session.totalQuestions}</div>
+              <div className="text-xs text-gray-500 mt-1">
+                {getDisplayTier(currentWord.tier)}
+              </div>
             </div>
           </div>
         </div>
