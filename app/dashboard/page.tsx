@@ -344,7 +344,18 @@ export default function Dashboard() {
         console.log('No words in active pool, this might be the issue');
       }
       
-      setStats(guestStats);
+      // Ensure all tierCountBreakdown values are properly initialized
+      const safeGuestStats = {
+        ...guestStats,
+        tierCountBreakdown: {
+          started: guestStats.tierCountBreakdown.started || {},
+          mastered: guestStats.tierCountBreakdown.mastered || {},
+          ready: guestStats.tierCountBreakdown.ready || {},
+          total: guestStats.tierCountBreakdown.total || {}
+        }
+      };
+      
+      setStats(safeGuestStats);
     } catch (error) {
       console.error('Error loading guest dashboard data:', error);
     }
