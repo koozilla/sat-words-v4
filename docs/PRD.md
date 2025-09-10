@@ -58,10 +58,10 @@ Students are prompted to create an account to:
 - Any miss resets streaks
 
 ### 7. Active Learning Pool
-- Always 15 active words at a time.
+- Always 10 active words at a time.
 - Mastered words leave the pool, replaced with new words from the current tier.
 - Students must introduce all words in the tier before moving to the next tier.
-- If a tier has fewer than 15 remaining, the pool shrinks until the next tier unlocks.
+- If a tier has fewer than 10 remaining, the pool shrinks until the next tier unlocks.
 
 ### 8. Study & Review Modes
 
@@ -92,7 +92,7 @@ Students are prompted to create an account to:
 
 ### 10. Progress Tracking
 Dashboard shows:
-- Pool status (15 words)
+- Pool status (10 words)
 - State breakdown: Not Started, Started, Ready, Mastered
 - Tier progress
 - Reviews due today/this week
@@ -146,7 +146,7 @@ Dashboard shows:
 ### 1. Guest Mode Flow
 
 #### Step 1 — Click "Start as Guest"
-- Instantly drops user into dashboard with 15 words from Top 25 auto-loaded.
+- Instantly drops user into dashboard with 10 words from Top 25 auto-loaded.
 - Banner at top: "You're in Guest Mode. Progress will reset when you leave. Sign up to save your work and unlock more words."
 
 #### Step 2 — Begin Studying
@@ -178,7 +178,7 @@ Simple form:
 - After confirmation, redirected to Dashboard.
 
 #### Step 3 — Dashboard
-- Active pool filled with 15 words from Top 25.
+- Active pool filled with 10 words from Top 25.
 - Tier progression unlocked as user introduces words.
 - Full features available:
   - Progress saved automatically.
@@ -202,7 +202,7 @@ Simple form:
 |------------|-----------------|
 | Access | Instant, no sign-up | Email + password login |
 | Words Available | Top 25 only | All tiers (25 → 100 → 200 → 500) |
-| Pool Size | 15 words | 15 words |
+| Pool Size | 10 words | 10 words |
 | Progress Save | Session-only (lost on exit) | Saved across sessions & devices |
 | Streaks/Badges | ❌ Not available | ✅ Available |
 | Conversion | Banner + session-end prompts | Not applicable |

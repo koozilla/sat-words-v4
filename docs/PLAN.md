@@ -239,7 +239,7 @@ This plan outlines the 8-week development timeline for building the SAT Vocabula
 #### 2.4 User Management API
 - [x] Create user profile API endpoints
 - [x] Implement user progress initialization for all tiers
-- [x] Create active pool management (15 words from current tier)
+- [x] Create active pool management (10 words from current tier)
 - [x] Implement tier progression logic (Top 25 → 100 → 200 → 300 → 400 → 500)
 - [x] Add user statistics tracking
 - [x] Implement difficulty-based word selection
@@ -248,7 +248,7 @@ This plan outlines the 8-week development timeline for building the SAT Vocabula
 **Acceptance Criteria**:
 - User profiles can be created and updated
 - New users get proper progress initialization for all tiers
-- Active pool is managed correctly with 15 words from current tier
+- Active pool is managed correctly with 10 words from current tier
 - Tier progression works as specified (cumulative approach)
 - User statistics are tracked accurately
 - Difficulty levels are considered in word selection

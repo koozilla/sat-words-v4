@@ -70,7 +70,7 @@ export default function LandingPage() {
         <div className="text-center">
           <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
             Master SAT Vocabulary,{' '}
-            <span className="text-gradient">15 Words at a Time</span>
+            <span className="text-gradient">10 Words at a Time</span>
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
             Proven system using flashcards, reviews, and spaced repetition to help you efficiently learn and retain SAT-level vocabulary.
@@ -103,7 +103,7 @@ export default function LandingPage() {
             <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center mx-auto mb-4">
               <Zap className="h-6 w-6 text-primary-600" />
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">15-Word Active Pool</h3>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">10-Word Active Pool</h3>
             <p className="text-gray-600">
               Focus on a manageable set of words that rotates as you master them, preventing cognitive overload.
             </p>
@@ -133,7 +133,7 @@ export default function LandingPage() {
         {/* Testimonial */}
         <div className="mt-16 text-center">
           <blockquote className="text-xl text-gray-600 italic max-w-2xl mx-auto">
-            &ldquo;This app made studying SAT words actually fun! The 15-word system kept me focused and the progress tracking motivated me to keep going.&rdquo;
+            &ldquo;This app made studying SAT words actually fun! The 10-word system kept me focused and the progress tracking motivated me to keep going.&rdquo;
           </blockquote>
           <cite className="text-gray-500 mt-2 block">— Sarah, High School Student</cite>
         </div>

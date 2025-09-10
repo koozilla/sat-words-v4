@@ -363,7 +363,10 @@ export default function Dashboard() {
                 </div>
               )}
               <button
-                onClick={() => supabase.auth.signOut()}
+                onClick={async () => {
+                  await supabase.auth.signOut()
+                  router.push('/auth/login')
+                }}
                 className="text-gray-500 hover:text-gray-700 text-sm sm:text-base"
               >
                 Sign Out

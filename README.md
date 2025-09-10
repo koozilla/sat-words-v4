@@ -1,11 +1,11 @@
 # SAT Word Mastery
 
-A comprehensive SAT vocabulary memorization web application built with Next.js 14, Supabase, and Tailwind CSS. Master SAT vocabulary using a proven 15-word active pool system with flashcards, spaced repetition, and gamification.
+A comprehensive SAT vocabulary memorization web application built with Next.js 14, Supabase, and Tailwind CSS. Master SAT vocabulary using a proven 10-word active pool system with flashcards, spaced repetition, and gamification.
 
 ## 🚀 Features
 
 ### Core Learning System
-- **15-Word Active Pool** - Focus on manageable sets of words
+- **10-Word Active Pool** - Focus on manageable sets of words
 - **Flashcard Study Sessions** - Multiple choice with visual aids
 - **Typed Recall Reviews** - Spaced repetition with exact spelling
 - **Progress Tracking** - Tier-based progress (Top 25, 100, 200, etc.)

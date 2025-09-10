@@ -35,7 +35,7 @@
 
 ### Flow Highlights
 - Two big buttons side by side:
-  - Start as Guest → goes straight to Dashboard (Top 25 words, 15 pool).
+  - Start as Guest → goes straight to Dashboard (Top 25 words, 10 pool).
   - Sign Up Free → email + password form.
 - Login link below for returning users.
 - Visual cue (hero image): Could be a student with flashcards, or an abstract memory/learning illustration.
@@ -59,7 +59,7 @@
 ----------------------------------------------------
 
 [ Active Pool Section ]  
-| Title: "Your Active Pool (15 words)" 
+| Title: "Your Active Pool (10 words)" 
 | Progress Bar: 10 Started | 3 Ready for Test | 2 Mastered
 | Button: [Start Study Session] 
 ----------------------------------------------------
@@ -242,7 +242,7 @@ Buttons: [Submit]   [Hint]   [I Don't Know]
 ----------------------------------------------------
 [ VISUAL PROGRESS ]  
 | Tier Progress Bar: "Top 25 — 18/25 mastered"  
-| Active Pool: "15/15 words active"  
+| Active Pool: "10/10 words active"  
 
 ----------------------------------------------------
 [ ACHIEVEMENTS ]  
@@ -295,7 +295,7 @@ Greeting: "Welcome back, Joon!" (or "Guest User")
 Banner (Guest): "You're in Guest Mode – progress won't be saved."
 
 Sections:
-- Active Pool (15 words) → [ Start Study Session ]
+- Active Pool (10 words) → [ Start Study Session ]
 - Today's Reviews → [ Start Review ]
 - Tier Progress Bar
 - Achievements & Streaks
