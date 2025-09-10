@@ -348,10 +348,18 @@ export default function Dashboard() {
       const safeGuestStats = {
         ...guestStats,
         tierCountBreakdown: {
-          started: guestStats.tierCountBreakdown.started || {},
-          mastered: guestStats.tierCountBreakdown.mastered || {},
-          ready: guestStats.tierCountBreakdown.ready || {},
-          total: guestStats.tierCountBreakdown.total || {}
+          started: Object.fromEntries(
+            Object.entries(guestStats.tierCountBreakdown.started || {}).filter(([_, value]) => value !== undefined)
+          ),
+          mastered: Object.fromEntries(
+            Object.entries(guestStats.tierCountBreakdown.mastered || {}).filter(([_, value]) => value !== undefined)
+          ),
+          ready: Object.fromEntries(
+            Object.entries(guestStats.tierCountBreakdown.ready || {}).filter(([_, value]) => value !== undefined)
+          ),
+          total: Object.fromEntries(
+            Object.entries(guestStats.tierCountBreakdown.total || {}).filter(([_, value]) => value !== undefined)
+          )
         }
       };
       
