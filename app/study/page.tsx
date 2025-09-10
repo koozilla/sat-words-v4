@@ -357,7 +357,7 @@ export default function StudySession() {
     const distractorsMap: { [wordId: string]: string[] } = {};
     
     // Get all unique tiers from the words
-    const uniqueTiers = [...new Set(words.map(w => w.tier))];
+    const uniqueTiers = Array.from(new Set(words.map(w => w.tier)));
     console.log('Unique tiers found:', uniqueTiers);
     
     // Pre-load words for each tier
