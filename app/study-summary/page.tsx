@@ -174,7 +174,8 @@ export default function StudySummary() {
       accuracy: Math.round(accuracy),
       wordsCorrectList: wordsCorrect.map(w => w.word),
       wordsIncorrectList: wordsIncorrect.map(w => w.word),
-      wordsSkippedList: wordsSkipped.map(w => w.word)
+      wordsSkippedList: wordsSkipped.map(w => w.word),
+      DEBUG_RAW_SESSION_DATA: sessionInfo
     });
 
     return {
