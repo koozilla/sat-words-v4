@@ -65,6 +65,33 @@ export default function WordsPage() {
   const router = useRouter();
   const supabase = createClientComponentClient();
 
+  // Helper function to convert database tier to display tier
+  const getDisplayTier = (dbTier: string): string => {
+    const tierMapping: { [key: string]: string } = {
+      'top_25': 'Top 25',
+      'top_50': 'Top 50', 
+      'top_75': 'Top 75',
+      'top_100': 'Top 100',
+      'top_125': 'Top 125',
+      'top_150': 'Top 150',
+      'top_175': 'Top 175',
+      'top_200': 'Top 200',
+      'top_225': 'Top 225',
+      'top_250': 'Top 250',
+      'top_275': 'Top 275',
+      'top_300': 'Top 300',
+      'top_325': 'Top 325',
+      'top_350': 'Top 350',
+      'top_375': 'Top 375',
+      'top_400': 'Top 400',
+      'top_425': 'Top 425',
+      'top_450': 'Top 450',
+      'top_475': 'Top 475',
+      'top_500': 'Top 500'
+    };
+    return tierMapping[dbTier] || dbTier;
+  };
+
   const tiers = ['All', 'Top 25', 'Top 50', 'Top 75', 'Top 100', 'Top 125', 'Top 150', 'Top 175', 'Top 200', 'Top 225', 'Top 250', 'Top 275', 'Top 300', 'Top 325', 'Top 350', 'Top 375', 'Top 400', 'Top 425', 'Top 450', 'Top 475', 'Top 500'];
   const difficulties = ['All', 'Easy', 'Medium', 'Hard'];
 
@@ -251,7 +278,8 @@ export default function WordsPage() {
   const filteredWords = currentWords.filter(word => {
     const matchesSearch = word.word.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          word.definition.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesTier = selectedTier === 'All' || word.tier === selectedTier;
+    const wordDisplayTier = getDisplayTier(word.tier);
+    const matchesTier = selectedTier === 'All' || wordDisplayTier === selectedTier;
     const matchesDifficulty = selectedDifficulty === 'All' || word.difficulty === selectedDifficulty;
     
     return matchesSearch && matchesTier && matchesDifficulty;
@@ -309,7 +337,7 @@ export default function WordsPage() {
                 {activeTiers.length > 0 && (
                   <div className="text-xs text-gray-500">
                     <div>{activeTiers.map(tier => {
-                      const tierCount = currentWords.filter(word => word.tier === tier).length;
+                      const tierCount = currentWords.filter(word => getDisplayTier(word.tier) === tier).length;
                       return `${tier}: ${tierCount}`;
                     }).join(', ')}</div>
                   </div>
@@ -391,8 +419,8 @@ export default function WordsPage() {
                   </div>
                   <div className="flex flex-col space-y-1">
                     <div className="flex space-x-2">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTierColor(word.tier)}`}>
-                        {word.tier}
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTierColor(getDisplayTier(word.tier))}`}>
+                        {getDisplayTier(word.tier)}
                       </span>
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(word.difficulty)}`}>
                         {word.difficulty}
