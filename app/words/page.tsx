@@ -59,6 +59,7 @@ export default function WordsPage() {
   const [showAvailableWords, setShowAvailableWords] = useState(false);
   const [activeTiers, setActiveTiers] = useState<string[]>([]);
   const [highestActiveTier, setHighestActiveTier] = useState<string>('Top 25');
+  const [isGuest, setIsGuest] = useState(false);
   const [wordStateManager] = useState(() => new WordStateManager());
   const router = useRouter();
   const supabase = createClientComponentClient();
@@ -98,10 +99,19 @@ export default function WordsPage() {
   const loadCurrentWords = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
+      
       if (!user) {
-        console.log('No user found, redirecting to login');
-        router.push('/auth/login');
-        return;
+        // Check for guest mode
+        const guestData = localStorage.getItem('sat-words-guest');
+        if (guestData) {
+          setIsGuest(true);
+          await loadGuestCurrentWords();
+          return;
+        } else {
+          console.log('No user found, redirecting to login');
+          router.push('/auth/login');
+          return;
+        }
       }
 
       await loadCurrentWordsForUser(user.id);
@@ -211,16 +221,94 @@ export default function WordsPage() {
     }
   };
 
+  const loadGuestCurrentWords = async () => {
+    try {
+      // Import guest mode manager
+      const { guestModeManager } = await import('@/lib/guest-mode-manager');
+      
+      // Get active pool words from guest data
+      const activePoolWords = guestModeManager.getActivePoolWords();
+      
+      if (activePoolWords.length > 0) {
+        // Get full word details from database
+        const { data: wordsData, error } = await supabase
+          .from('words')
+          .select('*')
+          .in('id', activePoolWords.map(w => w.id));
+
+        if (error) {
+          console.error('Error loading guest word details:', error);
+          return;
+        }
+
+        if (wordsData) {
+          const guestData = guestModeManager.getGuestData();
+          const transformedWords: CurrentWord[] = wordsData.map(word => {
+            const progress = guestData?.wordProgress[word.id] || {
+              state: 'started',
+              study_streak: 0,
+              review_streak: 0
+            };
+            
+            return {
+              id: word.id,
+              word: word.word,
+              definition: word.definition,
+              part_of_speech: word.part_of_speech,
+              tier: word.tier,
+              difficulty: word.difficulty,
+              image_url: word.image_urls?.[0] || undefined,
+              synonyms: word.synonyms || [],
+              antonyms: word.antonyms || [],
+              example_sentence: word.example_sentence,
+              progress_id: word.id, // Use word id as progress id for guest mode
+              study_streak: progress.study_streak,
+              review_streak: progress.review_streak,
+              last_studied: null,
+              state: progress.state as 'started' | 'ready',
+              next_review_date: null,
+              review_interval: null
+            };
+          });
+          
+          setCurrentWords(transformedWords);
+        }
+      } else {
+        setCurrentWords([]);
+      }
+      
+      // Set guest mode active tiers
+      setActiveTiers(['Top 25']);
+      setHighestActiveTier('Top 25');
+    } catch (error) {
+      console.error('Error loading guest current words:', error);
+      setCurrentWords([]);
+    }
+  };
+
   const removeFromCurrent = async (wordId: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        console.log('No user found, redirecting to login');
-        router.push('/auth/login');
-        return;
-      }
+      if (isGuest) {
+        // Handle guest mode word removal
+        const { guestModeManager } = await import('@/lib/guest-mode-manager');
+        
+        // Remove word from guest active pool
+        guestModeManager.removeWordFromActivePool(wordId);
+        
+        // Reload guest current words
+        await loadGuestCurrentWords();
+        
+        console.log(`Word removed from active pool in guest mode`);
+      } else {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          console.log('No user found, redirecting to login');
+          router.push('/auth/login');
+          return;
+        }
 
-      await removeWordFromCurrent(user.id, wordId);
+        await removeWordFromCurrent(user.id, wordId);
+      }
     } catch (error) {
       console.error('Error removing word from current:', error);
     }
@@ -330,6 +418,11 @@ export default function WordsPage() {
               Back to Dashboard
             </button>
             <div className="flex items-center space-x-4">
+              {isGuest && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg px-2 py-1 sm:px-3">
+                  <span className="text-yellow-800 text-xs sm:text-sm font-medium">Guest</span>
+                </div>
+              )}
               <button
                 onClick={async () => {
                   await supabase.auth.signOut();

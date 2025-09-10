@@ -320,6 +320,22 @@ export class GuestModeManager {
       return false;
     }
   }
+
+  removeWordFromActivePool(wordId: string): void {
+    const guestData = this.getGuestData();
+    if (!guestData) return;
+
+    // Remove word from active pool
+    guestData.activePool = guestData.activePool.filter(word => word.id !== wordId);
+    
+    // Remove word progress if it exists
+    if (guestData.wordProgress[wordId]) {
+      delete guestData.wordProgress[wordId];
+    }
+
+    // Save updated data
+    this.saveGuestData(guestData);
+  }
 }
 
 export const guestModeManager = GuestModeManager.getInstance();
