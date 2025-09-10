@@ -93,6 +93,14 @@ export default function StudySummary() {
     const wordsSkipped: Array<{ word: string; definition: string; tier: string }> = [];
     const wordsPromoted: Array<{ word: string; fromState: string; toState: string }> = [];
 
+    console.log('Study summary - Full sessionInfo received:', sessionInfo);
+    console.log('Study summary - wordResults check:', {
+      hasWordResults: !!sessionInfo.wordResults,
+      wordResultsLength: sessionInfo.wordResults?.length,
+      wordResultsType: typeof sessionInfo.wordResults,
+      wordResultsContent: sessionInfo.wordResults
+    });
+
     if (sessionInfo.wordResults && sessionInfo.wordResults.length > 0) {
       console.log('Study summary - Processing word results:', sessionInfo.wordResults.length, 'entries');
       console.log('Study summary - Raw sessionInfo.wordResults:', sessionInfo.wordResults);
@@ -139,32 +147,72 @@ export default function StudySummary() {
               toState: result.toState
             });
           }
+        } else if (result.correct && !result.fromState && !result.toState) {
+          // Fallback: if no state transition data but answer is correct, treat as promoted
+          console.log(`No state transition data for ${result.word}, treating correct answer as promoted`);
+          wordsPromoted.push({
+            word: result.word,
+            fromState: 'started',
+            toState: 'ready'
+          });
         }
       });
     } else {
-      // Fallback to sample data if no word results available
-      const sampleWords = [
-        { word: 'Abate', definition: 'To become less intense or widespread', tier: 'Top 25' },
-        { word: 'Adversity', definition: 'A difficult or unfortunate situation', tier: 'Top 25' },
-        { word: 'Benevolent', definition: 'Well meaning and kindly', tier: 'Top 25' },
-        { word: 'Censure', definition: 'To express strong disapproval', tier: 'Top 25' },
-        { word: 'Ephemeral', definition: 'Lasting for a very short time', tier: 'Top 25' }
-      ];
-
-      // Split sample words between correct and incorrect
-      const correctCount = Math.floor(sampleWords.length * 0.7);
-      wordsCorrect.push(...sampleWords.slice(0, correctCount));
-      wordsIncorrect.push(...sampleWords.slice(correctCount));
+      console.log('Study summary - No word results found, using session data directly');
+      // Use session data directly if wordResults is not available
+      if (sessionInfo.words_studied && sessionInfo.correct_answers !== undefined) {
+        console.log('Study summary - Using session data:', {
+          words_studied: sessionInfo.words_studied,
+          correct_answers: sessionInfo.correct_answers
+        });
+        
+        // Create placeholder entries based on session data
+        const totalWords = sessionInfo.words_studied;
+        const correctWords = sessionInfo.correct_answers;
+        const incorrectWords = totalWords - correctWords;
+        
+        // Add correct words (placeholder data since we don't have word details)
+        for (let i = 0; i < correctWords; i++) {
+          wordsCorrect.push({
+            word: `Word ${i + 1}`,
+            definition: 'Correct answer',
+            tier: 'Study Session'
+          });
+        }
+        
+        // Add incorrect words
+        for (let i = 0; i < incorrectWords; i++) {
+          wordsIncorrect.push({
+            word: `Word ${correctWords + i + 1}`,
+            definition: 'Incorrect answer',
+            tier: 'Study Session'
+          });
+        }
+      } else {
+        console.log('Study summary - No valid session data, using empty results');
+      }
     }
 
     // Calculate actual score from word results (don't trust sessionInfo.score due to potential double-counting)
-    const actualCorrectCount = wordsCorrect.length;
-    const actualTotalQuestions = wordsCorrect.length + wordsIncorrect.length + wordsSkipped.length;
+    let actualCorrectCount = wordsCorrect.length;
+    let actualTotalQuestions = wordsCorrect.length + wordsIncorrect.length + wordsSkipped.length;
+    
+    // Fallback: if no word results but we have session data, use that
+    if (actualTotalQuestions === 0 && sessionInfo.words_studied && sessionInfo.correct_answers !== undefined) {
+      console.log('Study summary - Using session data as fallback:', {
+        words_studied: sessionInfo.words_studied,
+        correct_answers: sessionInfo.correct_answers
+      });
+      actualCorrectCount = sessionInfo.correct_answers;
+      actualTotalQuestions = sessionInfo.words_studied;
+    }
+    
     const accuracy = actualTotalQuestions > 0 ? (actualCorrectCount / actualTotalQuestions) * 100 : 0;
     
     const timeSpent = sessionInfo.completed_at && sessionInfo.started_at ? 
       Math.round((new Date(sessionInfo.completed_at).getTime() - new Date(sessionInfo.started_at).getTime()) / 1000) : 0;
 
+    console.log('=== STUDY SUMMARY FINAL CALCULATION DEBUG ===');
     console.log('Study summary - Final counts:', {
       wordsCorrect: wordsCorrect.length,
       wordsIncorrect: wordsIncorrect.length,
@@ -175,8 +223,20 @@ export default function StudySummary() {
       wordsCorrectList: wordsCorrect.map(w => w.word),
       wordsIncorrectList: wordsIncorrect.map(w => w.word),
       wordsSkippedList: wordsSkipped.map(w => w.word),
-      DEBUG_RAW_SESSION_DATA: sessionInfo
+      wordsPromotedCount: wordsPromoted.length,
+      wordsPromotedList: wordsPromoted.map(w => w.word)
     });
+    
+    console.log('Study summary - Raw session data received:', {
+      sessionType: sessionInfo.session_type,
+      wordsStudied: sessionInfo.words_studied,
+      correctAnswers: sessionInfo.correct_answers,
+      wordsPromoted: sessionInfo.words_promoted,
+      wordResultsCount: sessionInfo.wordResults?.length,
+      wordResults: sessionInfo.wordResults
+    });
+    
+    console.log('=== END STUDY SUMMARY FINAL CALCULATION DEBUG ===');
 
     return {
       score: actualCorrectCount,

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { WordStateManager } from '@/lib/word-state-manager';
@@ -76,6 +76,7 @@ export default function StudySession() {
   const [preloadedDistractors, setPreloadedDistractors] = useState<{ [wordId: string]: string[] }>({});
   const [cachedUser, setCachedUser] = useState<any>(null);
   const [wordStateManager] = useState(() => new WordStateManager());
+  const processedDataRef = useRef<{ answers: any; wordResults: any; score: number } | null>(null);
   const router = useRouter();
   const supabase = createClientComponentClient();
 
@@ -109,7 +110,14 @@ export default function StudySession() {
   const processAnswerData = async (answerData: { answer: string; currentWord: Word; correct: boolean }) => {
     const { answer, currentWord, correct } = answerData;
     
+    console.log('=== PROCESS ANSWER DATA DEBUG ===');
     console.log('Processing answer data:', { word: currentWord.word, answer, correct });
+    console.log('Current session state before processing:', {
+      score: session?.score,
+      answersCount: Object.keys(session?.answers || {}).length,
+      answers: session?.answers,
+      wordResultsCount: session?.wordResults.length
+    });
     
     // Create detailed word result
     const wordResult = {
@@ -121,6 +129,8 @@ export default function StudySession() {
       selectedAnswer: answer,
       correctAnswer: currentWord.word
     };
+
+    console.log('Created word result:', wordResult);
 
     // Handle word state transition
     let transition = null;
@@ -151,12 +161,20 @@ export default function StudySession() {
       toState: transition?.toState
     };
 
+    console.log('Final word result with transition:', finalWordResult);
+
     // Update session with answer data
     if (session) {
       // Check if we already have a result for this word
       const existingResultIndex = session.wordResults.findIndex(result => result.wordId === currentWord.id);
       let updatedWordResults;
       let scoreAdjustment = 0;
+      
+      console.log('Existing result check:', {
+        wordId: currentWord.id,
+        existingResultIndex,
+        hasExistingResult: existingResultIndex >= 0
+      });
       
       if (existingResultIndex >= 0) {
         // Replace existing result
@@ -171,10 +189,23 @@ export default function StudySession() {
           scoreAdjustment = -1; // Was correct, now wrong
         } // else no change needed
         
+        console.log('Replacing existing result:', {
+          existingResult,
+          newResult: finalWordResult,
+          scoreAdjustment
+        });
+        
       } else {
         // Add new result
         updatedWordResults = [...session.wordResults, finalWordResult];
         scoreAdjustment = correct ? 1 : 0;
+        
+        console.log('Adding new result:', {
+          newResult: finalWordResult,
+          scoreAdjustment,
+          previousWordResultsCount: session.wordResults.length,
+          newWordResultsCount: updatedWordResults.length
+        });
       }
 
       const newScore = session.score + scoreAdjustment;
@@ -184,28 +215,51 @@ export default function StudySession() {
         correct: correct,
         selectedAnswer: answer,
         scoreAdjustment: scoreAdjustment,
+        oldScore: session.score,
         newScore: newScore,
         wordResultsLength: updatedWordResults.length,
         finalWordResult: finalWordResult
       });
       
+      const newAnswers = {
+        ...session.answers,
+        [currentWord.id]: correct
+      };
+      
+      console.log('Updated answers:', {
+        wordId: currentWord.id,
+        correct: correct,
+        newAnswers: newAnswers,
+        answersKeys: Object.keys(newAnswers),
+        answersValues: Object.values(newAnswers)
+      });
+      
       setSession({
         ...session,
-        answers: {
-          ...session.answers,
-          [currentWord.id]: correct
-        },
+        answers: newAnswers,
         score: newScore,
         wordResults: updatedWordResults,
         promotedWords: (transition?.toState === 'ready' && transition?.fromState === 'started') 
           ? [...session.promotedWords, currentWord.id]
           : session.promotedWords
       });
+      
+      console.log('Session updated with new state');
+      
+      // Store processed data in ref for use in timeout - merge with existing data
+      const existingData = processedDataRef.current;
+      processedDataRef.current = {
+        answers: { ...existingData?.answers, ...newAnswers },
+        wordResults: [...(existingData?.wordResults || []), ...updatedWordResults],
+        score: newScore // newScore is already the total score
+      };
     }
 
     // Clear pending data and reset processing flag
     setPendingAnswerData(null);
     setIsProcessingAnswer(false);
+    
+    console.log('=== END PROCESS ANSWER DATA DEBUG ===');
   };
 
 
@@ -438,7 +492,24 @@ export default function StudySession() {
   };
 
   const handleAnswerSelect = async (answer: string) => {
-    if (showAnswer || !session || isProcessingAnswer) return;
+    console.log('=== HANDLE ANSWER SELECT CALLED ===');
+    console.log('Answer selected:', answer);
+    console.log('Current session state:', {
+      showAnswer,
+      isProcessingAnswer,
+      hasSession: !!session,
+      currentIndex: session?.currentIndex,
+      totalQuestions: session?.words.length
+    });
+    
+    if (showAnswer || !session || isProcessingAnswer) {
+      console.log('Early return from handleAnswerSelect:', {
+        showAnswer,
+        hasSession: !!session,
+        isProcessingAnswer
+      });
+      return;
+    }
     
     setIsProcessingAnswer(true);
     setSelectedAnswer(answer);
@@ -447,6 +518,13 @@ export default function StudySession() {
     setIsCorrect(correct);
     setShowAnswer(true);
 
+    console.log('Answer evaluation:', {
+      selectedAnswer: answer,
+      correctAnswer: currentWord.word,
+      isCorrect: correct,
+      wordId: currentWord.id
+    });
+
     // Store answer data for processing after celebration
     setPendingAnswerData({
       answer,
@@ -454,74 +532,197 @@ export default function StudySession() {
       correct
     });
 
+    console.log('Pending answer data set:', {
+      answer,
+      word: currentWord.word,
+      correct,
+      wordId: currentWord.id
+    });
+
     // Update streak and set auto-advance for wrong answers
     if (correct && !celebrationTriggered) {
       const newStreak = streak + 1;
       const message = getCelebrationMessage(newStreak);
       console.log(`Setting celebration: streak=${newStreak}, message="${message}"`);
+      console.log('About to show celebration animation...');
+      console.log('Current celebration state:', { showCelebration, celebrationTriggered });
       setStreak(newStreak);
       setCelebrationMessage(message);
       setShowCelebration(true);
       setCelebrationTriggered(true);
+      console.log('Celebration animation should be visible now');
+      console.log('New celebration state should be:', { showCelebration: true, celebrationTriggered: true });
     } else if (!correct) {
       setStreak(0);
       setCelebrationTriggered(false);
+      console.log('About to show wrong animation...');
+      console.log('Current wrong animation state:', { showWrongAnimation });
       setShowWrongAnimation(true);
+      console.log('Wrong animation should be visible now');
+      console.log('New wrong animation state should be:', { showWrongAnimation: true });
       // Auto-advance wrong answers after animation
+    } else {
+      console.log('No animation triggered - conditions:', {
+        correct,
+        celebrationTriggered,
+        reason: correct ? 'celebration already triggered' : 'not correct answer'
+      });
     }
 
+    console.log('=== END ANSWER SELECTION DEBUG ===');
     // Note: All async operations and session updates are now handled in processAnswerData
     // which is called after celebration completes
   };
 
   const handleCelebrationComplete = async () => {
+    console.log('=== CELEBRATION COMPLETE DEBUG ===');
     console.log('Celebration complete - current index:', session?.currentIndex, 'total questions:', session?.words.length);
+    console.log('Pending answer data:', pendingAnswerData);
+    console.log('showCelebration state:', showCelebration);
+    console.log('celebrationTriggered state:', celebrationTriggered);
     
     // Process pending answer data first (this may take time)
     if (pendingAnswerData) {
+      console.log('Processing pending answer data from celebration...');
       await processAnswerData(pendingAnswerData);
+      console.log('Finished processing answer data from celebration');
+    } else {
+      console.log('No pending answer data to process in celebration');
     }
     
     // Hide celebration after processing is complete
     setShowCelebration(false);
     setCelebrationTriggered(false);
     
-    // Auto-advance to next question after celebration for correct answers
-    if (session && session.currentIndex < session.words.length - 1) {
-      console.log('Advancing to next question from index', session.currentIndex);
-      nextQuestion(false); // false = not skipped (this was a correct answer)
-    } else {
-      console.log('Finishing session - last question');
-      // If it's the last question, finish the session
-      finishSession();
-    }
+    // Add a longer delay to ensure all state updates are processed
+    setTimeout(async () => {
+      // Use processed data from ref instead of stale session state
+      const processedData = processedDataRef.current;
+      console.log('Celebration timeout - checking processed data:', {
+        hasProcessedData: !!processedData,
+        processedAnswers: processedData?.answers,
+        processedWordResults: processedData?.wordResults,
+        processedScore: processedData?.score
+      });
+      
+      // Auto-advance to next question after celebration for correct answers
+      if (session && session.currentIndex < session.words.length - 1) {
+        console.log('Advancing to next question from index', session.currentIndex);
+        nextQuestion(false); // false = not skipped (this was a correct answer)
+      } else {
+        console.log('Finishing session - last question');
+        // If it's the last question, finish the session
+        console.log('About to finish session from celebration...');
+        await finishSession();
+      }
+    }, 500); // Increased delay to 500ms
+    
+    console.log('=== END CELEBRATION COMPLETE DEBUG ===');
   };
 
   const handleWrongAnimationComplete = async () => {
+    console.log('=== WRONG ANIMATION COMPLETE DEBUG ===');
+    console.log('Wrong animation complete - current index:', session?.currentIndex, 'total questions:', session?.words.length);
+    console.log('Pending answer data:', pendingAnswerData);
+    
     // Process pending answer data first (this may take time)
     if (pendingAnswerData) {
+      console.log('Processing pending answer data from wrong animation...');
       await processAnswerData(pendingAnswerData);
+    } else {
+      console.log('No pending answer data to process');
     }
     
     // Hide wrong animation after processing is complete
     setShowWrongAnimation(false);
     
-    // Auto-advance to next question after wrong animation
-    if (session && session.currentIndex < session.words.length - 1) {
-      nextQuestion(false); // false = not skipped (this was a wrong answer)
-    } else {
-      // If it's the last question, finish the session
-      finishSession();
-    }
+    // Add a longer delay to ensure all state updates are processed
+    setTimeout(() => {
+      console.log('Wrong animation timeout - checking session state:', {
+        currentIndex: session?.currentIndex,
+        totalQuestions: session?.words.length,
+        score: session?.score,
+        answersCount: Object.keys(session?.answers || {}).length
+      });
+      
+      // Auto-advance to next question after wrong animation
+      if (session && session.currentIndex < session.words.length - 1) {
+        nextQuestion(false); // false = not skipped (this was a wrong answer)
+      } else {
+        // If it's the last question, finish the session
+        console.log('About to finish session from wrong animation...');
+        finishSession();
+      }
+    }, 500); // Increased delay to 500ms
+    
+    console.log('=== END WRONG ANIMATION COMPLETE DEBUG ===');
   };
 
   const finishSession = async () => {
     if (!session) return;
     
+    // Use processed data from ref if available, otherwise fall back to session state
+    const processedData = processedDataRef.current;
+    const effectiveAnswers = processedData?.answers || session.answers;
+    const effectiveWordResults = processedData?.wordResults || session.wordResults;
+    const effectiveScore = processedData?.score !== undefined ? processedData.score : session.score;
+    
+    console.log('finishSession called - session state:', {
+      wordResultsLength: session.wordResults.length,
+      wordResults: session.wordResults,
+      score: session.score,
+      totalQuestions: session.totalQuestions,
+      currentIndex: session.currentIndex,
+      wordsLength: session.words.length,
+      answers: session.answers,
+      answersKeys: Object.keys(session.answers),
+      answersValues: Object.values(session.answers)
+    });
+    
+    console.log('finishSession - processed data check:', {
+      hasProcessedData: !!processedData,
+      effectiveAnswers: effectiveAnswers,
+      effectiveWordResults: effectiveWordResults,
+      effectiveScore: effectiveScore
+    });
+    
+    // Ensure we have results for all words in the session
+    const allWordResults = [...effectiveWordResults];
+    
+    // If we're missing results for any words, create them based on effectiveAnswers
+    for (let i = 0; i < session.words.length; i++) {
+      const word = session.words[i];
+      const hasResult = allWordResults.some(result => result.wordId === word.id);
+      
+      if (!hasResult) {
+        console.log(`Missing result for word ${word.word}, creating from effectiveAnswers`);
+        console.log(`Word ID: ${word.id}, Answer value: ${effectiveAnswers[word.id]}, Type: ${typeof effectiveAnswers[word.id]}`);
+        const isCorrect = effectiveAnswers[word.id] === true;
+        console.log(`Is correct: ${isCorrect}`);
+        // For missing results, we don't know what the user actually selected
+        // So we'll mark it as 'UNKNOWN' rather than 'SKIPPED'
+        allWordResults.push({
+          wordId: word.id,
+          word: word.word,
+          definition: word.definition,
+          tier: word.tier,
+          correct: isCorrect,
+          selectedAnswer: isCorrect ? word.word : 'UNKNOWN',
+          correctAnswer: word.word
+        });
+      }
+    }
+    
+    console.log('Final word results before processing:', {
+      originalLength: session.wordResults.length,
+      finalLength: allWordResults.length,
+      allResults: allWordResults.map(r => ({ word: r.word, correct: r.correct }))
+    });
+    
     // Update word states for all words in the session
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-      for (const result of session.wordResults) {
+      for (const result of effectiveWordResults) {
         if (!result.correct) {
           // For skipped/incorrect words, ensure they stay in 'started' state
           // so they can be studied again
@@ -533,14 +734,14 @@ export default function StudySession() {
     // Session complete - pass session data to summary
     console.log('Session being finished:', {
       totalQuestions: session.totalQuestions,
-      score: session.score,
-      wordResultsCount: session.wordResults.length,
-      wordResults: session.wordResults.map(r => ({ word: r.word, correct: r.correct, wordId: r.wordId }))
+      score: effectiveScore,
+      wordResultsCount: effectiveWordResults.length,
+      wordResults: effectiveWordResults.map((r: any) => ({ word: r.word, correct: r.correct, wordId: r.wordId }))
     });
 
     // Deduplicate word results before sending to summary - keep the best entry for each word
     const uniqueResults = new Map();
-    session.wordResults.forEach(result => {
+    allWordResults.forEach(result => {
       // Use word text as the primary key since wordId might be inconsistent
       const wordKey = result.word;
       if (!uniqueResults.has(wordKey)) {
@@ -563,17 +764,24 @@ export default function StudySession() {
     });
     
     const deduplicatedResults = Array.from(uniqueResults.values());
-    const actualScore = deduplicatedResults.filter(r => r.correct).length;
-    const actualTotalQuestions = deduplicatedResults.length;
+    let actualScore = deduplicatedResults.filter(r => r.correct).length;
+    let actualTotalQuestions = deduplicatedResults.length;
+    
+    // Fallback: if no word results, use effective data
+    if (actualTotalQuestions === 0) {
+      console.log('No word results found, using effective data as fallback');
+      actualTotalQuestions = session.totalQuestions;
+      actualScore = effectiveScore;
+    }
     
     console.log('After deduplication:', {
-      originalCount: session.wordResults.length,
+      originalCount: effectiveWordResults.length,
       deduplicatedCount: deduplicatedResults.length,
-      originalScore: session.score,
+      originalScore: effectiveScore,
       actualScore: actualScore,
       actualTotalQuestions: actualTotalQuestions,
-      originalWords: session.wordResults.map(r => r.word),
-      deduplicatedWords: deduplicatedResults.map(r => r.word)
+      originalWords: effectiveWordResults.map((r: any) => r.word),
+      deduplicatedWords: deduplicatedResults.map((r: any) => r.word)
     });
     
 
@@ -619,61 +827,26 @@ export default function StudySession() {
   };
 
   const nextQuestion = async (isSkipped = true) => {
+    console.log('=== NEXT QUESTION DEBUG ===');
     console.log('nextQuestion called - current index:', session?.currentIndex, 'isSkipped:', isSkipped);
+    console.log('showAnswer state:', showAnswer);
+    console.log('session.answers:', session?.answers);
+    console.log('session.wordResults length:', session?.wordResults.length);
+    
     if (session && session.currentIndex < session.words.length - 1) {
       const currentWord = session.words[session.currentIndex];
       
-      // Only add word result if the question was actually skipped (no answer was already recorded)
-      if (isSkipped && !showAnswer) {
-        // Handle word state transition for skipped questions (treat as wrong answer)
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          const transition = await wordStateManager.handleStudyAnswer(
-            user.id,
-            currentWord.id,
-            false // Skipped = wrong answer
-          );
-          
-          if (transition) {
-            console.log('Skip treated as wrong answer - Word state transition:', transition);
-          }
-        }
-        
-        // Update session with skipped answer
-        const updatedSession = {
-          ...session,
-          answers: {
-            ...session.answers,
-            [currentWord.id]: false
-          },
-          score: session.score, // No points for skipped questions
-          wordResults: [
-            ...session.wordResults,
-            {
-              wordId: currentWord.id,
-              word: currentWord.word,
-              definition: currentWord.definition,
-              tier: currentWord.tier,
-              correct: false,
-              selectedAnswer: 'SKIPPED',
-              correctAnswer: currentWord.word
-            }
-          ]
-        };
-        
-        setSession({
-          ...updatedSession,
-          currentIndex: session.currentIndex + 1
-        });
-        console.log('Session updated - new index:', session.currentIndex + 1);
-      } else {
-        // Just advance to next question (answer was already processed by handleAnswerSelect)
-        console.log('Advancing to next question - old index:', session.currentIndex, 'new index:', session.currentIndex + 1);
-        setSession({
-          ...session,
-          currentIndex: session.currentIndex + 1
-        });
-      }
+      console.log('Current word:', currentWord.word);
+      console.log('Has answer in session.answers:', session.answers[currentWord.id] !== undefined);
+      console.log('Answer value:', session.answers[currentWord.id]);
+      
+      // Since there's no skip option, all answers should be processed through processAnswerData
+      // Just advance to next question (answer was already processed by processAnswerData)
+      console.log('Advancing to next question - old index:', session.currentIndex, 'new index:', session.currentIndex + 1);
+      setSession({
+        ...session,
+        currentIndex: session.currentIndex + 1
+      });
       
       // Reset all answer-related states immediately and aggressively
       setShowAnswer(false);
@@ -695,8 +868,11 @@ export default function StudySession() {
         setIsCorrect(null);
       }, 50);
     } else {
+      console.log('Reached end of questions, finishing session');
       finishSession();
     }
+    
+    console.log('=== END NEXT QUESTION DEBUG ===');
   };
 
   const previousQuestion = () => {
@@ -784,7 +960,7 @@ export default function StudySession() {
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          <div className="flex justify-between items-center h-12 sm:h-16">
             {/* Back to Dashboard Button */}
             <button
               onClick={() => router.push('/dashboard')}
@@ -811,17 +987,17 @@ export default function StudySession() {
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+      <main className="max-w-4xl mx-auto px-2 sm:px-6 lg:px-8 py-2 sm:py-8">
         {/* Question Card */}
-        <div className="bg-white rounded-xl shadow-lg p-4 sm:p-8 mb-4 sm:mb-8">
+        <div className="bg-white rounded-xl shadow-lg p-2 sm:p-8 mb-2 sm:mb-8">
 
           {/* Word Image/Definition Toggle */}
           {currentWord.image_url && (
-            <div className="mb-4 sm:mb-6 text-center">
+            <div className="mb-2 sm:mb-6 text-center">
               <div className="relative overflow-hidden rounded-lg">
                 {/* Clickable Container */}
                 <div 
-                  className="inline-block bg-gray-100 rounded-lg p-2 sm:p-4 cursor-pointer hover:bg-gray-200 transition-colors duration-200 select-none"
+                  className="inline-block bg-gray-100 rounded-lg p-1 sm:p-4 cursor-pointer hover:bg-gray-200 transition-colors duration-200 select-none"
                   onClick={handleImageClick}
                   role="button"
                   tabIndex={0}
@@ -839,7 +1015,7 @@ export default function StudySession() {
                       <img 
                         src={currentWord.image_url} 
                         alt={`Visual representation of ${currentWord.word}. Click to see definition.`}
-                        className="w-full aspect-[4/3] sm:h-96 sm:w-[40rem] sm:aspect-auto object-cover rounded-lg mx-auto hover:opacity-90 transition-opacity duration-200"
+                        className="w-full h-[50vh] sm:h-[36rem] sm:w-[64rem] sm:aspect-auto object-cover rounded-lg mx-auto hover:opacity-90 transition-opacity duration-200"
                         onError={(e) => {
                           console.error('Image failed to load:', currentWord.image_url);
                           e.currentTarget.style.display = 'none';
@@ -858,7 +1034,7 @@ export default function StudySession() {
                     </div>
                   ) : (
                     /* Definition View */
-                    <div className="w-full aspect-[4/3] sm:h-96 sm:w-[703px] sm:aspect-auto bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg mx-auto flex flex-col justify-center text-white p-4 sm:p-6 hover:opacity-90 transition-opacity duration-200 overflow-hidden">
+                    <div className="w-full h-[50vh] sm:h-[36rem] sm:w-[64rem] sm:aspect-auto bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg mx-auto flex flex-col justify-center text-white p-2 sm:p-6 hover:opacity-90 transition-opacity duration-200 overflow-hidden">
                       <div className="text-center w-full flex-1 flex flex-col justify-center min-h-0 overflow-hidden">
                         <div className="text-sm sm:text-base leading-relaxed max-h-full overflow-y-auto w-full overflow-x-hidden">
                           <p className="break-words hyphens-auto text-center px-2 w-full max-w-full overflow-wrap-anywhere">{currentWord.definition}</p>
@@ -876,20 +1052,20 @@ export default function StudySession() {
 
 
           {/* Answer Options */}
-          <div className="grid grid-cols-1 gap-3 sm:gap-4 mb-4 sm:mb-8">
+          <div className="grid grid-cols-2 gap-2 sm:gap-4 mb-2 sm:mb-8">
             {isGeneratingAnswers ? (
               // Loading state for answers
-              <div className="space-y-3 sm:space-y-4">
+              <>
                 {[1, 2, 3, 4].map((index) => (
-                  <div key={index} className="w-full p-3 sm:p-4 rounded-lg border-2 border-gray-200 bg-gray-100 animate-pulse">
+                  <div key={index} className="w-full p-2 sm:p-4 rounded-lg border-2 border-gray-200 bg-gray-100 animate-pulse">
                     <div className="h-4 bg-gray-300 rounded w-3/4"></div>
                   </div>
                 ))}
-              </div>
+              </>
             ) : (
               // Actual answer options
               currentAnswers.map((answer, index) => {
-              let buttonClass = "w-full p-3 sm:p-4 text-left rounded-lg border-2 transition-all duration-200 btn-mobile-reset ";
+              let buttonClass = "w-full p-2 sm:p-4 text-left rounded-lg border-2 transition-all duration-200 btn-mobile-reset ";
               
               // Only show highlighting if we're showing answers AND have a valid current word
               if (showAnswer && currentWord && currentWord.word) {
@@ -904,12 +1080,23 @@ export default function StudySession() {
                 buttonClass += "border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50 active:scale-95";
               }
 
+              const isDisabled = showAnswer || isProcessingAnswer;
+              console.log(`Answer button ${index} (${answer}):`, {
+                isDisabled,
+                showAnswer,
+                isProcessingAnswer,
+                buttonClass: buttonClass.substring(0, 50) + '...'
+              });
+
               return (
                 <button
                   key={`${session.currentIndex}-${index}-${answer}`}
-                  onClick={() => handleAnswerSelect(answer)}
+                  onClick={() => {
+                    console.log(`Button clicked for answer: ${answer}`);
+                    handleAnswerSelect(answer);
+                  }}
                   className={buttonClass}
-                  disabled={showAnswer || isProcessingAnswer}
+                  disabled={isDisabled}
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-medium text-sm sm:text-base">{answer}</span>
@@ -941,6 +1128,7 @@ export default function StudySession() {
         isVisible={showCelebration}
         onComplete={handleCelebrationComplete}
         type="duolingo"
+        message={celebrationMessage}
       />
 
       {/* Wrong Answer Animation */}

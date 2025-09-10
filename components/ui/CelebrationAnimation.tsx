@@ -21,7 +21,10 @@ export default function CelebrationAnimation({
 
   useEffect(() => {
     if (isVisible) {
-      console.log(`CelebrationAnimation triggered with message: "${message}"`);
+      console.log(`=== CELEBRATION ANIMATION DEBUG ===`);
+      console.log(`CelebrationAnimation triggered with type: "${type}"`);
+      console.log(`Message: "${message}"`);
+      console.log(`isVisible: ${isVisible}`);
       setShowAnimation(true);
       setAnimationPhase(0);
       
@@ -50,6 +53,8 @@ export default function CelebrationAnimation({
   }, [isVisible, onComplete]);
 
   if (!showAnimation) return null;
+
+  console.log(`Rendering celebration animation - type: ${type}, phase: ${animationPhase}, message: "${message}"`);
 
   return (
     <div className="fixed inset-0 pointer-events-none z-50 flex items-center justify-center">
@@ -356,6 +361,11 @@ const styles = `
   0%, 100% { transform: translateX(0) rotate(0deg); }
   25% { transform: translateX(3px) rotate(3deg); }
   75% { transform: translateX(-3px) rotate(-3deg); }
+}
+
+@keyframes pulse-scale {
+  0%, 100% { transform: scale(1); opacity: 0.2; }
+  50% { transform: scale(1.05); opacity: 0.3; }
 }
 
 .animate-confetti {
