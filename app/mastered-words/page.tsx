@@ -159,9 +159,15 @@ export default function MasteredWords() {
   };
 
   const filteredWords = masteredWords.filter(word => {
-    const matchesSearch = word.word.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         word.definition.toLowerCase().includes(searchTerm.toLowerCase());
+    const searchLower = searchTerm.toLowerCase();
     const wordDisplayTier = getDisplayTier(word.tier);
+    
+    const matchesSearch = word.word.toLowerCase().includes(searchLower) ||
+                         word.definition.toLowerCase().includes(searchLower) ||
+                         wordDisplayTier.toLowerCase().includes(searchLower) ||
+                         word.difficulty.toLowerCase().includes(searchLower) ||
+                         word.part_of_speech.toLowerCase().includes(searchLower);
+    
     const matchesTier = selectedTier === 'all' || wordDisplayTier === selectedTier;
     return matchesSearch && matchesTier;
   });
@@ -266,7 +272,7 @@ export default function MasteredWords() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search words or definitions..."
+                placeholder="Search words, definitions, tiers, difficulty, or part of speech..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
