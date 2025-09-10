@@ -188,7 +188,25 @@ export default function Dashboard() {
         'Top 425', 'Top 450', 'Top 475', 'Top 500'
       ];
       
-      activeTiers.forEach(tier => {
+      // Calculate tier breakdown for all tiers that have words in progress
+      const allTiersWithWords = new Set<string>();
+      
+      // First, find all tiers that have words in progress
+      progress?.forEach(p => {
+        const word = words?.find(w => w.id === p.word_id);
+        if (word?.tier) {
+          // Convert database tier to display tier
+          const displayTier = Object.keys(tierMappingObject).find(key => 
+            tierMappingObject[key].includes(word.tier)
+          );
+          if (displayTier) {
+            allTiersWithWords.add(displayTier);
+          }
+        }
+      });
+      
+      // Calculate breakdown for all tiers that have words
+      Array.from(allTiersWithWords).forEach(tier => {
         const tierIndex = tierOrder.indexOf(tier);
         if (tierIndex === -1) return;
         
@@ -404,10 +422,18 @@ export default function Dashboard() {
                   <p className="text-blue-100 text-sm sm:text-base mb-2">
                     {stats.activePoolCount} words in active study pool
                   </p>
-                  {stats.activeTiers && stats.activeTiers.length > 0 && (
+                  {Object.keys(stats.tierCountBreakdown.started).length > 0 && (
                     <div className="text-blue-100 text-xs sm:text-sm">
-                      <p>{stats.activeTiers
+                      <p>{Object.keys(stats.tierCountBreakdown.started)
                         .filter(tier => (stats.tierCountBreakdown.started[tier] || 0) > 0)
+                        .sort((a, b) => {
+                          const tierOrder = [
+                            'Top 25', 'Top 50', 'Top 75', 'Top 100', 'Top 125', 'Top 150', 'Top 175', 'Top 200',
+                            'Top 225', 'Top 250', 'Top 275', 'Top 300', 'Top 325', 'Top 350', 'Top 375', 'Top 400',
+                            'Top 425', 'Top 450', 'Top 475', 'Top 500'
+                          ];
+                          return tierOrder.indexOf(a) - tierOrder.indexOf(b);
+                        })
                         .map(tier => `${tier}: ${stats.tierCountBreakdown.started[tier] || 0}`)
                         .join(', ')}</p>
                     </div>
