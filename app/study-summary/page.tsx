@@ -214,8 +214,131 @@ export default function StudySummary() {
       } else {
         console.log('Session saved to database successfully');
       }
+
+      // Add more words from current tier to active pool
+      await addMoreWordsFromCurrentTier(user.id);
     } catch (error) {
       console.error('Error saving session:', error);
+    }
+  };
+
+  const addMoreWordsFromCurrentTier = async (userId: string) => {
+    try {
+      console.log('Adding more words from current tier to active pool...');
+      
+      // Get current tier
+      const currentTier = await wordStateManager.getCurrentTier(userId);
+      console.log('Current tier:', currentTier);
+      
+      // Get current active pool count
+      const currentCount = await wordStateManager.getActivePoolCount(userId);
+      console.log('Current active pool count:', currentCount);
+      
+      // Target count for active pool (aim for 10 words)
+      const targetCount = 10;
+      
+      if (currentCount >= targetCount) {
+        console.log('Active pool already has enough words');
+        return;
+      }
+      
+      const neededCount = targetCount - currentCount;
+      console.log(`Need to add ${neededCount} words to reach target of ${targetCount}`);
+      
+      // Map display tier to database tier
+      const tierMappings: { [key: string]: string } = {
+        'Top 25': 'top_25',
+        'Top 50': 'top_50',
+        'Top 75': 'top_75',
+        'Top 100': 'top_100',
+        'Top 125': 'top_125',
+        'Top 150': 'top_150',
+        'Top 175': 'top_175',
+        'Top 200': 'top_200',
+        'Top 225': 'top_225',
+        'Top 250': 'top_250',
+        'Top 275': 'top_275',
+        'Top 300': 'top_300',
+        'Top 325': 'top_325',
+        'Top 350': 'top_350',
+        'Top 375': 'top_375',
+        'Top 400': 'top_400',
+        'Top 425': 'top_425',
+        'Top 450': 'top_450',
+        'Top 475': 'top_475',
+        'Top 500': 'top_500'
+      };
+      
+      const dbTier = tierMappings[currentTier];
+      if (!dbTier) {
+        console.error('Unknown tier:', currentTier);
+        return;
+      }
+      
+      // Get words from current tier that are not already in user's progress
+      const { data: allTierWords, error: wordsError } = await supabase
+        .from('words')
+        .select('id, word')
+        .eq('tier', dbTier);
+      
+      if (wordsError) {
+        console.error('Error fetching tier words:', wordsError);
+        return;
+      }
+      
+      if (!allTierWords || allTierWords.length === 0) {
+        console.log('No words found in current tier');
+        return;
+      }
+      
+      // Get words already in user's progress
+      const { data: existingProgress, error: progressError } = await supabase
+        .from('user_progress')
+        .select('word_id')
+        .eq('user_id', userId)
+        .in('word_id', allTierWords.map(w => w.id));
+      
+      if (progressError) {
+        console.error('Error fetching existing progress:', progressError);
+        return;
+      }
+      
+      const existingWordIds = new Set(existingProgress?.map(p => p.word_id) || []);
+      
+      // Filter out words that are already in progress
+      const availableWords = allTierWords.filter(word => !existingWordIds.has(word.id)).slice(0, neededCount);
+      
+      if (availableWords.length === 0) {
+        console.log('No available words in current tier (all words already in progress)');
+        return;
+      }
+      
+      console.log(`Found ${availableWords.length} available words in ${currentTier}:`, availableWords.map(w => w.word));
+      
+      // Add words to active pool (started state)
+      const progressEntries = availableWords.map(word => ({
+        user_id: userId,
+        word_id: word.id,
+        state: 'started',
+        study_streak: 0,
+        review_streak: 0,
+        last_studied: new Date().toISOString()
+      }));
+      
+      const { error: insertError } = await supabase
+        .from('user_progress')
+        .upsert(progressEntries, { 
+          onConflict: 'user_id,word_id',
+          ignoreDuplicates: true // Don't overwrite existing progress
+        });
+      
+      if (insertError) {
+        console.error('Error adding words to active pool:', insertError);
+      } else {
+        console.log(`✅ Added ${progressEntries.length} words from ${currentTier} to active pool`);
+      }
+    } catch (error) {
+      console.error('Error adding words from current tier:', error);
     }
   };
 
