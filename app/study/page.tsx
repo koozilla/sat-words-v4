@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { WordStateManager } from '@/lib/word-state-manager';
 import { guestModeManager } from '@/lib/guest-mode-manager';
-import GuestModeBanner from '@/components/ui/GuestModeBanner';
 import { 
   ArrowLeft, 
   ArrowRight, 
@@ -1137,14 +1136,6 @@ export default function StudySession() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      {/* Guest Mode Banner */}
-      {isGuest && (
-        <GuestModeBanner 
-          showConversionCTA={true}
-          masteredWords={session?.wordResults.filter(r => r.correct).length || 0}
-        />
-      )}
-
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -1159,6 +1150,11 @@ export default function StudySession() {
             </button>
             
             <div className="flex items-center space-x-4">
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg px-2 py-1 sm:px-3">
+                <span className="text-yellow-800 text-xs sm:text-sm font-medium">
+                  {isGuest ? 'Guest' : (cachedUser?.email || 'User')}
+                </span>
+              </div>
               <button
                 onClick={async () => {
                   await supabase.auth.signOut();
