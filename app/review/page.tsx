@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { WordStateManager } from '@/lib/word-state-manager';
+import { guestModeManager } from '@/lib/guest-mode-manager';
+import GuestModeBanner from '@/components/ui/GuestModeBanner';
 import { 
   ArrowLeft, 
   ArrowRight, 
@@ -58,6 +60,7 @@ export default function ReviewSession() {
   const [showCelebration, setShowCelebration] = useState(false);
   const [showWrongAnimation, setShowWrongAnimation] = useState(false);
   const [streak, setStreak] = useState(0);
+  const [isGuest, setIsGuest] = useState(false);
   const [wordStateManager] = useState(() => new WordStateManager());
   const router = useRouter();
   const supabase = createClientComponentClient();
@@ -166,49 +169,15 @@ export default function ReviewSession() {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
-        // For testing purposes, use the test user ID
-        const testUserId = '11111111-1111-1111-1111-111111111111';
-        
-        const reviewWords = await wordStateManager.getWordsDueForReview(testUserId);
-
-        if (!reviewWords || reviewWords.length === 0) {
-          setSession(null);
+        // Check for guest mode
+        if (guestModeManager.isGuestMode()) {
+          setIsGuest(true);
+          await initializeGuestReviewSession();
+          return;
+        } else {
+          router.push('/auth/login');
           return;
         }
-
-        // Select 10 words from the review words for the quiz
-        const selectedReviewWords = reviewWords.slice(0, 10);
-
-        const reviewWordsData: Word[] = selectedReviewWords.map(p => ({
-          id: p.words.id,
-          word: p.words.word,
-          definition: p.words.definition,
-          part_of_speech: p.words.part_of_speech,
-          tier: p.words.tier,
-          difficulty: p.words.difficulty,
-          image_url: p.words.image_urls?.[0] || null,
-          synonyms: p.words.synonyms || [],
-          antonyms: p.words.antonyms || [],
-          example_sentence: p.words.example_sentence
-        }));
-
-        // Create word streaks mapping
-        const wordStreaks: { [key: string]: number } = {};
-        selectedReviewWords.forEach(p => {
-          wordStreaks[p.words.id] = p.review_streak || 0;
-        });
-
-        setSession({
-          words: reviewWordsData,
-          currentIndex: 0,
-          score: 0,
-          totalQuestions: reviewWordsData.length,
-          answers: {},
-          startTime: new Date(),
-          wordResults: [],
-          wordStreaks
-        });
-        return;
       }
 
       // Get words due for review using word state manager
@@ -254,6 +223,60 @@ export default function ReviewSession() {
       });
     } catch (error) {
       console.error('Error initializing review session:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const initializeGuestReviewSession = async () => {
+    try {
+      // Get words due for review in guest mode
+      const reviewWords = guestModeManager.getWordsDueForReview();
+      
+      if (!reviewWords || reviewWords.length === 0) {
+        setSession(null);
+        return;
+      }
+
+      // Select up to 10 words from the review words for the quiz
+      const selectedReviewWords = reviewWords.slice(0, 10);
+
+      const reviewWordsData: Word[] = selectedReviewWords.map(w => ({
+        id: w.id,
+        word: w.word,
+        definition: w.definition,
+        part_of_speech: w.part_of_speech,
+        tier: w.tier,
+        difficulty: w.difficulty,
+        image_url: w.image_urls?.[0] || null,
+        synonyms: w.synonyms || [],
+        antonyms: w.antonyms || [],
+        example_sentence: w.example_sentence
+      }));
+
+      // Create word streaks mapping from guest data
+      const wordStreaks: { [key: string]: number } = {};
+      const guestData = guestModeManager.getGuestData();
+      selectedReviewWords.forEach(word => {
+        const progress = guestData?.wordProgress[word.id];
+        wordStreaks[word.id] = progress?.review_streak || 0;
+      });
+
+      setSession({
+        words: reviewWordsData,
+        currentIndex: 0,
+        score: 0,
+        totalQuestions: reviewWordsData.length,
+        answers: {},
+        startTime: new Date(),
+        wordResults: [],
+        wordStreaks
+      });
+      
+      console.log('Guest review session initialized with', reviewWordsData.length, 'words');
+    } catch (error) {
+      console.error('Error initializing guest review session:', error);
+      router.push('/dashboard');
     } finally {
       setLoading(false);
     }
@@ -310,83 +333,147 @@ export default function ReviewSession() {
     setSession(updatedSession);
 
     // Handle word state transition
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const transition = await wordStateManager.handleReviewAnswer(
-        user.id,
-        currentWord.id,
-        correct
-      );
-
-      if (transition) {
-        console.log('Word state transition:', transition);
+    if (isGuest) {
+      // Handle guest mode word progress
+      const guestData = guestModeManager.getGuestData();
+      if (guestData && guestData.wordProgress[currentWord.id]) {
+        const progress = guestData.wordProgress[currentWord.id];
         
-        // Update the word result with transition information
-        const updatedWordResult = {
-          ...wordResult,
-          fromState: transition.fromState,
-          toState: transition.toState,
-          tier: currentWord.tier
-        };
-        
-        // Update session with transition information and word streaks
-        setSession(prevSession => {
-          if (!prevSession) return prevSession;
-          return {
-            ...prevSession,
-            wordResults: [...prevSession.wordResults.slice(0, -1), updatedWordResult],
-            wordStreaks: {
-              ...prevSession.wordStreaks,
-              [currentWord.id]: transition.streak
-            }
-          };
-        });
-        
-        // Show transition feedback and handle pool refilling
-        if (transition.toState === 'mastered') {
-          console.log(`🎉 "${currentWord.word}" is now mastered!`);
-          // Refill active pool if needed
-          await wordStateManager.handleWordMastery(user.id);
+        if (correct) {
+          progress.review_streak += 1;
+          if (progress.review_streak >= 3) {
+            progress.state = 'mastered';
+            progress.review_streak = 0;
+            
+            // Update session with transition information
+            const updatedWordResult = {
+              ...wordResult,
+              fromState: 'ready',
+              toState: 'mastered',
+              tier: currentWord.tier
+            };
+            
+            setSession(prevSession => {
+              if (!prevSession) return prevSession;
+              return {
+                ...prevSession,
+                wordResults: [...prevSession.wordResults.slice(0, -1), updatedWordResult],
+                wordStreaks: {
+                  ...prevSession.wordStreaks,
+                  [currentWord.id]: 0
+                }
+              };
+            });
+            
+            console.log(`🎉 "${currentWord.word}" is now mastered!`);
+          } else {
+            // Update streak in session
+            setSession(prevSession => {
+              if (!prevSession) return prevSession;
+              return {
+                ...prevSession,
+                wordStreaks: {
+                  ...prevSession.wordStreaks,
+                  [currentWord.id]: progress.review_streak
+                }
+              };
+            });
+          }
+        } else {
+          progress.review_streak = 0;
+          setSession(prevSession => {
+            if (!prevSession) return prevSession;
+            return {
+              ...prevSession,
+              wordStreaks: {
+                ...prevSession.wordStreaks,
+                [currentWord.id]: 0
+              }
+            };
+          });
         }
+        
+        guestModeManager.updateWordProgress(currentWord.id, progress);
       }
     } else {
-      // For demo purposes, use test user ID
-      const testUserId = '11111111-1111-1111-1111-111111111111';
-      const transition = await wordStateManager.handleReviewAnswer(
-        testUserId,
-        currentWord.id,
-        correct
-      );
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const transition = await wordStateManager.handleReviewAnswer(
+          user.id,
+          currentWord.id,
+          correct
+        );
 
-      if (transition) {
-        console.log('Word state transition:', transition);
-        
-        // Update the word result with transition information
-        const updatedWordResult = {
-          ...wordResult,
-          fromState: transition.fromState,
-          toState: transition.toState,
-          tier: currentWord.tier
-        };
-        
-        // Update session with transition information and word streaks
-        setSession(prevSession => {
-          if (!prevSession) return prevSession;
-          return {
-            ...prevSession,
-            wordResults: [...prevSession.wordResults.slice(0, -1), updatedWordResult],
-            wordStreaks: {
-              ...prevSession.wordStreaks,
-              [currentWord.id]: transition.streak
-            }
+        if (transition) {
+          console.log('Word state transition:', transition);
+          
+          // Update the word result with transition information
+          const updatedWordResult = {
+            ...wordResult,
+            fromState: transition.fromState,
+            toState: transition.toState,
+            tier: currentWord.tier
           };
-        });
-        
-        // Show transition feedback and handle pool refilling
-        if (transition.toState === 'mastered') {
-          console.log(`🎉 "${currentWord.word}" is now mastered!`);
-          // Refill active pool if needed
-          await wordStateManager.handleWordMastery(testUserId);
+          
+          // Update session with transition information and word streaks
+          setSession(prevSession => {
+            if (!prevSession) return prevSession;
+            return {
+              ...prevSession,
+              wordResults: [...prevSession.wordResults.slice(0, -1), updatedWordResult],
+              wordStreaks: {
+                ...prevSession.wordStreaks,
+                [currentWord.id]: transition.streak
+              }
+            };
+          });
+          
+          // Show transition feedback and handle pool refilling
+          if (transition.toState === 'mastered') {
+            console.log(`🎉 "${currentWord.word}" is now mastered!`);
+            // Refill active pool if needed
+            await wordStateManager.handleWordMastery(user.id);
+          }
+        }
+      } else {
+        // For demo purposes, use test user ID
+        const testUserId = '11111111-1111-1111-1111-111111111111';
+        const transition = await wordStateManager.handleReviewAnswer(
+          testUserId,
+          currentWord.id,
+          correct
+        );
+
+        if (transition) {
+          console.log('Word state transition:', transition);
+          
+          // Update the word result with transition information
+          const updatedWordResult = {
+            ...wordResult,
+            fromState: transition.fromState,
+            toState: transition.toState,
+            tier: currentWord.tier
+          };
+          
+          // Update session with transition information and word streaks
+          setSession(prevSession => {
+            if (!prevSession) return prevSession;
+            return {
+              ...prevSession,
+              wordResults: [...prevSession.wordResults.slice(0, -1), updatedWordResult],
+              wordStreaks: {
+                ...prevSession.wordStreaks,
+                [currentWord.id]: transition.streak
+              }
+            };
+          });
+          
+          // Show transition feedback and handle pool refilling
+          if (transition.toState === 'mastered') {
+            console.log(`🎉 "${currentWord.word}" is now mastered!`);
+            // Refill active pool if needed
+            await wordStateManager.handleWordMastery(testUserId);
+          }
         }
       }
     }
@@ -417,6 +504,40 @@ export default function ReviewSession() {
 
   const finishSession = async () => {
     if (!session) return;
+    
+    if (isGuest) {
+      // Handle guest mode session completion
+      const actualTotalQuestions = session.wordResults.length;
+      const actualCorrectAnswers = session.wordResults.filter(r => r.correct).length;
+      
+      const sessionData = {
+        session_type: 'review',
+        words_studied: actualTotalQuestions,
+        correct_answers: actualCorrectAnswers,
+        words_promoted: 0,
+        words_mastered: actualCorrectAnswers,
+        started_at: session.startTime.toISOString(),
+        completed_at: new Date().toISOString(),
+        wordResults: session.wordResults.map(result => ({
+          word: result.word,
+          definition: result.definition,
+          correct: result.correct,
+          userInput: result.userInput,
+          correctAnswer: result.correctAnswer,
+          tier: result.tier || session.words.find(w => w.word === result.word)?.tier || 'Unknown',
+          fromState: result.fromState,
+          toState: result.toState
+        }))
+      };
+      
+      // Add session to guest history
+      guestModeManager.addSession(sessionData as any);
+      
+      console.log('Guest review session completed:', sessionData);
+      const encodedData = encodeURIComponent(JSON.stringify(sessionData));
+      router.push(`/review-summary?data=${encodedData}`);
+      return;
+    }
     
     // Ensure skipped/incorrect words are properly handled
     const { data: { user } } = await supabase.auth.getUser();
@@ -618,6 +739,14 @@ export default function ReviewSession() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      {/* Guest Mode Banner */}
+      {isGuest && (
+        <GuestModeBanner 
+          showConversionCTA={true}
+          masteredWords={session?.wordResults.filter(r => r.correct).length || 0}
+        />
+      )}
+
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">

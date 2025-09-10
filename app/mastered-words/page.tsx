@@ -223,7 +223,10 @@ export default function MasteredWords() {
                 </div>
               )}
               <button
-                onClick={() => supabase.auth.signOut()}
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  router.push('/auth/login');
+                }}
                 className="text-gray-500 hover:text-gray-700"
               >
                 Sign Out

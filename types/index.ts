@@ -19,6 +19,7 @@ export interface Word {
   synonyms: string[]
   antonyms: string[]
   tier: string
+  difficulty: 'Easy' | 'Medium' | 'Hard'
   image_urls: string[]
   image_descriptions: string[]
   created_at: string

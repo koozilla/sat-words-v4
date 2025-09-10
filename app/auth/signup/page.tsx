@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Eye, EyeOff, Loader2, CheckCircle } from 'lucide-react'
+import { guestModeManager } from '@/lib/guest-mode-manager'
 
 export default function SignupPage() {
   const [email, setEmail] = useState('')
@@ -15,9 +16,20 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+  const [isGuestMode, setIsGuestMode] = useState(false)
+  const [guestStats, setGuestStats] = useState<any>(null)
   
   const supabase = createClientComponentClient()
   const router = useRouter()
+
+  useEffect(() => {
+    // Check if user is in guest mode
+    if (guestModeManager.isGuestMode()) {
+      setIsGuestMode(true);
+      const stats = guestModeManager.getGuestStats();
+      setGuestStats(stats);
+    }
+  }, []);
 
   const validatePassword = (password: string) => {
     const minLength = password.length >= 8
@@ -78,6 +90,16 @@ export default function SignupPage() {
 
           if (profileError) {
             console.error('Error creating user profile:', profileError)
+          } else {
+            // Migrate guest data if user was in guest mode
+            if (isGuestMode) {
+              const migrationSuccess = await guestModeManager.migrateToUserAccount(data.user.id, supabase);
+              if (migrationSuccess) {
+                console.log('Guest data migrated successfully');
+              } else {
+                console.error('Failed to migrate guest data');
+              }
+            }
           }
         }
       }
@@ -124,6 +146,32 @@ export default function SignupPage() {
           <h2 className="text-3xl font-bold text-gray-900">Create your account</h2>
           <p className="mt-2 text-gray-600">Start your SAT vocabulary mastery journey</p>
         </div>
+
+        {/* Guest Mode Conversion Prompt */}
+        {isGuestMode && guestStats && (
+          <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-l-4 border-yellow-400 p-4 rounded-lg">
+            <h3 className="text-lg font-semibold text-yellow-800 mb-2">
+              Save Your Progress!
+            </h3>
+            <div className="text-sm text-yellow-700 space-y-1">
+              <p>You've made great progress in guest mode:</p>
+              <ul className="list-disc list-inside ml-2">
+                {guestStats.masteredWords > 0 && (
+                  <li>{guestStats.masteredWords} word{guestStats.masteredWords !== 1 ? 's' : ''} mastered</li>
+                )}
+                {guestStats.currentStreak > 0 && (
+                  <li>{guestStats.currentStreak} day streak</li>
+                )}
+                {guestStats.totalPoints > 0 && (
+                  <li>{guestStats.totalPoints} points earned</li>
+                )}
+              </ul>
+              <p className="font-medium mt-2">
+                Create an account to save your progress and unlock all features!
+              </p>
+            </div>
+          </div>
+        )}
 
         <form className="mt-8 space-y-6" onSubmit={handleSignup}>
           {error && (

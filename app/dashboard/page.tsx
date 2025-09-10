@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { WordStateManager } from '@/lib/word-state-manager';
+import { guestModeManager } from '@/lib/guest-mode-manager';
 import { 
   BookOpen, 
   Clock, 
@@ -92,9 +93,12 @@ export default function Dashboard() {
         setUser(session.user);
         await loadDashboardData(session.user.id);
       } else {
-        // Check for guest mode
-        const guestData = localStorage.getItem('sat-words-guest');
-        if (guestData) {
+        // Check for guest mode URL parameter or existing guest data
+        const urlParams = new URLSearchParams(window.location.search);
+        const isGuestMode = urlParams.get('mode') === 'guest';
+        const existingGuestData = localStorage.getItem('sat-words-guest');
+        
+        if (isGuestMode || existingGuestData) {
           setIsGuest(true);
           await loadGuestDashboardData();
         } else {
@@ -296,31 +300,54 @@ export default function Dashboard() {
   };
 
   const loadGuestDashboardData = async () => {
-    // Mock data for guest mode
-    setStats({
-      activePoolCount: 0,
-      reviewsDue: 0,
-      masteredWords: 0,
-      currentStreak: 0,
-      totalPoints: 0,
-      activeWordsBreakdown: {
-        easy: 0,
-        medium: 0,
-        hard: 0
-      },
-      tierProgress: [
-        { tier: 'Top 25', total: 25, mastered: 0, percentage: 0 }
-      ],
-      activeTiers: [],
-      highestActiveTier: 'Top 25',
-      tierCountBreakdown: {
-        started: {},
-        mastered: {},
-        ready: {},
-        total: {}
-      },
-      recentBadges: []
-    });
+    try {
+      console.log('Loading guest dashboard data...');
+      
+      // Initialize guest mode if not already done
+      if (!guestModeManager.isGuestMode()) {
+        console.log('Initializing guest mode...');
+        guestModeManager.initializeGuestMode();
+      }
+      
+      // Ensure guest data is initialized
+      guestModeManager.initializeGuestData();
+
+      // Load Top 25 words for guest mode
+      console.log('Loading Top 25 words...');
+      const { data: top25Words, error } = await supabase
+        .from('words')
+        .select('*')
+        .in('tier', ['top_25', 'Top 25'])
+        .limit(10);
+
+      if (error) {
+        console.error('Error loading Top 25 words:', error);
+        return;
+      }
+
+      console.log('Top 25 words loaded:', top25Words?.length || 0);
+
+      if (top25Words && top25Words.length > 0) {
+        // Add words to guest active pool
+        console.log('Adding words to guest active pool...');
+        await guestModeManager.addWordsToActivePool(top25Words);
+      } else {
+        console.log('No Top 25 words found in database');
+      }
+
+      // Get guest statistics
+      const guestStats = guestModeManager.getGuestStats();
+      console.log('Guest stats:', guestStats);
+      
+      // If no active pool words, show a message
+      if (guestStats.activePoolCount === 0) {
+        console.log('No words in active pool, this might be the issue');
+      }
+      
+      setStats(guestStats);
+    } catch (error) {
+      console.error('Error loading guest dashboard data:', error);
+    }
   };
 
   const startStudySession = () => {

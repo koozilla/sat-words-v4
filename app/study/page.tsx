@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { WordStateManager } from '@/lib/word-state-manager';
+import { guestModeManager } from '@/lib/guest-mode-manager';
+import GuestModeBanner from '@/components/ui/GuestModeBanner';
 import { 
   ArrowLeft, 
   ArrowRight, 
@@ -75,6 +77,7 @@ export default function StudySession() {
   const [isGeneratingAnswers, setIsGeneratingAnswers] = useState(false);
   const [preloadedDistractors, setPreloadedDistractors] = useState<{ [wordId: string]: string[] }>({});
   const [cachedUser, setCachedUser] = useState<any>(null);
+  const [isGuest, setIsGuest] = useState(false);
   const [wordStateManager] = useState(() => new WordStateManager());
   const processedDataRef = useRef<{ answers: any; wordResults: any; score: number } | null>(null);
   const router = useRouter();
@@ -134,7 +137,29 @@ export default function StudySession() {
 
     // Handle word state transition
     let transition = null;
-    if (cachedUser) {
+    if (isGuest) {
+      // Handle guest mode word progress
+      const guestData = guestModeManager.getGuestData();
+      if (guestData && guestData.wordProgress[currentWord.id]) {
+        const progress = guestData.wordProgress[currentWord.id];
+        
+        if (correct) {
+          progress.study_streak += 1;
+          if (progress.study_streak >= 3) {
+            progress.state = 'ready';
+            progress.study_streak = 0;
+            transition = {
+              fromState: 'started',
+              toState: 'ready'
+            };
+          }
+        } else {
+          progress.study_streak = 0;
+        }
+        
+        guestModeManager.updateWordProgress(currentWord.id, progress);
+      }
+    } else if (cachedUser) {
       transition = await wordStateManager.handleStudyAnswer(
         cachedUser.id,
         currentWord.id,
@@ -280,22 +305,29 @@ export default function StudySession() {
         
         setIsGeneratingAnswers(true);
         
-        if (cachedUser) {
-          const currentWord = session.words[session.currentIndex];
-          if (currentWord) {
-            try {
-              const distractors = await generateDistractors(currentWord, cachedUser.id);
-              const shuffledAnswers = [currentWord.word, ...distractors].sort(() => Math.random() - 0.5);
-              console.log(`Final answers for "${currentWord.word}":`, shuffledAnswers);
-              setCurrentAnswers(shuffledAnswers);
-            } catch (error) {
-              console.error('Error generating answers:', error);
-              // Fallback answers
-              setCurrentAnswers([currentWord.word, 'Option A', 'Option B', 'Option C']);
+        const currentWord = session.words[session.currentIndex];
+        if (currentWord) {
+          try {
+            let distractors: string[];
+            if (cachedUser) {
+              distractors = await generateDistractors(currentWord, cachedUser.id);
+            } else if (isGuest) {
+              // For guest mode, use pre-loaded distractors
+              distractors = preloadedDistractors[currentWord.id] || ['Option A', 'Option B', 'Option C'];
+              console.log(`Using pre-loaded distractors for guest mode "${currentWord.word}":`, distractors);
+            } else {
+              console.warn('No cached user available for answer generation');
+              distractors = ['Option A', 'Option B', 'Option C'];
             }
+            
+            const shuffledAnswers = [currentWord.word, ...distractors].sort(() => Math.random() - 0.5);
+            console.log(`Final answers for "${currentWord.word}":`, shuffledAnswers);
+            setCurrentAnswers(shuffledAnswers);
+          } catch (error) {
+            console.error('Error generating answers:', error);
+            // Fallback answers
+            setCurrentAnswers([currentWord.word, 'Option A', 'Option B', 'Option C']);
           }
-        } else {
-          console.warn('No cached user available for answer generation');
         }
         
         setIsGeneratingAnswers(false);
@@ -308,9 +340,17 @@ export default function StudySession() {
   const initializeStudySession = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
+      
       if (!user) {
-        router.push('/auth/login');
-        return;
+        // Check for guest mode
+        if (guestModeManager.isGuestMode()) {
+          setIsGuest(true);
+          await initializeGuestStudySession();
+          return;
+        } else {
+          router.push('/auth/login');
+          return;
+        }
       }
 
       // Cache the user to avoid repeated auth calls
@@ -341,7 +381,7 @@ export default function StudySession() {
           part_of_speech: w.part_of_speech,
           tier: w.tier,
           difficulty: w.difficulty,
-          image_url: w.image_urls?.[0] || null,
+          image_url: w.image_urls?.[0] || undefined,
           synonyms: w.synonyms || [],
           antonyms: w.antonyms || [],
           example_sentence: w.example_sentence
@@ -406,6 +446,115 @@ export default function StudySession() {
       console.log('Session words:', limitedStudyWords.map(w => w.word));
     } catch (error) {
       console.error('Error initializing study session:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const initializeGuestStudySession = async () => {
+    try {
+      // Get guest active pool words
+      const activePoolWords = guestModeManager.getActivePoolWords();
+      
+      if (!activePoolWords || activePoolWords.length === 0) {
+        // Load Top 25 words for guest mode
+        const { data: top25Words, error } = await supabase
+          .from('words')
+          .select('*')
+          .eq('tier', 'top_25')
+          .limit(10);
+
+        if (error || !top25Words || top25Words.length === 0) {
+          router.push('/dashboard');
+          return;
+        }
+
+        // Add words to guest active pool
+        await guestModeManager.addWordsToActivePool(top25Words);
+        
+        // Get updated active pool
+        const updatedActivePool = guestModeManager.getActivePoolWords();
+        if (updatedActivePool.length === 0) {
+          router.push('/dashboard');
+          return;
+        }
+
+        // Use first 3 words for study session
+        const selectedWords = updatedActivePool.slice(0, 3);
+        
+        const studyWords: Word[] = selectedWords.map(w => ({
+          id: w.id,
+          word: w.word,
+          definition: w.definition,
+          part_of_speech: w.part_of_speech,
+          tier: w.tier,
+          difficulty: w.difficulty,
+          image_url: w.image_urls?.[0] || undefined,
+          image_urls: w.image_urls || [],
+          image_descriptions: w.image_descriptions || [],
+          synonyms: w.synonyms || [],
+          antonyms: w.antonyms || [],
+          example_sentence: w.example_sentence,
+          created_at: w.created_at
+        }));
+
+        // Pre-load distractors
+        const distractorsMap = await preloadDistractors(studyWords);
+        setPreloadedDistractors(distractorsMap);
+
+        setSession({
+          words: studyWords,
+          currentIndex: 0,
+          score: 0,
+          totalQuestions: studyWords.length,
+          answers: {},
+          promotedWords: [],
+          startTime: new Date(),
+          wordResults: []
+        });
+        
+        console.log('Guest study session initialized with', studyWords.length, 'words');
+        return;
+      }
+
+      // Use first 3 words from active pool
+      const selectedWords = activePoolWords.slice(0, 3);
+      
+      const studyWords: Word[] = selectedWords.map(w => ({
+        id: w.id,
+        word: w.word,
+        definition: w.definition,
+        part_of_speech: w.part_of_speech,
+        tier: w.tier,
+        difficulty: w.difficulty,
+        image_url: w.image_urls?.[0] || undefined,
+        image_urls: w.image_urls || [],
+        image_descriptions: w.image_descriptions || [],
+        synonyms: w.synonyms || [],
+        antonyms: w.antonyms || [],
+        example_sentence: w.example_sentence,
+        created_at: w.created_at
+      }));
+
+      // Pre-load distractors
+      const distractorsMap = await preloadDistractors(studyWords);
+      setPreloadedDistractors(distractorsMap);
+
+      setSession({
+        words: studyWords,
+        currentIndex: 0,
+        score: 0,
+        totalQuestions: studyWords.length,
+        answers: {},
+        promotedWords: [],
+        startTime: new Date(),
+        wordResults: []
+      });
+      
+      console.log('Guest study session initialized with', studyWords.length, 'words');
+    } catch (error) {
+      console.error('Error initializing guest study session:', error);
+      router.push('/dashboard');
     } finally {
       setLoading(false);
     }
@@ -719,26 +868,6 @@ export default function StudySession() {
       allResults: allWordResults.map(r => ({ word: r.word, correct: r.correct }))
     });
     
-    // Update word states for all words in the session
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      for (const result of effectiveWordResults) {
-        if (!result.correct) {
-          // For skipped/incorrect words, ensure they stay in 'started' state
-          // so they can be studied again
-          await wordStateManager.markWordAsStarted(user.id, result.wordId);
-        }
-      }
-    }
-    
-    // Session complete - pass session data to summary
-    console.log('Session being finished:', {
-      totalQuestions: session.totalQuestions,
-      score: effectiveScore,
-      wordResultsCount: effectiveWordResults.length,
-      wordResults: effectiveWordResults.map((r: any) => ({ word: r.word, correct: r.correct, wordId: r.wordId }))
-    });
-
     // Deduplicate word results before sending to summary - keep the best entry for each word
     const uniqueResults = new Map();
     allWordResults.forEach(result => {
@@ -783,7 +912,58 @@ export default function StudySession() {
       originalWords: effectiveWordResults.map((r: any) => r.word),
       deduplicatedWords: deduplicatedResults.map((r: any) => r.word)
     });
+
+    // Update word states for all words in the session
+    if (isGuest) {
+      // Handle guest mode session completion
+      const sessionData = {
+        session_type: 'study',
+        words_studied: actualTotalQuestions,
+        correct_answers: actualScore,
+        words_promoted: actualScore,
+        words_mastered: 0,
+        started_at: session.startTime?.toISOString() || new Date().toISOString(),
+        completed_at: new Date().toISOString(),
+        wordResults: deduplicatedResults.map(result => ({
+          word: result.word,
+          definition: result.definition,
+          correct: result.correct,
+          userInput: result.selectedAnswer,
+          correctAnswer: result.correctAnswer,
+          tier: result.tier,
+          fromState: result.fromState,
+          toState: result.toState,
+          wordId: result.wordId
+        }))
+      };
+      
+      // Add session to guest history
+      guestModeManager.addSession(sessionData as any);
+      
+      console.log('Guest study session completed:', sessionData);
+      const encodedData = encodeURIComponent(JSON.stringify(sessionData));
+      router.push(`/study-summary?data=${encodedData}`);
+      return;
+    }
     
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      for (const result of effectiveWordResults) {
+        if (!result.correct) {
+          // For skipped/incorrect words, ensure they stay in 'started' state
+          // so they can be studied again
+          await wordStateManager.markWordAsStarted(user.id, result.wordId);
+        }
+      }
+    }
+    
+    // Session complete - pass session data to summary
+    console.log('Session being finished:', {
+      totalQuestions: session.totalQuestions,
+      score: effectiveScore,
+      wordResultsCount: effectiveWordResults.length,
+      wordResults: effectiveWordResults.map((r: any) => ({ word: r.word, correct: r.correct, wordId: r.wordId }))
+    });
 
     const sessionData = {
       session_type: 'study',
@@ -957,6 +1137,14 @@ export default function StudySession() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      {/* Guest Mode Banner */}
+      {isGuest && (
+        <GuestModeBanner 
+          showConversionCTA={true}
+          masteredWords={session?.wordResults.filter(r => r.correct).length || 0}
+        />
+      )}
+
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -972,7 +1160,10 @@ export default function StudySession() {
             
             <div className="flex items-center space-x-4">
               <button
-                onClick={() => supabase.auth.signOut()}
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  router.push('/auth/login');
+                }}
                 className="text-gray-500 hover:text-gray-700"
               >
                 Sign Out
