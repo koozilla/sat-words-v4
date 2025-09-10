@@ -104,26 +104,83 @@ export default function MasteredWords() {
   };
 
   const loadGuestMasteredWords = async () => {
-    // Mock data for guest mode
-    setMasteredWords([]);
+    try {
+      // Import guest mode manager
+      const { guestModeManager } = await import('@/lib/guest-mode-manager');
+      
+      // Get mastered words from guest data
+      const masteredWords = guestModeManager.getMasteredWords();
+      
+      if (masteredWords.length > 0) {
+        // Get full word details from database
+        const { data: wordsData, error } = await supabase
+          .from('words')
+          .select('*')
+          .in('id', masteredWords.map(w => w.id));
+
+        if (error) {
+          console.error('Error loading mastered word details:', error);
+          return;
+        }
+
+        if (wordsData) {
+          const wordsWithImages = wordsData.map(w => ({
+            id: w.id,
+            word: w.word,
+            definition: w.definition,
+            part_of_speech: w.part_of_speech,
+            tier: w.tier,
+            difficulty: w.difficulty,
+            image_url: w.image_urls?.[0] || undefined,
+            synonyms: w.synonyms || [],
+            antonyms: w.antonyms || [],
+            example_sentence: w.example_sentence
+          }));
+          
+          setMasteredWords(wordsWithImages);
+        }
+      } else {
+        setMasteredWords([]);
+      }
+    } catch (error) {
+      console.error('Error loading guest mastered words:', error);
+      setMasteredWords([]);
+    }
   };
 
   const putBackToStudy = async (wordId: string, word: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        alert('You must be logged in to modify word states.');
-        return;
-      }
+      if (isGuest) {
+        // Handle guest mode word reset
+        const { guestModeManager } = await import('@/lib/guest-mode-manager');
+        
+        // Reset word from mastered back to started state in guest data
+        guestModeManager.updateWordProgress(wordId, {
+          state: 'started',
+          study_streak: 0,
+          review_streak: 0
+        });
+        
+        // Remove the word from the mastered words list
+        setMasteredWords(prev => prev.filter(w => w.id !== wordId));
+        
+        console.log(`Word "${word}" has been reset to study state in guest mode`);
+      } else {
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (!user) {
+          alert('You must be logged in to modify word states.');
+          return;
+        }
 
-      // Reset word from mastered back to started state
-      await wordStateManager.markWordAsStarted(user.id, wordId);
-      
-      // Remove the word from the mastered words list
-      setMasteredWords(prev => prev.filter(w => w.id !== wordId));
-      
-      console.log(`Word "${word}" has been reset to study state`);
+        // Reset word from mastered back to started state
+        await wordStateManager.markWordAsStarted(user.id, wordId);
+        
+        // Remove the word from the mastered words list
+        setMasteredWords(prev => prev.filter(w => w.id !== wordId));
+        
+        console.log(`Word "${word}" has been reset to study state`);
+      }
     } catch (error) {
       console.error('Error resetting word to study state:', error);
       alert('Failed to reset word to study state. Please try again.');
