@@ -581,7 +581,7 @@ export default function StudySession() {
       session_type: 'study',
       words_studied: actualTotalQuestions,
       correct_answers: actualScore,
-      words_promoted: session.promotedWords.length,
+      words_promoted: actualScore, // All correct answers are promoted
       words_mastered: 0,
       started_at: session.startTime?.toISOString() || new Date().toISOString(),
       completed_at: new Date().toISOString(),
@@ -609,7 +609,10 @@ export default function StudySession() {
         correct: r.correct,
         userInput: r.userInput,
         selectedAnswer: r.userInput
-      }))
+      })),
+      DEBUG_SESSION_WORDS_COUNT: session.words.length,
+      DEBUG_ACTUAL_SCORE: actualScore,
+      DEBUG_ACTUAL_TOTAL: actualTotalQuestions
     });
     const encodedData = encodeURIComponent(JSON.stringify(sessionData));
     router.push(`/study-summary?data=${encodedData}`);
