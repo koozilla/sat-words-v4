@@ -989,7 +989,7 @@ export default function StudySession() {
           {/* Progress Section */}
           <div className="mb-2 sm:mb-4">
             {/* Progress Bar */}
-            <div className="mb-2">
+            <div className="mb-0">
               <div className="flex justify-between items-center mb-2">
                 <span className="text-sm font-medium text-gray-700">
                   Question {session.currentIndex + 1} of {session.totalQuestions}
@@ -1007,7 +1007,7 @@ export default function StudySession() {
             </div>
             
             {/* Word Info Card */}
-            <div className="bg-gray-50 rounded-lg p-2 text-center mb-1">
+            <div className="bg-gray-50 rounded-lg p-2 text-center -mb-1">
               <div className="text-sm font-medium text-gray-800">
                 {getDisplayTier(currentWord.tier)} • {currentWord.difficulty}
               </div>
